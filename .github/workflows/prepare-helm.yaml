@@ -1,7 +1,7 @@
 name: Push to OCI Helm Repository
 on:
   push:
-    branches: [ main ]
+    branches: [ main, helm ]
     paths:
       - '.github/workflows/prepare-helm.yaml'
       - 'helm/mail-in-a-pods/**'
