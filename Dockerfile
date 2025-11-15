@@ -80,6 +80,8 @@ ARG INSTALL_FAIL2BAN="false"
 # In container orchestration (e.g. Kubernetes), or when you have infront nginx,
 # you don't need local in-container Let's Encrypt. (set to false)
 ARG WITH_SSL="true"
+# In Kubernetes, SSL is handled by cert-manager via ingress, so WITH_SSL should be false
+ARG IN_KUBERNETES="false"
 ARG ENABLE_INTERNAL_BIND="false"
 
 ARG STORAGE_USER="user-data"
@@ -93,15 +95,40 @@ ARG DOVECOT_VERSION
 ARG DOVECOT_BASE_VERSION
 ARG PIGEONHOLE_VERSION
 
+# If IN_KUBERNETES is true, automatically disable WITH_SSL (SSL handled by cert-manager)
+# Compute final WITH_SSL value: if IN_KUBERNETES=true, force WITH_SSL=false
+# Since ENV doesn't support conditionals, we compute it and override WITH_SSL ARG
+RUN if [ "${IN_KUBERNETES}" = "true" ]; then \
+        echo "IN_KUBERNETES=true detected, forcing WITH_SSL=false"; \
+        # Override WITH_SSL for subsequent RUN commands by setting it in environment
+        export WITH_SSL="false"; \
+        echo "WITH_SSL=false" > /tmp/override_with_ssl; \
+    else \
+        echo "WITH_SSL=${WITH_SSL}" > /tmp/override_with_ssl; \
+    fi
+
+# Set environment variables
 ENV INSTALL_FAIL2BAN=${INSTALL_FAIL2BAN} \
     STORAGE_USER=${STORAGE_USER} \
     STORAGE_ROOT=${STORAGE_ROOT} \
     PRIVATE_IP=${PRIVATE_IP} \
     PRIVATE_IPV6=${PRIVATE_IPV6} \
     DEFAULT_MTA_STS_MODE=${DEFAULT_MTA_STS_MODE} \
-    WITH_SSL=${WITH_SSL} \
     ENABLE_INTERNAL_BIND=${ENABLE_INTERNAL_BIND} \
-    MAILINABOX_VERSION=${MAILINABOX_VERSION}
+    MAILINABOX_VERSION=${MAILINABOX_VERSION} \
+    IN_KUBERNETES=${IN_KUBERNETES}
+
+# Set WITH_SSL from computed value
+# Read the computed value and set it in environment files for runtime
+# Keep the file for use in subsequent RUN commands
+RUN FINAL_WITH_SSL=$(cat /tmp/override_with_ssl | cut -d'=' -f2) && \
+    echo "WITH_SSL=${FINAL_WITH_SSL}" >> /etc/environment && \
+    echo "export WITH_SSL=${FINAL_WITH_SSL}" >> /etc/profile.d/mailinabox.sh
+
+# Set WITH_SSL in ENV
+# For build-time, we use the original WITH_SSL value
+# At runtime, it will be overridden by /etc/environment if IN_KUBERNETES=true
+ENV WITH_SSL=${WITH_SSL}
 
 # Install runtime dependencies and git for cloning
 RUN apk add --no-cache \
@@ -228,7 +255,9 @@ RUN mkdir -p /usr/local/lib/mailinabox/vendor/assets && \
 ################################################################################
 
 # Optional SSL tooling
-RUN if [ "${WITH_SSL}" = "true" ]; then \
+# Read WITH_SSL from computed value if available, otherwise use original
+RUN WITH_SSL_VALUE=$(cat /tmp/override_with_ssl 2>/dev/null | cut -d'=' -f2 || echo "${WITH_SSL}") && \
+    if [ "${WITH_SSL_VALUE}" = "true" ]; then \
         apk add --no-cache openssl certbot; \
     fi
 
@@ -238,10 +267,6 @@ WORKDIR /opt
 # Clone the specified release tag
 RUN git clone --depth 1 --branch "${MAILINABOX_VERSION}" "${MAILINABOX_REPO_URL}" MailInABox
 
-COPY mailinabox/setup/network-checks.sh /opt/MailInABox/setup/network-checks.sh
-COPY mailinabox/setup/preflight.sh /opt/MailInABox/setup/preflight.sh
-COPY mailinabox/setup/start.sh /opt/MailInABox/setup/start.sh
-COPY mailinabox/setup/mail-postfix.sh /opt/MailInABox/setup/mail-postfix.sh
 COPY mailinabox-patch/management/*.py /opt/MailInABox/management/
 COPY mailinabox-config/ /opt/mailinabox-config/
 COPY install/ /opt/install/
@@ -269,7 +294,11 @@ RUN /bin/sh /opt/install/setup_fail2ban.sh
 
 # Generate default SSL assets (optional)
 # Will be skipped if WITH_SSL is false.
-RUN /bin/sh /opt/install/setup_ssl_base.sh
+# Read WITH_SSL from computed value if available
+RUN WITH_SSL_VALUE=$(cat /tmp/override_with_ssl 2>/dev/null | cut -d'=' -f2 || echo "${WITH_SSL}") && \
+    if [ "${WITH_SSL_VALUE}" = "true" ]; then \
+        /bin/sh /opt/install/setup_ssl_base.sh; \
+    fi
 
 # Base Postfix installation/configuration (runtime-specific tweaks handled later).
 RUN /bin/bash /opt/install/setup_mail_postfix_base.sh
@@ -281,6 +310,9 @@ RUN /bin/bash /opt/install/setup_dkim.sh
 RUN /bin/sh /opt/install/setup_web_base.sh
 # Install Mail-in-a-Box management daemon
 RUN /bin/sh /opt/install/setup_mailinabox.sh
+
+# Clean up temporary file after all uses
+RUN rm -f /tmp/override_with_ssl
 
 # Wait a maximum of 5 minutes for services to start
 # It is needed because the SSL certificate generation can take several minutes:

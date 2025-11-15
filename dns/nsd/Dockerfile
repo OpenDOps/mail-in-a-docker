@@ -4,7 +4,6 @@ RUN apk add --no-cache bash nsd ldns ldns-tools openssh-client coreutils tzdata 
 
 COPY entrypoint/setup_nsd_runtime.sh /opt/install/setup_nsd.sh
 COPY dns/nsd/entrypoint.sh /usr/local/bin/nsd-entrypoint.sh
-COPY mailinabox/ /opt/MailInABox/
 
 RUN chmod +x /opt/install/setup_nsd.sh /usr/local/bin/nsd-entrypoint.sh
 

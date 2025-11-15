@@ -96,3 +96,6 @@ secrets/
 
 # Private kubeconfig
 kubeconfig*.yaml
+
+# Mail-in-a-Box working copy
+mailinabox/
