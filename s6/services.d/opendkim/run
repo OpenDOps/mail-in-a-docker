@@ -1,0 +1,5 @@
+#!/command/with-contenv sh
+set -e
+
+exec /usr/sbin/opendkim -f -x /etc/opendkim.conf
+

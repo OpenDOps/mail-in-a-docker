@@ -1,0 +1,25 @@
+#!/command/with-contenv sh
+set -eu
+
+cleanup() {
+	if [ -n "${DOVECOT_PID:-}" ] && kill -0 "$DOVECOT_PID" 2>/dev/null; then
+		kill -TERM "$DOVECOT_PID" 2>/dev/null || true
+		wait "$DOVECOT_PID" 2>/dev/null || true
+	fi
+}
+trap cleanup TERM INT QUIT
+
+dovecot -F &
+DOVECOT_PID=$!
+  
+(
+	for _ in $(seq 1 30); do
+		if [ -S /run/dovecot/auth-userdb ]; then
+			doveadm quota recalc -A >/dev/null 2>&1 || true
+			break
+		fi
+		sleep 1
+	done
+) &
+
+wait "$DOVECOT_PID"

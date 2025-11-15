@@ -1,0 +1,23 @@
+{{- /*
+  This template generates Ingress resources dynamically based on mailinabox domains.
+  Note: This is a placeholder - the mailinabox management daemon should be modified
+  to generate Ingress resources instead of nginx configs when IN_KUBERNETES=true.
+  
+  For now, you need to manually create Ingress resources or use a controller that
+  watches for domain changes and creates Ingress resources automatically.
+*/ -}}
+{{- if .Values.ingress.enabled }}
+{{- /* 
+  TODO: Integrate with mailinabox management daemon to generate Ingress resources
+  dynamically based on domains configured in mailinabox.
+  
+  The mailinabox management daemon should:
+  1. Detect IN_KUBERNETES=true environment variable
+  2. Generate Ingress resources instead of nginx configs
+  3. Use Kubernetes API to create/update Ingress resources
+  4. Handle SSL certificates via cert-manager annotations
+  
+  For now, use the static ingress.yaml template and manually add domains.
+*/ -}}
+{{- end }}
+

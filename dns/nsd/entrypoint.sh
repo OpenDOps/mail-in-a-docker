@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+
+: "${STORAGE_USER:=user-data}"
+: "${DEFAULT_MTA_STS_MODE:=enforce}"
+: "${STORAGE_ROOT:=/home/user-data}"
+: "${NSD_LISTEN_IPV4:=0.0.0.0}"
+: "${NSD_LISTEN_IPV6:=}"
+: "${DNSSEC_ALGORITHMS:=RSASHA256 ECDSAP256SHA256}"
+: "${PRIMARY_HOSTNAME:=box.example.com}"
+: "${PUBLIC_IP:=127.0.0.1}"
+: "${PUBLIC_IPV6:=}"
+: "${PRIVATE_IP:=127.0.0.1}"
+: "${PRIVATE_IPV6:=}"
+
+export STORAGE_USER DEFAULT_MTA_STS_MODE STORAGE_ROOT \
+       NSD_LISTEN_IPV4 NSD_LISTEN_IPV6 DNSSEC_ALGORITHMS \
+       PRIMARY_HOSTNAME PUBLIC_IP PUBLIC_IPV6 PRIVATE_IP PRIVATE_IPV6
+
+cat > /etc/mailinabox.conf <<EOF
+STORAGE_USER=${STORAGE_USER}
+STORAGE_ROOT=${STORAGE_ROOT}
+PRIMARY_HOSTNAME=${PRIMARY_HOSTNAME}
+PUBLIC_IP=${PUBLIC_IP}
+PUBLIC_IPV6=${PUBLIC_IPV6}
+PRIVATE_IP=${PRIVATE_IP}
+PRIVATE_IPV6=${PRIVATE_IPV6}
+MTA_STS_MODE=${DEFAULT_MTA_STS_MODE}
+EOF
+/opt/install/setup_nsd.sh
+
+if command -v crond >/dev/null 2>&1; then
+    crond
+fi
+exec nsd -d -c /etc/nsd/nsd.conf
+

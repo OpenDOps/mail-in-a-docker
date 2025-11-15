@@ -1,0 +1,34 @@
+#!/command/with-contenv sh
+set -e
+
+# Watch for nginx config reload trigger
+# The mailinabox management daemon touches .reload file when config changes
+RELOAD_TRIGGER="/etc/nginx/conf.d/.reload"
+LAST_RELOAD=""
+
+# Wait for initial config to exist
+while [ ! -f /etc/nginx/conf.d/local.conf ]; do
+    sleep 1
+done
+
+echo "Nginx reload watcher started"
+
+# Monitor for config changes
+while true; do
+    if [ -f "$RELOAD_TRIGGER" ]; then
+        CURRENT_RELOAD=$(cat "$RELOAD_TRIGGER" 2>/dev/null || echo "")
+        if [ "$CURRENT_RELOAD" != "$LAST_RELOAD" ]; then
+            echo "Nginx config changed, reloading..."
+            if nginx -t 2>/dev/null; then
+                nginx -s reload
+                echo "Nginx reloaded successfully"
+                LAST_RELOAD="$CURRENT_RELOAD"
+            else
+                echo "Warning: nginx config test failed, skipping reload"
+                nginx -t || true
+            fi
+        fi
+    fi
+    sleep 2
+done
+

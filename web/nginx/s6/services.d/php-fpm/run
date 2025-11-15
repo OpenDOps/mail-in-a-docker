@@ -1,0 +1,18 @@
+#!/command/with-contenv sh
+set -e
+
+: "${PHP_VER:=8.2}"
+: "${WITH_PHP:=true}"
+
+# Only start PHP-FPM if WITH_PHP is true
+if [ "${WITH_PHP}" != "true" ]; then
+    echo "PHP-FPM disabled (WITH_PHP=${WITH_PHP}), exiting..."
+    exit 0
+fi
+
+# Convert PHP version from 8.2 to 82 for Alpine package naming
+PHP_VER_DIR=$(echo "${PHP_VER}" | tr -d '.')
+
+# Alpine uses php-fpm82 format (not php82-fpm)
+exec php-fpm${PHP_VER_DIR} -F
+

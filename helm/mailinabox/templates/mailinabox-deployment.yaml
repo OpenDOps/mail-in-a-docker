@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-mailinabox
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: mailinabox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mailinabox.selectorLabels" . | nindent 6 }}
+      component: mailinabox
+  template:
+    metadata:
+      labels:
+        {{- include "mailinabox.selectorLabels" . | nindent 8 }}
+        component: mailinabox
+    spec:
+      containers:
+      - name: mailinabox
+        image: "{{ .Values.mailinabox.image.repository }}:{{ .Values.mailinabox.image.tag }}"
+        imagePullPolicy: {{ .Values.mailinabox.image.pullPolicy }}
+        env:
+        - name: ENABLE_INTERNAL_DNS
+          value: {{ .Values.mailinabox.env.enableInternalDns | quote | lower }}
+        - name: LOCAL_RESOLVER
+          value: {{ .Values.mailinabox.env.localResolver | quote }}
+        - name: STORAGE_USER
+          value: {{ .Values.mailinabox.env.storageUser | quote }}
+        - name: STORAGE_ROOT
+          value: {{ .Values.mailinabox.env.storageRoot | quote }}
+        - name: PRIMARY_HOSTNAME
+          value: {{ .Values.mailinabox.env.primaryHostname | quote }}
+        - name: PUBLIC_IP
+          value: {{ .Values.mailinabox.env.publicIP | quote }}
+        - name: PUBLIC_IPV6
+          value: {{ .Values.mailinabox.env.publicIPV6 | quote }}
+        - name: PRIVATE_IP
+          value: {{ .Values.mailinabox.env.privateIP | quote }}
+        - name: PRIVATE_IPV6
+          value: {{ .Values.mailinabox.env.privateIPV6 | quote }}
+        - name: DEFAULT_MTA_STS_MODE
+          value: {{ .Values.mailinabox.env.defaultMtaStsMode | quote }}
+        - name: PHP_VER
+          value: {{ .Values.mailinabox.env.phpVer | quote }}
+        - name: MTA_STS_MODE
+          value: {{ .Values.mailinabox.env.mtaStsMode | quote }}
+        - name: IN_A_DOCKER
+          value: {{ .Values.mailinabox.env.inADocker | quote }}
+        - name: IN_KUBERNETES
+          value: "true"  # Disable nginx config generation, use Ingress resources instead
+        - name: MAILINABOX_VERSION
+          value: {{ .Values.mailinabox.version | quote }}
+        - name: WITH_SSL
+          value: {{ .Values.mailinabox.withSSL | quote | lower }}
+        - name: INSTALL_FAIL2BAN
+          value: {{ .Values.mailinabox.installFail2ban | quote | lower }}
+        - name: ENABLE_INTERNAL_BIND
+          value: {{ .Values.mailinabox.enableInternalBind | quote | lower }}
+        # Cert-manager certificate paths (mounted from secret)
+        # Cert-manager creates secrets with keys: tls.crt and tls.key
+        - name: SSL_CERTIFICATE
+          value: "/etc/ssl/certs/tls.crt"
+        - name: SSL_KEY
+          value: "/etc/ssl/private/tls.key"
+        ports:
+        - name: http
+          containerPort: 10222
+          protocol: TCP
+        volumeMounts:
+        - name: mail-storage
+          mountPath: {{ .Values.mailinabox.env.storageRoot }}
+        # Nginx config generation disabled in Kubernetes mode (using Ingress resources instead)
+        # - name: nginx-config
+        #   mountPath: /var/lib/mailinabox/nginx-config
+        - name: roundcubemail
+          mountPath: /usr/local/lib/roundcubemail
+        - name: owncloud
+          mountPath: /usr/local/lib/owncloud
+        - name: zpush
+          mountPath: /usr/local/lib/z-push
+        - name: mailinabox-assets
+          mountPath: /usr/local/lib/mailinabox/vendor/assets
+        # Cert-manager certificate mount
+        - name: tls-cert
+          mountPath: /etc/ssl/certs/tls.crt
+          subPath: tls.crt
+          readOnly: true
+        - name: tls-key
+          mountPath: /etc/ssl/private/tls.key
+          subPath: tls.key
+          readOnly: true
+        resources:
+          {{- toYaml .Values.mailinabox.resources | nindent 10 }}
+      volumes:
+      - name: mail-storage
+        persistentVolumeClaim:
+          claimName: {{ include "mailinabox.fullname" . }}-storage
+      # Nginx config PVC removed - using Ingress resources instead in Kubernetes
+      # - name: nginx-config
+      #   persistentVolumeClaim:
+      #     claimName: {{ include "mailinabox.fullname" . }}-nginx-config
+      - name: roundcubemail
+        persistentVolumeClaim:
+          claimName: {{ include "mailinabox.fullname" . }}-roundcubemail
+      - name: owncloud
+        persistentVolumeClaim:
+          claimName: {{ include "mailinabox.fullname" . }}-owncloud
+      - name: zpush
+        persistentVolumeClaim:
+          claimName: {{ include "mailinabox.fullname" . }}-zpush
+      - name: mailinabox-assets
+        persistentVolumeClaim:
+          claimName: {{ include "mailinabox.fullname" . }}-mailinabox-assets
+      # Cert-manager certificate secret (mounted twice with different subPaths)
+      - name: tls-cert
+        secret:
+          secretName: {{ .Values.ingress.tls[0].secretName }}
+          items:
+          - key: tls.crt
+            path: tls.crt
+      - name: tls-key
+        secret:
+          secretName: {{ .Values.ingress.tls[0].secretName }}
+          items:
+          - key: tls.key
+            path: tls.key
+      dnsPolicy: ClusterFirst
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-mailinabox
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: mailinabox
+spec:
+  type: {{ .Values.mailinabox.service.type }}
+  ports:
+    - port: {{ .Values.mailinabox.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "mailinabox.selectorLabels" . | nindent 4 }}
+    component: mailinabox
+

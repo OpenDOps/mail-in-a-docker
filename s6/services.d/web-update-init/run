@@ -1,0 +1,44 @@
+#!/command/with-contenv sh
+set -e
+
+# This is a one-time service that waits for the management daemon to start
+# and then calls web_update to generate nginx configuration
+
+echo "DEBUG: web-update-init service started" >&2
+
+# Wait for the management daemon to be ready
+MAX_WAIT=60
+WAIT_COUNT=0
+while ! nc -z 127.0.0.1 10222 2>/dev/null && [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+    echo "DEBUG: Waiting for management daemon on 127.0.0.1:10222... ($WAIT_COUNT/$MAX_WAIT)" >&2
+    sleep 1
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+done
+
+if nc -z 127.0.0.1 10222 2>/dev/null; then
+    echo "DEBUG: Management daemon is ready, calling web_update..." >&2
+    if [ -f /opt/MailInABox/tools/web_update ]; then
+        bash /opt/MailInABox/tools/web_update || echo "WARNING: web_update failed, but continuing..." >&2
+    else
+        echo "WARNING: /opt/MailInABox/tools/web_update not found" >&2
+    fi
+else
+    echo "WARNING: Management daemon not ready after ${MAX_WAIT}s, skipping web_update" >&2
+fi
+
+# Create default homepage if it doesn't exist
+mkdir -p "$STORAGE_ROOT/www/default"
+if [ ! -f "${STORAGE_ROOT}/www/default/index.html" ] && [ -f /opt/mailinabox-conf/www_default.html ]; then
+    cp /opt/mailinabox-conf/www_default.html "${STORAGE_ROOT}/www/default/index.html"
+fi
+
+# This is a one-time service, so exit after completion
+# Down the service BEFORE exiting to prevent s6 from restarting
+# The service directory exists at /run/service/web-update-init when the service is active
+if [ -d /run/service/web-update-init ]; then
+    s6-svc -d /run/service/web-update-init 2>/dev/null || echo "Note: Could not down service (might already be down)" >&2
+fi
+# Also create down file as safeguard
+touch /etc/services.d/web-update-init/down 2>/dev/null || true
+exit 0
+

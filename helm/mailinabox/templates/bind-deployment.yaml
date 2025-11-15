@@ -1,0 +1,69 @@
+{{- if .Values.bind.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-bind
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: bind
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mailinabox.selectorLabels" . | nindent 6 }}
+      component: bind
+  template:
+    metadata:
+      labels:
+        {{- include "mailinabox.selectorLabels" . | nindent 8 }}
+        component: bind
+    spec:
+      containers:
+      - name: bind
+        image: "{{ .Values.bind.image.repository }}:{{ .Values.bind.image.tag }}"
+        imagePullPolicy: {{ .Values.bind.image.pullPolicy }}
+        env:
+        - name: BIND_LISTEN_ADDRESSES
+          value: "0.0.0.0"
+        - name: BIND_ALLOW_RECURSION
+          value: "any"
+        ports:
+        - name: dns-udp
+          containerPort: 53
+          protocol: UDP
+        - name: dns-tcp
+          containerPort: 53
+          protocol: TCP
+        volumeMounts:
+        - name: bind-state
+          mountPath: /var/bind
+        resources:
+          {{- toYaml .Values.bind.resources | nindent 10 }}
+      volumes:
+      - name: bind-state
+        persistentVolumeClaim:
+          claimName: {{ include "mailinabox.fullname" . }}-bind-state
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-bind
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: bind
+spec:
+  type: ClusterIP
+  ports:
+    - port: 53
+      targetPort: dns-udp
+      protocol: UDP
+      name: dns-udp
+    - port: 53
+      targetPort: dns-tcp
+      protocol: TCP
+      name: dns-tcp
+  selector:
+    {{- include "mailinabox.selectorLabels" . | nindent 4 }}
+    component: bind
+{{- end }}
+

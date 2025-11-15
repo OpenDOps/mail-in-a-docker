@@ -1,0 +1,5 @@
+#!/command/with-contenv sh
+set -eu
+
+# dcron uses -f (foreground) -S (log to syslog) flags
+exec crond -f -S

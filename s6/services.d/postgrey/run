@@ -1,0 +1,27 @@
+#!/command/with-contenv sh
+set -eu
+
+# shellcheck disable=SC1091
+[ -f /etc/default/postgrey ] && . /etc/default/postgrey
+
+# We get the database directory from the POSTGREY_OPTS environment variable
+POSTGREY_DB_DIR=/var/lib/postgrey/db
+if [ -n "${POSTGREY_OPTS:-}" ]; then
+    DB_OPT=$(printf '%s\n' "$POSTGREY_OPTS" | tr ' ' '\n' | grep '^--dbdir=' || true)
+    if [ -n "$DB_OPT" ]; then
+        POSTGREY_DB_DIR=${DB_OPT#--dbdir=}
+    fi
+fi
+
+mkdir -p "$POSTGREY_DB_DIR"
+chown -R postgrey:postgrey "$(dirname "$POSTGREY_DB_DIR")" 2>/dev/null || true
+
+set -- /usr/sbin/postgrey
+if [ -n "${POSTGREY_OPTS:-}" ]; then
+    set -- /usr/sbin/postgrey $POSTGREY_OPTS
+fi
+
+# Suppress "setpgid: Operation not permitted" errors from s6-setuidgid
+# These are harmless - the process will still run correctly without setpgid
+# Postgrey's actual errors are logged through its own mechanisms
+exec s6-setuidgid postgrey "$@" 2>/dev/null

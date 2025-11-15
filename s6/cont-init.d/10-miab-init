@@ -1,0 +1,64 @@
+#!/command/with-contenv bash
+# Exit immediately on any error, treat unset variables as errors, and fail pipelines
+set -euo pipefail
+
+# Also enable error tracing for debugging
+set -x
+
+echo "Running MIAB init"
+
+# Helper function to check required environment variables and fail if missing
+check_required_env() {
+	local var_name="$1"
+	local var_value="${!var_name:-}"
+	if [ -z "$var_value" ]; then
+		echo "ERROR: Required environment variable '$var_name' is not set" >&2
+		echo "ERROR: Init script will exit with failure" >&2
+		return 1
+	fi
+}
+
+# Check required environment variables - exit immediately if missing
+check_required_env "STORAGE_ROOT" || exit 1
+check_required_env "PRIMARY_HOSTNAME" || exit 1
+check_required_env "PUBLIC_IP" || exit 1
+check_required_env "MTA_STS_MODE" || exit 1
+# check_required_env "PUBLIC_IPV6" || exit 1
+
+RESOLVER="${LOCAL_RESOLVER:-127.0.0.1}"
+printf "nameserver %s\n" "$RESOLVER" > /etc/resolv.conf
+
+cd /opt/MailInABox
+
+# Prepare storage user, data root, and initial configuration
+bash /opt/entrypoint/setup_storage.sh
+
+# Create a backup directory and a random key for encrypting backups.
+mkdir -p "$STORAGE_ROOT/backup"
+if [ ! -f "$STORAGE_ROOT/backup/secret_key.txt" ]; then
+	(umask 077; openssl rand -base64 2048 > "$STORAGE_ROOT/backup/secret_key.txt")
+fi
+
+# It creates the mail/users.sqlite database and the tables if needed.
+bash /opt/entrypoint/setup_mail_users_runtime.sh
+
+bash /opt/entrypoint/setup_mail_postfix_runtime.sh
+bash /opt/entrypoint/setup_mail_dovecot_runtime.sh
+
+# It creates the mail/dkim directory and the DKIM key.
+bash /opt/entrypoint/setup_dkim_runtime.sh
+
+# Generate default SSL assets (optional)
+bash /opt/entrypoint/setup_ssl_runtime.sh
+
+# Setup web (ios-profile.xml, mozilla-autoconfig.xml, mta-sts.txt)
+bash /opt/entrypoint/setup_web_runtime.sh
+
+echo "DEBUG: MIAB init completed"
+
+# It writes the mailinabox.version file to the storage root,
+# and do the migrations if needed.
+python3 /opt/entrypoint/migrate.py
+
+# Remove the down file to allow s6 to restart the service
+rm -rf /etc/services.d/web-update-init/down

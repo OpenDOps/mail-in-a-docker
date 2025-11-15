@@ -1,0 +1,135 @@
+{{- if .Values.mailinabox.storage.size }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-storage
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mailinabox.storage.size }}
+  {{- if include "mailinabox.storageClass" .Values.mailinabox.storage }}
+  storageClassName: {{ include "mailinabox.storageClass" .Values.mailinabox.storage }}
+  {{- end }}
+---
+{{- end }}
+
+{{- if .Values.nsd.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-nsd-conf
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.nsd.storage.size }}
+  {{- if include "mailinabox.storageClass" .Values.nsd.storage }}
+  storageClassName: {{ include "mailinabox.storageClass" .Values.nsd.storage }}
+  {{- end }}
+---
+{{- end }}
+
+{{- if .Values.bind.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-bind-state
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.bind.storage.size }}
+  {{- if include "mailinabox.storageClass" .Values.bind.storage }}
+  storageClassName: {{ include "mailinabox.storageClass" .Values.bind.storage }}
+  {{- end }}
+---
+{{- end }}
+
+{{- if .Values.appVolumes.roundcubemail.size }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-roundcubemail
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.appVolumes.roundcubemail.size }}
+  {{- if include "mailinabox.storageClass" .Values.appVolumes.roundcubemail }}
+  storageClassName: {{ include "mailinabox.storageClass" .Values.appVolumes.roundcubemail }}
+  {{- end }}
+---
+{{- end }}
+
+{{- if .Values.appVolumes.owncloud.size }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-owncloud
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.appVolumes.owncloud.size }}
+  {{- if include "mailinabox.storageClass" .Values.appVolumes.owncloud }}
+  storageClassName: {{ include "mailinabox.storageClass" .Values.appVolumes.owncloud }}
+  {{- end }}
+---
+{{- end }}
+
+{{- if .Values.appVolumes.zpush.size }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-zpush
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.appVolumes.zpush.size }}
+  {{- if include "mailinabox.storageClass" .Values.appVolumes.zpush }}
+  storageClassName: {{ include "mailinabox.storageClass" .Values.appVolumes.zpush }}
+  {{- end }}
+---
+{{- end }}
+
+{{- if .Values.appVolumes.mailinaboxAssets.size }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-mailinabox-assets
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.appVolumes.mailinaboxAssets.size }}
+  {{- if include "mailinabox.storageClass" .Values.appVolumes.mailinaboxAssets }}
+  storageClassName: {{ include "mailinabox.storageClass" .Values.appVolumes.mailinaboxAssets }}
+  {{- end }}
+---
+{{- end }}
+
+{{- /* Nginx config PVC removed - Ingress resources are used instead in Kubernetes */ -}}
+

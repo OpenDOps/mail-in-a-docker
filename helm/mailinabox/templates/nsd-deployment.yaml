@@ -1,0 +1,88 @@
+{{- if .Values.nsd.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-nsd
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: nsd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mailinabox.selectorLabels" . | nindent 6 }}
+      component: nsd
+  template:
+    metadata:
+      labels:
+        {{- include "mailinabox.selectorLabels" . | nindent 8 }}
+        component: nsd
+    spec:
+      containers:
+      - name: nsd
+        image: "{{ .Values.nsd.image.repository }}:{{ .Values.nsd.image.tag }}"
+        imagePullPolicy: {{ .Values.nsd.image.pullPolicy }}
+        env:
+        - name: NSD_LISTEN_IPV4
+          value: {{ .Values.nsd.env.nsdListenIpv4 | quote }}
+        - name: STORAGE_ROOT
+          value: {{ .Values.nsd.env.storageRoot | quote }}
+        - name: STORAGE_USER
+          value: {{ .Values.nsd.env.storageUser | quote }}
+        - name: PRIMARY_HOSTNAME
+          value: {{ .Values.nsd.env.primaryHostname | quote }}
+        - name: PUBLIC_IP
+          value: {{ .Values.nsd.env.publicIP | quote }}
+        - name: PUBLIC_IPV6
+          value: {{ .Values.nsd.env.publicIPV6 | quote }}
+        - name: PRIVATE_IP
+          value: {{ .Values.nsd.env.privateIP | quote }}
+        - name: PRIVATE_IPV6
+          value: {{ .Values.nsd.env.privateIPV6 | quote }}
+        - name: DEFAULT_MTA_STS_MODE
+          value: {{ .Values.nsd.env.defaultMtaStsMode | quote }}
+        ports:
+        - name: dns-udp
+          containerPort: 53
+          protocol: UDP
+        - name: dns-tcp
+          containerPort: 53
+          protocol: TCP
+        volumeMounts:
+        - name: nsd-conf
+          mountPath: /etc/nsd
+        - name: mail-storage
+          mountPath: {{ .Values.nsd.env.storageRoot }}
+        resources:
+          {{- toYaml .Values.nsd.resources | nindent 10 }}
+      volumes:
+      - name: nsd-conf
+        persistentVolumeClaim:
+          claimName: {{ include "mailinabox.fullname" . }}-nsd-conf
+      - name: mail-storage
+        persistentVolumeClaim:
+          claimName: {{ include "mailinabox.fullname" . }}-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-nsd
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: nsd
+spec:
+  type: {{ .Values.nsd.service.type }}
+  ports:
+    - port: 53
+      targetPort: dns-udp
+      protocol: UDP
+      name: dns-udp
+    - port: 53
+      targetPort: dns-tcp
+      protocol: TCP
+      name: dns-tcp
+  selector:
+    {{- include "mailinabox.selectorLabels" . | nindent 4 }}
+    component: nsd
+{{- end }}
+
