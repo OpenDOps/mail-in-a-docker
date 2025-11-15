@@ -1,0 +1,24 @@
+apiVersion: v2
+name: mail-in-a-pods
+description: A Helm chart for Mail-in-a-Pods (fork of Mail-in-a-Box)
+type: application
+version: 0.1.0
+appVersion: "v73"
+keywords:
+  - mail
+  - email
+  - mail-in-a-pods
+  - mailinapods
+  - mail-in-a-docker
+  - mailinadocker
+  - mail-in-a-box
+  - mailinabox
+  - opendops.tech
+  - opendops
+  - kubernetes
+  - helm
+home: https://github.com/OpenDOps/mail-in-a-docker
+maintainers:
+  - name: Alexander Kuprin
+  - name: OpenDOps Team
+

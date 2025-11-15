@@ -95,7 +95,7 @@ secrets/
 !**/conf/**/*.key  # Keep template/example keys
 
 # Private kubeconfig
-kubeconfig*.yaml
+kubeconfig*
 
 # Mail-in-a-Box working copy
 mailinabox/
