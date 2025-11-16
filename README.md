@@ -155,9 +155,59 @@ This repository uses **pre-commit** hooks (see `README-PRE-COMMIT.md` for detail
 Running `pre-commit` locally before committing helps keep the codebase **clean, consistent, and safer by catching issues early**.
 **All commits are expected to pass the pre-commit checks**, and **pull requests that do not pass pre-commit linting will not be accepted**.
 
+### CI/CD workflows: building Docker images and publishing the Helm chart
+
+This repository uses GitHub Actions workflows to automate:
+
+- **Docker image builds** (for `mailinabox`, `nginx`, `nsd`, `bind`) and optional variants
+- **Helm chart publishing** to an OCI registry: `oci://ghcr.io/opendops/mail-in-a-pods`
+
+The Helm publishing workflow (`.github/workflows/prepare-helm.yaml`) runs on pushes to `main`/`helm` that touch Helm files, and on manual `workflow_dispatch`. It:
+
+- Lints the chart with `helm lint`
+- Packages the chart
+- Pushes it to GHCR as an OCI Helm package at `oci://ghcr.io/opendops/mail-in-a-pods`
+
+#### Verifying that the Helm chart is published and public
+
+To verify that the chart was published **and is publicly accessible**:
+
+**Log out from GHCR (to simulate an anonymous user):**
+
+```bash
+helm registry logout ghcr.io 2>/dev/null || true
+```
+
+**Pull the chart from the OCI registry:**
+
+```bash
+helm pull oci://ghcr.io/opendops/mail-in-a-pods --version 0.1.0
+```
+
+**Inspect the chart metadata:**
+
+```bash
+helm show chart oci://ghcr.io/opendops/mail-in-a-pods --version 0.1.0
+```
+
+If these commands succeed without authentication, the chart is published and publicly readable.
+
+If you get `401 unauthorized` or `403 denied`, ensure the GHCR package is public:
+
+- Open the package settings in GitHub (`https://github.com/orgs/OpenDOps/packages/container/mail-in-a-pods/settings`)
+- Set the **Package visibility** to **Public** and save
+
 ## How to build
 
-### Configuration via .env file
+### Public and releases
+
+Use workflows to build and publish
+
+### Local development
+
+Use `docker compose` with root `docker-compose.yml`
+
+#### Configuration via .env file
 
 All default configuration values are defined in the `.env` file, which serves as the **single source of truth** for your MailInABox setup. This approach provides:
 
