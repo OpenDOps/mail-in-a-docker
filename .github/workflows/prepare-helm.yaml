@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  OCI_REGISTRY: oci://ghcr.io/${{ github.repository_owner }}/mail-in-a-pods
+  OCI_REGISTRY: oci://ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}/mail-in-a-pods
   HELM_CHARTS_FOLDER: helm/mail-in-a-pods
 
 jobs:
