@@ -4,4 +4,3 @@ if allof (header :regex "X-Spam-Status" "^Yes") {
   fileinto "Spam";
   stop;
 }
-

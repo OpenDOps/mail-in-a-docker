@@ -2,30 +2,123 @@ ARG DOVECOT_VERSION="2.3.21.1-r0"
 ARG DOVECOT_BASE_VERSION="2.3"
 ARG PIGEONHOLE_VERSION="0.5.21"
 
+# Pin package versions for security (prevents supply chain attacks)
+# These versions are reused across multiple build stages
+ARG BASH_VERSION="5.2.26-r0"
+ARG BUILD_BASE_VERSION="0.5-r3"
+ARG CURL_VERSION="8.14.1-r2"
+ARG TAR_VERSION="1.35-r2"
+ARG PERL_VERSION="5.38.5-r0"
+ARG PERL_DEV_VERSION="5.38.5-r0"
+ARG PERL_APP_CPANMINUS_VERSION="1.7047-r0"
+ARG PERL_DBI_VERSION="1.643-r6"
+ARG PERL_DBD_SQLITE_VERSION="1.74-r0"
+ARG PERL_NET_DNS_VERSION="1.45-r0"
+ARG PERL_NETADDR_IP_VERSION="4.079-r12"
+ARG PERL_LDAP_VERSION="0.68-r2"
+ARG PERL_NET_SERVER_VERSION="2.014-r2"
+ARG PERL_IO_SOCKET_SSL_VERSION="2.085-r0"
+ARG PERL_IO_SOCKET_INET6_VERSION="2.73-r2"
+ARG PERL_IO_MULTIPLEX_VERSION="1.16-r5"
+ARG PERL_CRYPT_SSLEAY_VERSION="0.72-r21"
+ARG PERL_MOZILLA_CA_VERSION="20240313-r0"
+ARG DB_VERSION="5.3.28-r5"
+ARG DB_DEV_VERSION="5.3.28-r5"
+ARG AUTOCONF_VERSION="2.72-r0"
+ARG AUTOMAKE_VERSION="1.16.5-r2"
+ARG LIBTOOL_VERSION="2.4.7-r3"
+ARG PKGCONF_VERSION="2.2.0-r0"
+ARG OPENSSL_DEV_VERSION="3.3.5-r0"
+ARG OPENSSL_VERSION="3.3.5-r0"
+ARG ZLIB_DEV_VERSION="1.3.1-r1"
+ARG XZ_VERSION="5.6.2-r1"
+ARG BC_VERSION="1.07.1-r4"
+ARG CA_CERTIFICATES_VERSION="20250911-r0"
+ARG CHRONY_VERSION="4.5-r0"
+ARG COREUTILS_VERSION="9.5-r2"
+ARG DCRON_VERSION="4.5-r9"
+ARG FILE_VERSION="5.45-r1"
+ARG GIT_VERSION="2.45.4-r0"
+ARG LINUX_HEADERS_VERSION="6.6-r0"
+ARG MUSL_LOCALES_VERSION="0.1.0-r1"
+ARG MUSL_LOCALES_LANG_VERSION="0.1.0-r1"
+ARG NETCAT_OPENBSD_VERSION="1.226-r0"
+ARG OPENSSH_CLIENT_VERSION="9.7_p1-r5"
+ARG POSTFIX_VERSION="3.9.6-r0"
+ARG POSTFIX_SQLITE_VERSION="3.9.6-r0"
+ARG POSTFIX_PCRE_VERSION="3.9.6-r0"
+ARG PYTHON3_VERSION="3.12.12-r0"
+ARG PYTHON3_DEV_VERSION="3.12.12-r0"
+ARG PY3_PIP_VERSION="24.0-r2"
+ARG PY3_SETUPTOOLS_VERSION="70.3.0-r0"
+ARG PY3_WHEEL_VERSION="0.42.0-r1"
+ARG RSYNC_VERSION="3.4.0-r0"
+ARG RSYSLOG_VERSION="8.2404.0-r0"
+ARG SUDO_VERSION="1.9.15_p5-r0"
+ARG TZDATA_VERSION="2025b-r0"
+ARG UNZIP_VERSION="6.0-r14"
+ARG WGET_VERSION="1.24.5-r0"
+ARG SQLITE_VERSION="3.45.3-r2"
+ARG OPENDKIM_VERSION="2.11.0-r3"
+ARG OPENDKIM_UTILS_VERSION="2.11.0-r3"
+ARG OPENDMARC_VERSION="1.4.2-r1"
+ARG DUPLICITY_VERSION="2.2.3-r1"
+ARG PY3_VIRTUALENV_VERSION="20.28.0-r0"
+ARG LIBIDN2_VERSION="2.3.7-r0"
+ARG IDN2_UTILS_VERSION="2.3.7-r0"
+ARG CERTBOT_VERSION="2.10.0-r1"
+ARG BIND_VERSION="9.18.41-r0"
+ARG BIND_TOOLS_VERSION="9.18.41-r0"
+
 # Stage: build Postgrey from source (Alpine)
 FROM alpine:3.20 AS postgrey-builder
 
+# Set SHELL with pipefail for better error handling in RUN commands with pipes
+SHELL ["/bin/sh", "-o", "pipefail", "-c"]
+
+# Redeclare ARG variables for this stage (required for multi-stage builds)
+ARG BASH_VERSION
+ARG BUILD_BASE_VERSION
+ARG CURL_VERSION
+ARG TAR_VERSION
+ARG PERL_DEV_VERSION
+ARG PERL_APP_CPANMINUS_VERSION
+ARG PERL_DBI_VERSION
+ARG PERL_DBD_SQLITE_VERSION
+ARG PERL_NET_DNS_VERSION
+ARG PERL_NETADDR_IP_VERSION
+ARG PERL_LDAP_VERSION
+ARG PERL_NET_SERVER_VERSION
+ARG PERL_IO_SOCKET_SSL_VERSION
+ARG PERL_IO_SOCKET_INET6_VERSION
+ARG PERL_IO_MULTIPLEX_VERSION
+ARG PERL_CRYPT_SSLEAY_VERSION
+ARG PERL_MOZILLA_CA_VERSION
+ARG DB_DEV_VERSION
+
 ARG POSTGREY_VERSION="1.37"
+# Pin package versions for security (prevents supply chain attacks)
+# To update versions: Run ./scripts/pin-package-versions.sh <package> to get current versions
 RUN apk add --no-cache \
-        bash \
-        build-base \
-        curl \
-        perl \
-        perl-dev \
-        perl-app-cpanminus \
-        perl-dbi \
-        perl-dbd-sqlite \
-        perl-net-dns \
-        perl-netaddr-ip \
-        perl-net-ldap \
-        perl-net-server \
-        perl-io-socket-ssl \
-        perl-io-socket-inet6 \
-        perl-io-multiplex \
-        perl-crypt-ssleay \
-        perl-mozilla-ca \
-        db-dev \
-        tar
+        bash=${BASH_VERSION} \
+        build-base=${BUILD_BASE_VERSION} \
+        curl=${CURL_VERSION} \
+        perl=${PERL_DEV_VERSION} \
+        perl-dev=${PERL_DEV_VERSION} \
+        perl-app-cpanminus=${PERL_APP_CPANMINUS_VERSION} \
+        perl-dbi=${PERL_DBI_VERSION} \
+        perl-dbd-sqlite=${PERL_DBD_SQLITE_VERSION} \
+        perl-net-dns=${PERL_NET_DNS_VERSION} \
+        perl-netaddr-ip=${PERL_NETADDR_IP_VERSION} \
+        perl-ldap=${PERL_LDAP_VERSION} \
+        perl-net-server=${PERL_NET_SERVER_VERSION} \
+        perl-io-socket-ssl=${PERL_IO_SOCKET_SSL_VERSION} \
+        perl-io-socket-inet6=${PERL_IO_SOCKET_INET6_VERSION} \
+        perl-io-multiplex=${PERL_IO_MULTIPLEX_VERSION} \
+        perl-crypt-ssleay=${PERL_CRYPT_SSLEAY_VERSION} \
+        perl-mozilla-ca=${PERL_MOZILLA_CA_VERSION} \
+        db-dev=${DB_DEV_VERSION} \
+        tar=${TAR_VERSION}
 RUN cpanm --notest BerkeleyDB
 
 RUN mkdir -p /build/postgrey && cd /build/postgrey && \
@@ -42,29 +135,47 @@ RUN mkdir -p /build/postgrey && cd /build/postgrey && \
 # Stage: build Dovecot pigeonhole from source
 FROM alpine:3.20 AS pigeonhole-builder
 
+# Set SHELL with pipefail for better error handling in RUN commands with pipes
+SHELL ["/bin/sh", "-o", "pipefail", "-c"]
+
 ARG DOVECOT_VERSION
 ARG DOVECOT_BASE_VERSION
 ARG PIGEONHOLE_VERSION
 
+ARG BASH_VERSION
+ARG BUILD_BASE_VERSION
+ARG CURL_VERSION
+ARG AUTOCONF_VERSION
+ARG AUTOMAKE_VERSION
+ARG LIBTOOL_VERSION
+ARG PKGCONF_VERSION
+ARG OPENSSL_DEV_VERSION
+ARG ZLIB_DEV_VERSION
+ARG XZ_VERSION
+
+# We need to use bash for the build process, so we 'ln -sf /bin/bash /bin/sh'
+#hadolint ignore=DL4005
 RUN apk add --no-cache \
-        bash \
-        build-base \
-        curl \
+        bash=${BASH_VERSION} \
+        build-base=${BUILD_BASE_VERSION} \
+        curl=${CURL_VERSION} \
         dovecot=${DOVECOT_VERSION} \
         dovecot-dev=${DOVECOT_VERSION} \
-        autoconf \
-        automake \
-        libtool \
-        pkgconf \
-        openssl-dev \
-        zlib-dev \
-        xz
+        autoconf=${AUTOCONF_VERSION} \
+        automake=${AUTOMAKE_VERSION} \
+        libtool=${LIBTOOL_VERSION} \
+        pkgconf=${PKGCONF_VERSION} \
+        openssl-dev=${OPENSSL_DEV_VERSION} \
+        zlib-dev=${ZLIB_DEV_VERSION} \
+        xz=${XZ_VERSION} \
+    && ln -sf /bin/bash /bin/sh
 
 RUN mkdir -p /build/pigeonhole \
       && cd /build/pigeonhole \
       && curl -fsSL "https://pigeonhole.dovecot.org/releases/${DOVECOT_BASE_VERSION}/dovecot-${DOVECOT_BASE_VERSION}-pigeonhole-${PIGEONHOLE_VERSION}.tar.gz" -o pigeonhole.tar.gz \
       && tar -xzf pigeonhole.tar.gz \
       && cd dovecot-${DOVECOT_BASE_VERSION}-pigeonhole-${PIGEONHOLE_VERSION} \
+      && autoreconf -fiv \
       && ./configure --prefix=/usr --with-dovecot=/usr/lib/dovecot \
       && make \
       && make DESTDIR=/pigeonhole-install install
@@ -72,6 +183,76 @@ RUN mkdir -p /build/pigeonhole \
 
 # Stage: base tooling on Alpine
 FROM alpine:3.20
+
+# Set SHELL with pipefail for better error handling in RUN commands with pipes
+SHELL ["/bin/sh", "-o", "pipefail", "-c"]
+
+# Redeclare all ARG variables for this stage (required for multi-stage builds)
+ARG BASH_VERSION
+ARG BUILD_BASE_VERSION
+ARG CURL_VERSION
+ARG TAR_VERSION
+ARG PERL_VERSION
+ARG PERL_DEV_VERSION
+ARG PERL_APP_CPANMINUS_VERSION
+ARG PERL_DBI_VERSION
+ARG PERL_DBD_SQLITE_VERSION
+ARG PERL_NET_DNS_VERSION
+ARG PERL_NETADDR_IP_VERSION
+ARG PERL_LDAP_VERSION
+ARG PERL_NET_SERVER_VERSION
+ARG PERL_IO_SOCKET_SSL_VERSION
+ARG PERL_IO_SOCKET_INET6_VERSION
+ARG PERL_IO_MULTIPLEX_VERSION
+ARG PERL_CRYPT_SSLEAY_VERSION
+ARG PERL_MOZILLA_CA_VERSION
+ARG DB_VERSION
+ARG DB_DEV_VERSION
+ARG AUTOCONF_VERSION
+ARG AUTOMAKE_VERSION
+ARG LIBTOOL_VERSION
+ARG PKGCONF_VERSION
+ARG OPENSSL_DEV_VERSION
+ARG OPENSSL_VERSION
+ARG ZLIB_DEV_VERSION
+ARG XZ_VERSION
+ARG BC_VERSION
+ARG CA_CERTIFICATES_VERSION
+ARG CHRONY_VERSION
+ARG COREUTILS_VERSION
+ARG DCRON_VERSION
+ARG FILE_VERSION
+ARG GIT_VERSION
+ARG LINUX_HEADERS_VERSION
+ARG MUSL_LOCALES_VERSION
+ARG MUSL_LOCALES_LANG_VERSION
+ARG NETCAT_OPENBSD_VERSION
+ARG OPENSSH_CLIENT_VERSION
+ARG POSTFIX_VERSION
+ARG POSTFIX_SQLITE_VERSION
+ARG POSTFIX_PCRE_VERSION
+ARG PYTHON3_VERSION
+ARG PYTHON3_DEV_VERSION
+ARG PY3_PIP_VERSION
+ARG PY3_SETUPTOOLS_VERSION
+ARG PY3_WHEEL_VERSION
+ARG RSYNC_VERSION
+ARG RSYSLOG_VERSION
+ARG SUDO_VERSION
+ARG TZDATA_VERSION
+ARG UNZIP_VERSION
+ARG WGET_VERSION
+ARG SQLITE_VERSION
+ARG OPENDKIM_VERSION
+ARG OPENDKIM_UTILS_VERSION
+ARG OPENDMARC_VERSION
+ARG DUPLICITY_VERSION
+ARG PY3_VIRTUALENV_VERSION
+ARG LIBIDN2_VERSION
+ARG IDN2_UTILS_VERSION
+ARG CERTBOT_VERSION
+ARG BIND_VERSION
+ARG BIND_TOOLS_VERSION
 
 ARG MAILINABOX_REPO_URL="https://github.com/mail-in-a-box/mailinabox.git"
 ARG MAILINABOX_VERSION="v73"
@@ -121,6 +302,7 @@ ENV INSTALL_FAIL2BAN=${INSTALL_FAIL2BAN} \
 # Set WITH_SSL from computed value
 # Read the computed value and set it in environment files for runtime
 # Keep the file for use in subsequent RUN commands
+# hadolint ignore=DL4006
 RUN FINAL_WITH_SSL=$(cat /tmp/override_with_ssl | cut -d'=' -f2) && \
     echo "WITH_SSL=${FINAL_WITH_SSL}" >> /etc/environment && \
     echo "export WITH_SSL=${FINAL_WITH_SSL}" >> /etc/profile.d/mailinabox.sh
@@ -132,79 +314,86 @@ ENV WITH_SSL=${WITH_SSL}
 
 # Install runtime dependencies and git for cloning
 RUN apk add --no-cache \
-        bash \
-        bc \
-        build-base \
-        ca-certificates \
-        chrony \
-        coreutils \
-        curl \
-        dcron \
-        file \
-        git \
-        linux-headers \
-        musl-locales \
-        musl-locales-lang \
-        netcat-openbsd \
-        openssh-client \
-        postfix \
-        postfix-sqlite \
-        postfix-pcre \
-        python3 \
-        python3-dev \
-        py3-pip \
-        py3-setuptools \
-        py3-wheel \
-        rsync \
-        rsyslog \
-        sudo \
-        tar \
-        tzdata \
-        unzip \
-        wget \
-        xz
+        bash=${BASH_VERSION} \
+        bc=${BC_VERSION} \
+        build-base=${BUILD_BASE_VERSION} \
+        ca-certificates=${CA_CERTIFICATES_VERSION} \
+        chrony=${CHRONY_VERSION} \
+        coreutils=${COREUTILS_VERSION} \
+        curl=${CURL_VERSION} \
+        dcron=${DCRON_VERSION} \
+        file=${FILE_VERSION} \
+        git=${GIT_VERSION} \
+        linux-headers=${LINUX_HEADERS_VERSION} \
+        musl-locales=${MUSL_LOCALES_VERSION} \
+        musl-locales-lang=${MUSL_LOCALES_LANG_VERSION} \
+        netcat-openbsd=${NETCAT_OPENBSD_VERSION} \
+        openssh-client-default=${OPENSSH_CLIENT_VERSION} \
+        postfix=${POSTFIX_VERSION} \
+        postfix-sqlite=${POSTFIX_SQLITE_VERSION} \
+        postfix-pcre=${POSTFIX_PCRE_VERSION} \
+        python3=${PYTHON3_VERSION} \
+        python3-dev=${PYTHON3_DEV_VERSION} \
+        py3-pip=${PY3_PIP_VERSION} \
+        py3-setuptools=${PY3_SETUPTOOLS_VERSION} \
+        py3-wheel=${PY3_WHEEL_VERSION} \
+        rsync=${RSYNC_VERSION} \
+        rsyslog=${RSYSLOG_VERSION} \
+        sudo=${SUDO_VERSION} \
+        tar=${TAR_VERSION} \
+        tzdata=${TZDATA_VERSION} \
+        unzip=${UNZIP_VERSION} \
+        wget=${WGET_VERSION} \
+        xz=${XZ_VERSION}
 
-#Install pert needed by postgrey
+#Install perl needed by postgrey
+# Pin package versions for security (prevents supply chain attacks)
 RUN apk add --no-cache \
-        perl \
-        perl-dbi \
-        perl-dbd-sqlite \
-        perl-net-dns \
-        perl-netaddr-ip \
-        perl-net-ldap \
-        perl-net-server \
-        perl-io-socket-ssl \
-        perl-io-socket-inet6 \
-        perl-io-multiplex \
-        perl-crypt-ssleay \
-        perl-mozilla-ca \
-        db
+        perl=${PERL_VERSION} \
+        perl-dbi=${PERL_DBI_VERSION} \
+        perl-dbd-sqlite=${PERL_DBD_SQLITE_VERSION} \
+        perl-net-dns=${PERL_NET_DNS_VERSION} \
+        perl-netaddr-ip=${PERL_NETADDR_IP_VERSION} \
+        perl-ldap=${PERL_LDAP_VERSION} \
+        perl-net-server=${PERL_NET_SERVER_VERSION} \
+        perl-io-socket-ssl=${PERL_IO_SOCKET_SSL_VERSION} \
+        perl-io-socket-inet6=${PERL_IO_SOCKET_INET6_VERSION} \
+        perl-io-multiplex=${PERL_IO_MULTIPLEX_VERSION} \
+        perl-crypt-ssleay=${PERL_CRYPT_SSLEAY_VERSION} \
+        perl-mozilla-ca=${PERL_MOZILLA_CA_VERSION} \
+        db=${DB_VERSION}
 
+# Pin package versions for security (prevents supply chain attacks)
 RUN apk add --no-cache \
         dovecot=${DOVECOT_VERSION} \
         dovecot-lmtpd=${DOVECOT_VERSION} \
         dovecot-sqlite=${DOVECOT_VERSION} \
-        sqlite
+        sqlite=${SQLITE_VERSION}
 # Dovecot packages on alpine include imap, pop3
 # sieve is manually built from source in pigeonhole-builder stage
 
+# Pin package versions for security (prevents supply chain attacks)
 RUN apk add --no-cache \
-        opendkim \
-        opendkim-utils \
-        opendmarc
+        opendkim=${OPENDKIM_VERSION} \
+        opendkim-utils=${OPENDKIM_UTILS_VERSION} \
+        opendmarc=${OPENDMARC_VERSION}
 # opendkim-utils contains the opendkim-genkey command
 
 # duplicity is used to make backups of user data.
 # virtualenv is used to isolate the Python 3 packages we
 # install via pip from the system-installed packages (can be removed as we are in a container).
+# Pin package versions for security (prevents supply chain attacks)
 RUN apk add --no-cache \
-        duplicity \
-        py3-pip \
-        py3-virtualenv \
-        rsync
+        duplicity=${DUPLICITY_VERSION} \
+        py3-pip=${PY3_PIP_VERSION} \
+        py3-virtualenv=${PY3_VIRTUALENV_VERSION} \
+        rsync=${RSYNC_VERSION}
 
 # Install libidn2 (library) and idn2-utils (provides idn2 command-line tool for IDN conversion)
-RUN apk add --no-cache libidn2 idn2-utils
+# Pin package versions for security (prevents supply chain attacks)
+RUN apk add --no-cache \
+        libidn2=${LIBIDN2_VERSION} \
+        idn2-utils=${IDN2_UTILS_VERSION}
 
 
 ARG S6_OVERLAY_VERSION="v3.1.5.0"
@@ -225,26 +414,26 @@ COPY --from=pigeonhole-builder /pigeonhole-install/ /
 
 # Install Mail-in-a-Box management daemon dependencies and assets
 # Install b2sdk and boto3 system-wide (used by duplicity for backups)
-RUN pip3 install --break-system-packages --upgrade b2sdk boto3
+# Copy requirements file for version pinning (security: prevents supply chain attacks)
+COPY requirements-system.txt /tmp/requirements-system.txt
+RUN pip3 install --break-system-packages --no-cache-dir -r /tmp/requirements-system.txt
 
 # Create virtualenv for management daemon Python packages
 RUN mkdir -p /usr/local/lib/mailinabox && \
     virtualenv -ppython3 /usr/local/lib/mailinabox/env
 
 # Install Python packages in virtualenv
-RUN /usr/local/lib/mailinabox/env/bin/pip install --upgrade \
-    rtyaml "email_validator>=1.0.0" "exclusiveprocess" \
-    flask dnspython python-dateutil expiringdict gunicorn \
-    qrcode[pil] pyotp \
-    "idna>=2.0.0" "cryptography==37.0.2" psutil postfix-mta-sts-resolver \
-    b2sdk boto3
+# Copy requirements file for version pinning (security: prevents supply chain attacks)
+COPY requirements.txt /tmp/requirements.txt
+RUN /usr/local/lib/mailinabox/env/bin/pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Download jQuery and Bootstrap assets with checksum verification
+# hadolint ignore=DL4006
 RUN mkdir -p /usr/local/lib/mailinabox/vendor/assets && \
-    wget -O /usr/local/lib/mailinabox/vendor/assets/jquery.min.js \
+    wget --progress=dot:giga -O /usr/local/lib/mailinabox/vendor/assets/jquery.min.js \
         https://code.jquery.com/jquery-2.2.4.min.js && \
     echo "69bb69e25ca7d5ef0935317584e6153f3fd9a88c  /usr/local/lib/mailinabox/vendor/assets/jquery.min.js" | sha1sum -c --strict - && \
-    wget -O /tmp/bootstrap.zip \
+    wget --progress=dot:giga -O /tmp/bootstrap.zip \
         https://github.com/twbs/bootstrap/releases/download/v3.4.1/bootstrap-3.4.1-dist.zip && \
     echo "0bb64c67c2552014d48ab4db81c2e8c01781f580  /tmp/bootstrap.zip" | sha1sum -c --strict - && \
     unzip -q /tmp/bootstrap.zip -d /usr/local/lib/mailinabox/vendor/assets && \
@@ -256,9 +445,10 @@ RUN mkdir -p /usr/local/lib/mailinabox/vendor/assets && \
 
 # Optional SSL tooling
 # Read WITH_SSL from computed value if available, otherwise use original
+# hadolint ignore=DL4006
 RUN WITH_SSL_VALUE=$(cat /tmp/override_with_ssl 2>/dev/null | cut -d'=' -f2 || echo "${WITH_SSL}") && \
     if [ "${WITH_SSL_VALUE}" = "true" ]; then \
-        apk add --no-cache openssl certbot; \
+        apk add --no-cache openssl=${OPENSSL_VERSION} certbot=${CERTBOT_VERSION}; \
     fi
 
 # Prepare workspace
@@ -271,6 +461,7 @@ COPY mailinabox-patch/management/*.py /opt/MailInABox/management/
 COPY mailinabox-config/ /opt/mailinabox-config/
 COPY install/ /opt/install/
 COPY entrypoint/ /opt/entrypoint/
+COPY install/functions.sh /opt/entrypoint/functions.sh
 COPY s6/ /etc/
 RUN chmod +x /opt/install/*.sh /opt/entrypoint/*.sh /etc/cont-init.d/* /etc/services.d/*/run && \
     find /etc/services.d -name finish -type f -exec chmod +x {} \;
@@ -278,8 +469,8 @@ RUN chmod +x /opt/install/*.sh /opt/entrypoint/*.sh /etc/cont-init.d/* /etc/serv
 ENV IN_A_DOCKER=true
 
 # Optional internal recursive DNS resolver packages
-RUN if [ "${ENABLE_INTERNAL_BIND}" = "true" ]; then \
-        apk add --no-cache bind bind-tools; \
+RUN     if [ "${ENABLE_INTERNAL_BIND}" = "true" ]; then \
+        apk add --no-cache bind=${BIND_VERSION} bind-tools=${BIND_TOOLS_VERSION}; \
         /bin/sh /opt/install/setup_bind.sh; \
     fi
 
@@ -295,6 +486,7 @@ RUN /bin/sh /opt/install/setup_fail2ban.sh
 # Generate default SSL assets (optional)
 # Will be skipped if WITH_SSL is false.
 # Read WITH_SSL from computed value if available
+# hadolint ignore=DL4006
 RUN WITH_SSL_VALUE=$(cat /tmp/override_with_ssl 2>/dev/null | cut -d'=' -f2 || echo "${WITH_SSL}") && \
     if [ "${WITH_SSL_VALUE}" = "true" ]; then \
         /bin/sh /opt/install/setup_ssl_base.sh; \
@@ -321,4 +513,3 @@ ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=300000
 
 ENTRYPOINT ["/init"]
 CMD []
-

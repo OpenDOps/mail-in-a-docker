@@ -5,8 +5,6 @@
 # -o pipefail: don't ignore errors in the non-last command in a pipeline
 set -euo pipefail
 
-PHP_VER=8.0
-
 function hide_output {
 	# This function hides the output of a command unless the command fails
 	# and returns a non-zero exit code.
@@ -152,11 +150,15 @@ function input_menu {
 	# input_menu "title" "prompt" "tag item tag item" VARIABLE
 	# The user's input will be stored in the variable VARIABLE.
 	# The exit code from dialog will be stored in VARIABLE_EXITCODE.
+	# shellcheck disable=SC2034  # result and result_code are used via namerefs
 	declare -n result=$4
+	# shellcheck disable=SC2034
 	declare -n result_code=$4_EXITCODE
 	local IFS=^$'\n'
 	set +e
+  # shellcheck disable=SC2034
 	result=$(dialog --stdout --title "$1" --menu "$2" 0 0 0 "$3")
+  # shellcheck disable=SC2034
 	result_code=$?
 	set -e
 }

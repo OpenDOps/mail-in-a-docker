@@ -1,46 +1,56 @@
 FROM alpine:3.20
 
+# Set SHELL with pipefail for better error handling in RUN commands with pipes
+SHELL ["/bin/sh", "-o", "pipefail", "-c"]
+
 ARG WITH_PHP="true"
 ARG PHP_VER="8.2"
 ARG STORAGE_ROOT="/home/user-data"
 
 ENV PHP_VER=${PHP_VER} \
     STORAGE_ROOT=${STORAGE_ROOT} \
+# Pin PHP 8.2 package versions for security (prevents supply chain attacks)
+ARG PHP82_VERSION="8.2.28-r0"
+ARG PHP82_PECL_APCU_VERSION="5.1.23-r0"
+ARG PHP82_PECL_IMAGICK_VERSION="3.7.0-r6"
+
+ENV STORAGE_ROOT=${STORAGE_ROOT} \
     WITH_PHP=${WITH_PHP}
 
 #Requires PRIMARY_HOSTNAME environment variable
 
 # Install nginx, PHP-FPM, and dependencies
+# Pin package versions for security (prevents supply chain attacks)
 RUN apk add --no-cache \
-        nginx \
-        curl \
-        wget \
-        unzip \
-        netcat-openbsd \
-        gettext
+        nginx=1.26.3-r0 \
+        curl=8.14.1-r2 \
+        wget=1.24.5-r0 \
+        unzip=6.0-r14 \
+        netcat-openbsd=1.226-r0 \
+        gettext=0.22.5-r0
 
-# Optional SSL tooling
-# Alpine uses php82 instead of php8.2 for package names
-# Some extensions are PECL packages (pecl-apcu, pecl-imagick)
+# Optional PHP 8.2 installation
+# Pin package versions for security (prevents supply chain attacks)
+# hadolint ignore=DL4006
 RUN if [ "${WITH_PHP}" = "true" ]; then \
         PHP_PKG=$(echo "php${PHP_VER}" | tr -d '.'); \
         apk add --no-cache \
-            ${PHP_PKG} \
-            ${PHP_PKG}-fpm \
-            ${PHP_PKG}-cli \
-            ${PHP_PKG}-gd \
-            ${PHP_PKG}-intl \
-            ${PHP_PKG}-imap \
-            ${PHP_PKG}-curl \
-            ${PHP_PKG}-xml \
-            ${PHP_PKG}-mbstring \
-            ${PHP_PKG}-zip \
-            ${PHP_PKG}-pecl-apcu \
-            ${PHP_PKG}-pecl-imagick \
-            ${PHP_PKG}-gmp \
-            ${PHP_PKG}-bcmath \
-            ${PHP_PKG}-sqlite3 \
-            ${PHP_PKG}-soap; \
+            "${PHP_PKG}=${PHP82_VERSION}" \
+            "${PHP_PKG}-fpm=${PHP82_VERSION}" \
+            "${PHP_PKG}-cli=${PHP82_VERSION}" \
+            "${PHP_PKG}-gd=${PHP82_VERSION}" \
+            "${PHP_PKG}-intl=${PHP82_VERSION}" \
+            "${PHP_PKG}-imap=${PHP82_VERSION}" \
+            "${PHP_PKG}-curl=${PHP82_VERSION}" \
+            "${PHP_PKG}-xml=${PHP82_VERSION}" \
+            "${PHP_PKG}-mbstring=${PHP82_VERSION}" \
+            "${PHP_PKG}-zip=${PHP82_VERSION}" \
+            "${PHP_PKG}-pecl-apcu=${PHP82_PECL_APCU_VERSION}" \
+            "${PHP_PKG}-pecl-imagick=${PHP82_PECL_IMAGICK_VERSION}" \
+            "${PHP_PKG}-gmp=${PHP82_VERSION}" \
+            "${PHP_PKG}-bcmath=${PHP82_VERSION}" \
+            "${PHP_PKG}-sqlite3=${PHP82_VERSION}" \
+            "${PHP_PKG}-soap=${PHP82_VERSION}"; \
     fi
 
 # Install s6-overlay for process supervision
@@ -72,4 +82,3 @@ WORKDIR /opt
 
 ENTRYPOINT ["/init"]
 CMD []
-

@@ -114,18 +114,20 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "mailinabox.fullname" . }}-mailinabox-assets
       # Cert-manager certificate secret (mounted twice with different subPaths)
+      {{- if and .Values.ingress.tls (gt (len .Values.ingress.tls) 0) }}
       - name: tls-cert
         secret:
-          secretName: {{ .Values.ingress.tls[0].secretName }}
+          secretName: {{ (index .Values.ingress.tls 0).secretName }}
           items:
           - key: tls.crt
             path: tls.crt
       - name: tls-key
         secret:
-          secretName: {{ .Values.ingress.tls[0].secretName }}
+          secretName: {{ (index .Values.ingress.tls 0).secretName }}
           items:
           - key: tls.key
             path: tls.key
+      {{- end }}
       dnsPolicy: ClusterFirst
 ---
 apiVersion: v1
@@ -145,4 +147,3 @@ spec:
   selector:
     {{- include "mailinabox.selectorLabels" . | nindent 4 }}
     component: mailinabox
-

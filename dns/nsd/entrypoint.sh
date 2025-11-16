@@ -33,4 +33,3 @@ if command -v crond >/dev/null 2>&1; then
     crond
 fi
 exec nsd -d -c /etc/nsd/nsd.conf
-

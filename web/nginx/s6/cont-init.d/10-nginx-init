@@ -45,4 +45,3 @@ else
 fi
 
 echo "Nginx initialization complete."
-

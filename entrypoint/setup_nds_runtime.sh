@@ -12,8 +12,8 @@ for algo in ${DNSSEC_ALGORITHMS}; do
             echo "Generating DNSSEC signing keys..."
             FIRST=0
         fi
-        KSK=$(umask 077; cd "${STORAGE_ROOT}/dns/dnssec"; ldns-keygen -r /dev/urandom -a "${algo}" -k _domain_)
-        ZSK=$(umask 077; cd "${STORAGE_ROOT}/dns/dnssec"; ldns-keygen -r /dev/urandom -a "${algo}" _domain_)
+        KSK=$(umask 077; cd "${STORAGE_ROOT}/dns/dnssec" || exit; ldns-keygen -r /dev/urandom -a "${algo}" -k _domain_)
+        ZSK=$(umask 077; cd "${STORAGE_ROOT}/dns/dnssec" || exit; ldns-keygen -r /dev/urandom -a "${algo}" _domain_)
         cat > "${STORAGE_ROOT}/dns/dnssec/${algo}.conf" <<EOF
 KSK=${KSK}
 ZSK=${ZSK}

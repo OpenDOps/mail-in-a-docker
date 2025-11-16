@@ -15,4 +15,3 @@ PHP_VER_DIR=$(echo "${PHP_VER}" | tr -d '.')
 
 # Alpine uses php-fpm82 format (not php82-fpm)
 exec php-fpm${PHP_VER_DIR} -F
-

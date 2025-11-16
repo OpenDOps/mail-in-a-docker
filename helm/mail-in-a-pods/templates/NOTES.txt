@@ -33,4 +33,3 @@
 
 4. View mailinabox logs:
   kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "mailinabox.name" . }},app.kubernetes.io/instance={{ .Release.Name }},component=mailinabox" --tail=100
-

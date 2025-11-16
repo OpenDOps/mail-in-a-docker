@@ -1,0 +1,74 @@
+# Commit Message Template
+
+## Commit Message Format
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+## Types
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, etc.)
+- `refactor`: Code refactoring
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks (dependencies, build, etc.)
+- `security`: Security-related changes
+
+## Scope
+
+Optional. Examples: `docker`, `nginx`, `dns`, `deps`, `ci`, etc.
+
+## Subject
+
+- Use imperative mood ("add" not "added" or "adds")
+- First letter lowercase
+- No period at the end
+- Maximum 72 characters
+
+## Body
+
+Optional. Explain what and why, not how.
+
+## Footer
+
+Optional. Reference issues, breaking changes, etc.
+
+## Important Reminders
+
+- **Update DEPENDENCIES.md**: If you add, remove, or update any dependencies (Alpine `apk` packages or Python `pip` packages), you MUST update [DEPENDENCIES.md](DEPENDENCIES.md) to reflect the changes.
+
+- **Version Pinning**: All dependencies must be pinned to exact versions for security. See [SECURITY.md](SECURITY.md) for details.
+
+## Examples
+
+```
+feat(nginx): add PHP 8.2 support
+
+Add PHP 8.2 packages to nginx container with version pinning.
+
+- Update DEPENDENCIES.md with PHP 8.2 packages
+```
+
+```
+chore(deps): update libtool to 2.4.7-r3
+
+Update libtool version to fix build errors.
+
+- Update DEPENDENCIES.md
+```
+
+```
+fix(mailinabox): pin perl package versions
+
+Fix version conflicts by updating perl packages to 5.38.5-r0.
+
+- Update DEPENDENCIES.md with new perl versions
+```

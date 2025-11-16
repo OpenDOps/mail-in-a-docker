@@ -1,0 +1,32 @@
+[tool.ruff]
+# Ruff configuration for Python linting
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+# Enable specific rule sets
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "W191",  # indentation contains tabs (will be auto-fixed by formatter)
+    "E402",  # module level import not at top of file (needed for sys.path manipulation)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["mailinabox"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

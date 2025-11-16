@@ -14,4 +14,3 @@ data:
   IN_A_DOCKER: {{ .Values.mailinabox.env.inADocker | quote }}
   ENABLE_INTERNAL_DNS: {{ .Values.mailinabox.env.enableInternalDns | quote | lower }}
   LOCAL_RESOLVER: {{ .Values.mailinabox.env.localResolver | quote }}
-

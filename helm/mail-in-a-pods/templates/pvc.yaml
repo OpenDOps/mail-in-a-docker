@@ -11,8 +11,8 @@ spec:
   resources:
     requests:
       storage: {{ .Values.mailinabox.storage.size }}
-  {{- if include "mailinabox.storageClass" .Values.mailinabox.storage }}
-  storageClassName: {{ include "mailinabox.storageClass" .Values.mailinabox.storage }}
+  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.mailinabox.storage .) }}
+  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.mailinabox.storage .) }}
   {{- end }}
 ---
 {{- end }}
@@ -30,8 +30,8 @@ spec:
   resources:
     requests:
       storage: {{ .Values.nsd.storage.size }}
-  {{- if include "mailinabox.storageClass" .Values.nsd.storage }}
-  storageClassName: {{ include "mailinabox.storageClass" .Values.nsd.storage }}
+  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.nsd.storage .) }}
+  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.nsd.storage .) }}
   {{- end }}
 ---
 {{- end }}
@@ -49,8 +49,8 @@ spec:
   resources:
     requests:
       storage: {{ .Values.bind.storage.size }}
-  {{- if include "mailinabox.storageClass" .Values.bind.storage }}
-  storageClassName: {{ include "mailinabox.storageClass" .Values.bind.storage }}
+  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.bind.storage .) }}
+  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.bind.storage .) }}
   {{- end }}
 ---
 {{- end }}
@@ -68,8 +68,8 @@ spec:
   resources:
     requests:
       storage: {{ .Values.appVolumes.roundcubemail.size }}
-  {{- if include "mailinabox.storageClass" .Values.appVolumes.roundcubemail }}
-  storageClassName: {{ include "mailinabox.storageClass" .Values.appVolumes.roundcubemail }}
+  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.appVolumes.roundcubemail .) }}
+  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.appVolumes.roundcubemail .) }}
   {{- end }}
 ---
 {{- end }}
@@ -87,8 +87,8 @@ spec:
   resources:
     requests:
       storage: {{ .Values.appVolumes.owncloud.size }}
-  {{- if include "mailinabox.storageClass" .Values.appVolumes.owncloud }}
-  storageClassName: {{ include "mailinabox.storageClass" .Values.appVolumes.owncloud }}
+  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.appVolumes.owncloud .) }}
+  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.appVolumes.owncloud .) }}
   {{- end }}
 ---
 {{- end }}
@@ -106,8 +106,8 @@ spec:
   resources:
     requests:
       storage: {{ .Values.appVolumes.zpush.size }}
-  {{- if include "mailinabox.storageClass" .Values.appVolumes.zpush }}
-  storageClassName: {{ include "mailinabox.storageClass" .Values.appVolumes.zpush }}
+  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.appVolumes.zpush .) }}
+  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.appVolumes.zpush .) }}
   {{- end }}
 ---
 {{- end }}
@@ -125,11 +125,10 @@ spec:
   resources:
     requests:
       storage: {{ .Values.appVolumes.mailinaboxAssets.size }}
-  {{- if include "mailinabox.storageClass" .Values.appVolumes.mailinaboxAssets }}
-  storageClassName: {{ include "mailinabox.storageClass" .Values.appVolumes.mailinaboxAssets }}
+  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.appVolumes.mailinaboxAssets .) }}
+  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.appVolumes.mailinaboxAssets .) }}
   {{- end }}
 ---
 {{- end }}
 
 {{- /* Nginx config PVC removed - Ingress resources are used instead in Kubernetes */ -}}
-

@@ -87,4 +87,3 @@ rm -f "$CRON_TMP"
 
 chown nsd:nsd "${NSD_LOG_FILE}"
 chown -R nsd:nsd /etc/nsd /var/run/nsd
-

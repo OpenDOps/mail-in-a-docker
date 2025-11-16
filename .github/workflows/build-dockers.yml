@@ -97,7 +97,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
 
       - name: Determine build configuration
         id: config
@@ -112,7 +112,7 @@ jobs:
             WITH_SSL="false"
             WITH_PHP="false"
           fi
-          
+
           if [ "$DEPLOYMENT_TYPE" = "kubernetes" ]; then
             echo "IN_KUBERNETES=true" >> $GITHUB_OUTPUT
             echo "WITH_SSL=false" >> $GITHUB_OUTPUT
@@ -142,7 +142,7 @@ jobs:
           SUFFIX=""
           # Extract PHP version from build args or use env default
           PHP_VER="${{ env.PHP_VER }}"
-          
+
           if [ "${{ matrix.service }}" = "mailinabox" ]; then
             if [ "${{ steps.config.outputs.IN_KUBERNETES }}" = "true" ]; then
               SUFFIX="-k8s"
@@ -189,7 +189,7 @@ jobs:
           BASE_ARGS="${{ matrix.build_args }}"
           # Expand PHP_VER from env if present in build_args (replace any PHP_VER value)
           BASE_ARGS=$(echo "$BASE_ARGS" | sed "s/PHP_VER=[0-9.]*/PHP_VER=${{ env.PHP_VER }}/g")
-          
+
           if [ "${{ matrix.service }}" = "mailinabox" ]; then
             echo "args<<EOF" >> $GITHUB_OUTPUT
             echo "$BASE_ARGS" >> $GITHUB_OUTPUT
@@ -223,4 +223,3 @@ jobs:
       - name: Image digest
         run: |
           echo "Image built: ${{ steps.meta.outputs.tags }}"
-

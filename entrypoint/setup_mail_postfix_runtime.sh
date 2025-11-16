@@ -45,4 +45,3 @@ tools/editconf.py /etc/postfix/main.cf \
 # Update outgoing mail header filters with runtime hostname/IP values.
 sed -i "s/PRIMARY_HOSTNAME/$PRIMARY_HOSTNAME/" /etc/postfix/outgoing_mail_header_filters
 sed -i "s/PUBLIC_IP/$PUBLIC_IP/" /etc/postfix/outgoing_mail_header_filters
-

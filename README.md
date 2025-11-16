@@ -100,6 +100,61 @@ In a `docket-compose` deployment certificates are stored in the `mail_storage` v
 
 In a Kubernetes deployment certificates should be managed by cert-manager and stored in a shared secret.
 
+## Security and Version Pinning
+
+This project implements **strict version pinning** for all dependencies to mitigate supply chain attack risks. All Docker images, system packages (Alpine `apk`), and Python packages (`pip`) use exact version specifications.
+
+### Why Version Pinning?
+
+Supply chain attacks occur when malicious code is introduced through dependencies. By pinning exact versions:
+
+- **Reproducibility**: Every build uses identical dependencies
+- **Predictability**: No unexpected changes from upstream updates
+- **Security**: Reduced exposure to vulnerabilities in newer, untested versions
+- **Auditability**: Clear record of what versions are in use
+
+### Implementation
+
+- **Base Images**: Pinned to specific Alpine version (`alpine:3.20`)
+- **System Packages**: All `apk` packages pinned with exact versions (e.g., `bash=5.2.26-r0`)
+- **Python Packages**: All `pip` packages pinned in `requirements.txt` and `requirements-system.txt`
+
+### Updating Dependencies
+
+When updating dependencies:
+
+1. Check security advisories (CVE databases, security bulletins)
+2. Test thoroughly in a test environment first
+3. Update `requirements.txt` or Dockerfiles with new versions
+4. Verify all Docker images build successfully
+5. **Update [DEPENDENCIES.md](DEPENDENCIES.md)** with the new versions
+6. Document changes in commit messages
+
+For more details, see [SECURITY.md](SECURITY.md).
+
+### Dependency Documentation
+
+A complete list of all dependencies (Alpine `apk` packages and Python `pip` packages) with their pinned versions is maintained in [DEPENDENCIES.md](DEPENDENCIES.md). This document:
+
+- Lists all packages used across all containers
+- Groups packages by name when used in multiple containers
+- Shows which containers use each package
+- Includes version information for security auditing
+
+**Important**: When adding, removing, or updating dependencies, you must update `DEPENDENCIES.md` to keep it in sync with the actual dependencies in use.
+
+### Pre-commit linting and code quality
+
+This repository uses **pre-commit** hooks (see `README-PRE-COMMIT.md` for details) to enforce consistent formatting, linting, and basic security hygiene across:
+
+- Shell scripts (ShellCheck)
+- Dockerfiles (hadolint)
+- Python code (ruff + ruff-format)
+- YAML / JSON / Helm templates
+
+Running `pre-commit` locally before committing helps keep the codebase **clean, consistent, and safer by catching issues early**.
+**All commits are expected to pass the pre-commit checks**, and **pull requests that do not pass pre-commit linting will not be accepted**.
+
 ## How to build
 
 ### Configuration via .env file

@@ -63,3 +63,16 @@ Storage class helper
 {{- end }}
 {{- end }}
 
+{{/*
+Storage class helper that accepts root context
+*/}}
+{{- define "mailinabox.storageClassFromRoot" -}}
+{{- $root := . -}}
+{{- if $root.Values.global.storageClass }}
+{{- $root.Values.global.storageClass }}
+{{- else if .storageClass }}
+{{- .storageClass }}
+{{- else }}
+{{- "" }}
+{{- end }}
+{{- end }}

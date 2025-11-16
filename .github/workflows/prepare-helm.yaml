@@ -30,4 +30,3 @@ jobs:
         if: success()
         run: |
           ./pack_and_push_chart.sh push ${{ env.OCI_REGISTRY }} ${{ env.HELM_CHARTS_FOLDER }}
-          

@@ -66,4 +66,3 @@ spec:
     {{- include "mailinabox.selectorLabels" . | nindent 4 }}
     component: bind
 {{- end }}
-

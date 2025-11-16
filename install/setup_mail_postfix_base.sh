@@ -139,4 +139,3 @@ fi
 
 tools/editconf.py /etc/postfix/main.cf \
 	message_size_limit=134217728
-

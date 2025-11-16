@@ -112,4 +112,3 @@ tools/editconf.py /etc/postfix/main.cf \
 	"smtpd_milters=inet:127.0.0.1:8891 inet:127.0.0.1:8893"\
 	non_smtpd_milters=\$smtpd_milters \
 	milter_default_action=accept
-

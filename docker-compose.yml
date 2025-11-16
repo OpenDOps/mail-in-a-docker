@@ -9,7 +9,7 @@ services:
       context: .
       dockerfile: web/nginx/Dockerfile
       args:
-        WITH_PHP: ${WITH_PHP:-false}
+        WITH_PHP: ${WITH_PHP:-true}
         PHP_VER: ${PHP_VER:-8.2}
         STORAGE_ROOT: ${STORAGE_ROOT:-/home/user-data}
     environment:
@@ -122,4 +122,3 @@ networks:
     ipam:
       config:
         - subnet: 172.28.0.0/16
-

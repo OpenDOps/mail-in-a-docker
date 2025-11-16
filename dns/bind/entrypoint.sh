@@ -10,4 +10,3 @@ export BIND_LISTEN_ADDRESSES BIND_LISTEN_ADDRESSES_V6 BIND_ALLOW_RECURSION
 /bin/sh /opt/install/setup_bind.sh
 
 exec "$@"
-

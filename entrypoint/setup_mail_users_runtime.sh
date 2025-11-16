@@ -179,4 +179,3 @@ cat > /etc/postfix/virtual-alias-maps.cf << 'EOF'
 dbpath=$db_path
 query = SELECT destination from (SELECT destination, 0 as priority FROM aliases WHERE source='%s' AND destination<>'' UNION SELECT email as destination, 1 as priority FROM users WHERE email='%s' UNION SELECT destination, 2 as priority FROM auto_aliases WHERE source='%s' AND destination<>'') ORDER BY priority LIMIT 1;
 EOF
-

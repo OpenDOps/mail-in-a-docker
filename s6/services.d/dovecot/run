@@ -11,7 +11,7 @@ trap cleanup TERM INT QUIT
 
 dovecot -F &
 DOVECOT_PID=$!
-  
+
 (
 	for _ in $(seq 1 30); do
 		if [ -S /run/dovecot/auth-userdb ]; then

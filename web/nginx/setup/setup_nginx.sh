@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -euo pipefail
 
 : "${PHP_VER:=8.2}"
@@ -14,7 +14,7 @@ echo "Setting up Nginx reverse proxy..."
 if [ "${WITH_PHP}" = "true" ]; then
     # Convert PHP version from 8.2 to 82 for Alpine package naming
     PHP_VER_DIR=$(echo "${PHP_VER}" | tr -d '.')
-    
+
     # Tell PHP not to expose its version number in the X-Powered-By header.
     sed -i "s/^;*expose_php.*/expose_php = Off/" /etc/php${PHP_VER_DIR}/php.ini 2>/dev/null || true
 
@@ -27,11 +27,11 @@ if [ "${WITH_PHP}" = "true" ]; then
         # Set path environment
         sed -i "s/^;*env\[PATH\].*/env[PATH] = \/usr\/local\/bin:\/usr\/bin:\/bin/" "$POOL_CONF" || \
         echo "env[PATH] = /usr/local/bin:/usr/bin:/bin" >> "$POOL_CONF"
-        
+
         # Configure based on available memory
         TOTAL_KB=$(awk '/MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null || echo "2097152")
         TOTAL_MB=$((TOTAL_KB / 1024))
-        
+
         if [ "$TOTAL_MB" -lt 1000 ]; then
             PM_MODE="ondemand"
             PM_MAX_CHILDREN=8
@@ -57,7 +57,7 @@ if [ "${WITH_PHP}" = "true" ]; then
             PM_MIN_SPARE=6
             PM_MAX_SPARE=18
         fi
-        
+
         sed -i "s/^pm = .*/pm = ${PM_MODE}/" "$POOL_CONF"
         sed -i "s/^pm.max_children = .*/pm.max_children = ${PM_MAX_CHILDREN}/" "$POOL_CONF"
         sed -i "s/^pm.start_servers = .*/pm.start_servers = ${PM_START_SERVERS}/" "$POOL_CONF"
@@ -101,4 +101,3 @@ sed -i '/ssl_protocols TLSv1.2 TLSv1.3;/a\
 mkdir -p /etc/nginx/conf.d
 
 echo "Nginx setup complete."
-
