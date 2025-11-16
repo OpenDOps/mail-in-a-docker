@@ -88,7 +88,7 @@ Or use the provided script:
 If you discover a security vulnerability:
 
 1. **Do NOT** open a public issue
-2. Email security details to: kuprin.alexander@gmail.com
+2. Email security details to: [kuprin.alexander@gmail.com](mailto:kuprin.alexander@gmail.com)
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce

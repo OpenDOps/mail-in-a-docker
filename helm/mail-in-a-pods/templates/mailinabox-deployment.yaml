@@ -71,17 +71,6 @@ spec:
         volumeMounts:
         - name: mail-storage
           mountPath: {{ .Values.mailinabox.env.storageRoot }}
-        # Nginx config generation disabled in Kubernetes mode (using Ingress resources instead)
-        # - name: nginx-config
-        #   mountPath: /var/lib/mailinabox/nginx-config
-        - name: roundcubemail
-          mountPath: /usr/local/lib/roundcubemail
-        - name: owncloud
-          mountPath: /usr/local/lib/owncloud
-        - name: zpush
-          mountPath: /usr/local/lib/z-push
-        - name: mailinabox-assets
-          mountPath: /usr/local/lib/mailinabox/vendor/assets
         # Cert-manager certificate mount
         - name: tls-cert
           mountPath: /etc/ssl/certs/tls.crt
@@ -101,18 +90,6 @@ spec:
       # - name: nginx-config
       #   persistentVolumeClaim:
       #     claimName: {{ include "mailinabox.fullname" . }}-nginx-config
-      - name: roundcubemail
-        persistentVolumeClaim:
-          claimName: {{ include "mailinabox.fullname" . }}-roundcubemail
-      - name: owncloud
-        persistentVolumeClaim:
-          claimName: {{ include "mailinabox.fullname" . }}-owncloud
-      - name: zpush
-        persistentVolumeClaim:
-          claimName: {{ include "mailinabox.fullname" . }}-zpush
-      - name: mailinabox-assets
-        persistentVolumeClaim:
-          claimName: {{ include "mailinabox.fullname" . }}-mailinabox-assets
       # Cert-manager certificate secret (mounted twice with different subPaths)
       {{- if and .Values.ingress.tls (gt (len .Values.ingress.tls) 0) }}
       - name: tls-cert

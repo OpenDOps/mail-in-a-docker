@@ -242,6 +242,8 @@ Add zpush and nextcloud to extend functionality.
 
 Mail customer service (`Roundcube`) is disabled.
 
+Bind and NSD should have scalable (multi-pod) config.
+
 ### Running on Kubernetes
 
 - **Authoritative DNS (`nsd`)**: keep it. Mail-in-a-Box needs to generate and serve zone files and DNSSEC signatures locally.
