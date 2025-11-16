@@ -46,7 +46,7 @@ helm_push () {
   for j in "${HELM_CHARTS_TGZ[@]}"; do
     echo "Pushing chart: $j"
     # Push to the path that ArgoCD expects when using --repo syntax
-    helm push "$j" $OCI_REGISTRY/app-helm-chart
+    helm push "$j" $OCI_REGISTRY
   done
 }
 
