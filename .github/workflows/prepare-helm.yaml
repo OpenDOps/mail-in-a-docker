@@ -7,6 +7,10 @@ on:
       - 'helm/mail-in-a-pods/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   OCI_REGISTRY_HELM_CHART_NAME: mail-in-a-pods
   HELM_CHARTS_FOLDER: helm/mail-in-a-pods
