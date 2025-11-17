@@ -30,18 +30,10 @@ spec:
           value: {{ .Values.mailinabox.env.storageUser | quote }}
         - name: STORAGE_ROOT
           value: {{ .Values.mailinabox.env.storageRoot | quote }}
-        - name: PRIMARY_HOSTNAME
-          value: {{ .Values.mailinabox.env.primaryHostname | quote }}
         - name: PUBLIC_IP
           value: {{ .Values.mailinabox.env.publicIP | quote }}
         - name: PUBLIC_IPV6
           value: {{ .Values.mailinabox.env.publicIPV6 | quote }}
-        - name: PRIVATE_IP
-          value: {{ .Values.mailinabox.env.privateIP | quote }}
-        - name: PRIVATE_IPV6
-          value: {{ .Values.mailinabox.env.privateIPV6 | quote }}
-        - name: DEFAULT_MTA_STS_MODE
-          value: {{ .Values.mailinabox.env.defaultMtaStsMode | quote }}
         - name: INSTALL_FAIL2BAN
           value: {{ .Values.mailinabox.installFail2ban | quote | lower }}
         - name: ENABLE_INTERNAL_BIND

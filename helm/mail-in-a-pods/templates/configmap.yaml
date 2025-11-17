@@ -5,9 +5,8 @@ metadata:
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
 data:
-  PRIMARY_HOSTNAME: {{ .Values.mailinabox.env.primaryHostname | quote }}
+  PRIMARY_HOSTNAME: {{ .Values.global.primaryHostname | quote }}
   STORAGE_ROOT: {{ .Values.mailinabox.env.storageRoot | quote }}
   STORAGE_USER: {{ .Values.mailinabox.env.storageUser | quote }}
-  DEFAULT_MTA_STS_MODE: {{ .Values.mailinabox.env.defaultMtaStsMode | quote }}
   ENABLE_INTERNAL_DNS: {{ .Values.mailinabox.env.enableInternalDns | quote | lower }}
   LOCAL_RESOLVER: {{ .Values.mailinabox.env.localResolver | quote }}

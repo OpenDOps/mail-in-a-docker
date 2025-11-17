@@ -1,6 +1,6 @@
 1. Get the application URL by running these commands:
 {{- if .Values.gateway.enabled }}
-{{- $primaryHostname := .Values.mailinabox.env.primaryHostname }}
+{{- $primaryHostname := .Values.global.primaryHostname | default .Values.mailinabox.env.primaryHostname }}
   Gateway is enabled. Access your Mail-in-a-Box at:
   - HTTP:  http://{{ $primaryHostname }}
   - HTTPS: https://{{ $primaryHostname }}
@@ -25,6 +25,7 @@
 2. Check certificate status:
 {{- if .Values.certManager.enabled }}
   kubectl get certificate -n {{ .Release.Namespace }}
+  kubectl get clusterissuer {{ include "mailinabox.fullname" . }}-cert-issuer
 {{- end }}
 
 3. Check Gateway status:
@@ -33,4 +34,9 @@
   kubectl get httproute -n {{ .Release.Namespace }}
   kubectl get tcproute -n {{ .Release.Namespace }}
   kubectl get tlsroute -n {{ .Release.Namespace }}
+{{- end }}
+
+4. Check certificate challenges (if certificates are pending):
+{{- if .Values.certManager.enabled }}
+  kubectl describe certificate -n {{ .Release.Namespace }}
 {{- end }}

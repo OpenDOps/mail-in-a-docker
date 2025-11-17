@@ -30,17 +30,11 @@ spec:
         - name: STORAGE_USER
           value: {{ .Values.nsd.env.storageUser | quote }}
         - name: PRIMARY_HOSTNAME
-          value: {{ .Values.nsd.env.primaryHostname | quote }}
+          value: {{ .Values.global.primaryHostname | quote }}
         - name: PUBLIC_IP
           value: {{ .Values.nsd.env.publicIP | quote }}
         - name: PUBLIC_IPV6
           value: {{ .Values.nsd.env.publicIPV6 | quote }}
-        - name: PRIVATE_IP
-          value: {{ .Values.nsd.env.privateIP | quote }}
-        - name: PRIVATE_IPV6
-          value: {{ .Values.nsd.env.privateIPV6 | quote }}
-        - name: DEFAULT_MTA_STS_MODE
-          value: {{ .Values.nsd.env.defaultMtaStsMode | quote }}
         ports:
         - name: dns-udp
           containerPort: 53

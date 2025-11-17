@@ -9,6 +9,8 @@ global:
 
   storageClass: "" # Use default storage class if empty
 
+  primaryHostname: "box.example.com"
+
   # Global node scheduling configuration (used as defaults for all services)
   nodeSelector: {}
   # Example:
@@ -57,12 +59,8 @@ mailinabox:
     localResolver: "kube-dns.kube-system.svc.cluster.local" # Kubernetes DNS service
     storageUser: "user-data"
     storageRoot: "/home/user-data"
-    primaryHostname: "box.example.com"
     publicIP: "" # Will be set by service external IP or load balancer
     publicIPV6: ""
-    privateIP: "" # Not needed in Kubernetes
-    privateIPV6: ""
-    defaultMtaStsMode: "enforce"
 
   # Resources
   resources:
@@ -163,12 +161,8 @@ nsd:
     nsdListenIpv4: "0.0.0.0"
     storageRoot: "/home/user-data"
     storageUser: "user-data"
-    primaryHostname: "box.example.com"
     publicIP: ""
     publicIPV6: ""
-    privateIP: ""
-    privateIPV6: ""
-    defaultMtaStsMode: "enforce"
 
   resources:
     requests:
@@ -198,8 +192,8 @@ gateway:
   # TLS configuration - supports multiple domains with separate certificates
   # Each domain can have its own TLS secret (useful for multi-domain setups)
   tls:
-    # Primary domain (uses primaryHostname from mailinabox.env)
-    - hostname: "" # Empty means use mailinabox.env.primaryHostname
+    # Primary domain (uses primaryHostname from global.primaryHostname)
+    - hostname: "" # Empty means use global.primaryHostname
       secretName: "mailinabox-tls" # Secret name for TLS certificates (managed by cert-manager)
     # Additional domains (optional)
     # - hostname: "mail.example.com"
