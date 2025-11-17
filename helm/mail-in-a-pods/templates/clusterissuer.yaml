@@ -22,7 +22,9 @@ spec:
         gatewayHTTPRoute:
           # Explicitly reference the Gateway to use
           parentRefs:
-          - name: {{ include "mailinabox.fullname" . }}-gateway
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: {{ include "mailinabox.fullname" . }}-gateway
             namespace: {{ .Release.Namespace }}
           # Optional: labels to add to the HTTPRoute created by cert-manager
           labels:
