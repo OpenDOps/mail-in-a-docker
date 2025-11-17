@@ -9,6 +9,8 @@ metadata:
     {{- include "mailinabox.labels" . | nindent 4 }}
   {{- with .Values.gateway.annotations }}
   annotations:
+    # This is the name of the ClusterIssuer created in the previous step
+    cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:

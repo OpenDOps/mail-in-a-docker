@@ -15,10 +15,7 @@ spec:
     # Solver for Gateway API - mail-in-a-pods gateway
     # This solver will be used for Certificates that match the selector
     # The parentRefs explicitly specifies which Gateway to use
-    - selector: {}
-      # This solver will be tried for all Certificates,
-      # because selector is empty
-      http01:
+    - http01:
         gatewayHTTPRoute:
           # Explicitly reference the Gateway to use
           parentRefs:
