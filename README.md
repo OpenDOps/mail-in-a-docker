@@ -261,7 +261,9 @@ Build with `WITH_SSL=true` argument to handle certificates with cert-bot. It sho
 
 - Deploy with `WITH_SSL=false` so Mail-in-a-Box’s internal certificate bootstrap is skipped and let the ingress (or cert-manager) handle TLS issuance. It is crytical for multinode handling to store certificate in a kubernetes CongigMap or Secret
 
-- Store DKIMs for hosts in a Kubernetes secrets.
+- Store DKIMs for hosts in a Kubernetes secrets
+
+- Support multiple hostnames in a helm
 
 - Replace `sqlite` with `PostgreSQL` to handle users in multi-nodes
 

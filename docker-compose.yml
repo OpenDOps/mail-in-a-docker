@@ -63,6 +63,11 @@ services:
       - nsd
     dns:
       - 172.28.0.10
+    ports:
+      - "25:25" # SMTP
+      - "143:143" # IMAP
+      - "993:993" # IMAPS
+      - "465:465" # SMTPS
     networks:
       mailnet:
         ipv4_address: 172.28.0.20

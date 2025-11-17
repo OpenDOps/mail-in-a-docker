@@ -1,19 +1,20 @@
-{{- if and .Values.certManager.enabled .Values.ingress.enabled }}
+{{- if and .Values.certManager.enabled .Values.gateway.enabled .Values.gateway.tls }}
+{{- $primaryHostname := .Values.mailinabox.env.primaryHostname }}
+{{- range $index, $tls := .Values.gateway.tls }}
+{{- $hostname := $tls.hostname | default $primaryHostname }}
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ include "mailinabox.fullname" . }}-tls
+  name: {{ $tls.secretName }}
   labels:
-    {{- include "mailinabox.labels" . | nindent 4 }}
+    {{- include "mailinabox.labels" $ | nindent 4 }}
 spec:
-  secretName: {{ (index .Values.ingress.tls 0).secretName }}
+  secretName: {{ $tls.secretName }}
   issuerRef:
-    name: {{ .Values.certManager.clusterIssuer }}
+    name: {{ $.Values.certManager.clusterIssuer }}
     kind: ClusterIssuer
   dnsNames:
-    {{- range .Values.ingress.tls }}
-    {{- range .hosts }}
-    - {{ . | quote }}
-    {{- end }}
-    {{- end }}
+  - {{ $hostname | quote }}
+{{- end }}
 {{- end }}

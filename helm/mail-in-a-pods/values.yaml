@@ -50,7 +50,13 @@ mailinabox:
   # Service configuration
   service:
     type: ClusterIP
-    port: 10222
+    ports:
+      http: 10222
+      smtp: 25
+      imap: 143
+      imaps: 993
+      smtps: 465
+      submission: 587
 
 # DNS services
 bind:
@@ -107,28 +113,33 @@ nsd:
     type: LoadBalancer # For external DNS access
     port: 53
 
-# Ingress configuration (replaces nginx container)
-ingress:
+# Gateway API configuration (replaces Ingress for SMTP/IMAP/HTTP traffic)
+gateway:
   enabled: true
-  className: "nginx" # nginx-ingress controller class
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod" # Change to your cert-manager ClusterIssuer
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  className: "nginx" # nginx gateway fabric class
+  # annotations:
+  #   # Gateway-specific annotations (e.g., for LoadBalancer configuration)
+  #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb" # Example for AWS
 
-  hosts:
-    - host: box.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-
+  # TLS configuration - supports multiple domains with separate certificates
+  # Each domain can have its own TLS secret (useful for multi-domain setups)
   tls:
-    - secretName: mailinabox-tls
-      hosts:
-        - box.example.com
+    # Primary domain (uses primaryHostname from mailinabox.env)
+    - hostname: "" # Empty means use mailinabox.env.primaryHostname
+      secretName: "mailinabox-tls" # Secret name for TLS certificates (managed by cert-manager)
+    # Additional domains (optional)
+    # - hostname: "mail.example.com"
+    #   secretName: "mail-example-com-tls"
+    # - hostname: "smtp.example.com"
+    #   secretName: "smtp-example-com-tls"
+
+  # HTTP placeholder configuration
+  httpPlaceholder:
+    enabled: true # Set to false to route HTTP directly to mailinabox service
+    port: 80
 
 # Cert-manager configuration
 certManager:
   enabled: true
   clusterIssuer: "letsencrypt-prod" # Name of your ClusterIssuer
-  # Certificate will be created automatically by ingress if cert-manager is installed
+  # Certificate will be created automatically and referenced by Gateway TLS listeners

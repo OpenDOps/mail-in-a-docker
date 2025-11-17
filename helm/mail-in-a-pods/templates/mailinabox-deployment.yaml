@@ -68,18 +68,37 @@ spec:
         - name: http
           containerPort: 10222
           protocol: TCP
+        - name: smtp
+          containerPort: 25
+          protocol: TCP
+        - name: imap
+          containerPort: 143
+          protocol: TCP
+        - name: imaps
+          containerPort: 993
+          protocol: TCP
+        - name: smtps
+          containerPort: 465
+          protocol: TCP
+        - name: submission
+          containerPort: 587
+          protocol: TCP
         volumeMounts:
         - name: mail-storage
           mountPath: {{ .Values.mailinabox.env.storageRoot }}
-        # Cert-manager certificate mount
-        - name: tls-cert
-          mountPath: /etc/ssl/certs/tls.crt
-          subPath: tls.crt
+        # Cert-manager certificate mounts (one per domain)
+        {{- if and .Values.gateway.enabled .Values.gateway.tls }}
+        {{- range $index, $tls := .Values.gateway.tls }}
+        - name: tls-cert-{{ $index }}
+          mountPath: /etc/ssl/certs/tls-{{ $index }}.crt
+          subPath: tls-{{ $index }}.crt
           readOnly: true
-        - name: tls-key
-          mountPath: /etc/ssl/private/tls.key
-          subPath: tls.key
+        - name: tls-key-{{ $index }}
+          mountPath: /etc/ssl/private/tls-{{ $index }}.key
+          subPath: tls-{{ $index }}.key
           readOnly: true
+        {{- end }}
+        {{- end }}
         resources:
           {{- toYaml .Values.mailinabox.resources | nindent 10 }}
       volumes:
@@ -90,20 +109,22 @@ spec:
       # - name: nginx-config
       #   persistentVolumeClaim:
       #     claimName: {{ include "mailinabox.fullname" . }}-nginx-config
-      # Cert-manager certificate secret (mounted twice with different subPaths)
-      {{- if and .Values.ingress.tls (gt (len .Values.ingress.tls) 0) }}
-      - name: tls-cert
+      # Cert-manager certificate secrets (one per domain)
+      {{- if and .Values.gateway.enabled .Values.gateway.tls }}
+      {{- range $index, $tls := .Values.gateway.tls }}
+      - name: tls-cert-{{ $index }}
         secret:
-          secretName: {{ (index .Values.ingress.tls 0).secretName }}
+          secretName: {{ $tls.secretName }}
           items:
           - key: tls.crt
-            path: tls.crt
-      - name: tls-key
+            path: tls-{{ $index }}.crt
+      - name: tls-key-{{ $index }}
         secret:
-          secretName: {{ (index .Values.ingress.tls 0).secretName }}
+          secretName: {{ $tls.secretName }}
           items:
           - key: tls.key
-            path: tls.key
+            path: tls-{{ $index }}.key
+      {{- end }}
       {{- end }}
       dnsPolicy: ClusterFirst
 ---
@@ -117,10 +138,30 @@ metadata:
 spec:
   type: {{ .Values.mailinabox.service.type }}
   ports:
-    - port: {{ .Values.mailinabox.service.port }}
+    - port: {{ .Values.mailinabox.service.ports.http }}
       targetPort: http
       protocol: TCP
       name: http
+    - port: {{ .Values.mailinabox.service.ports.smtp }}
+      targetPort: smtp
+      protocol: TCP
+      name: smtp
+    - port: {{ .Values.mailinabox.service.ports.imap }}
+      targetPort: imap
+      protocol: TCP
+      name: imap
+    - port: {{ .Values.mailinabox.service.ports.imaps }}
+      targetPort: imaps
+      protocol: TCP
+      name: imaps
+    - port: {{ .Values.mailinabox.service.ports.smtps }}
+      targetPort: smtps
+      protocol: TCP
+      name: smtps
+    - port: {{ .Values.mailinabox.service.ports.submission }}
+      targetPort: submission
+      protocol: TCP
+      name: submission
   selector:
     {{- include "mailinabox.selectorLabels" . | nindent 4 }}
     component: mailinabox

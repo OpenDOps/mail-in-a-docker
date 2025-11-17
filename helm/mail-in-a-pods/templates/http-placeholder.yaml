@@ -1,0 +1,105 @@
+{{- if and .Values.gateway.enabled .Values.gateway.httpPlaceholder.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-placeholder
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: http-placeholder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mailinabox.selectorLabels" . | nindent 6 }}
+      component: http-placeholder
+  template:
+    metadata:
+      labels:
+        {{- include "mailinabox.selectorLabels" . | nindent 8 }}
+        component: http-placeholder
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - name: http
+          containerPort: 80
+        volumeMounts:
+        - name: placeholder-html
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+      volumes:
+      - name: placeholder-html
+        configMap:
+          name: {{ include "mailinabox.fullname" . }}-placeholder-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-placeholder
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: http-placeholder
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.gateway.httpPlaceholder.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "mailinabox.selectorLabels" . | nindent 4 }}
+    component: http-placeholder
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-placeholder-html
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mail-in-a-Pods</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+            }
+            .container {
+                background: white;
+                padding: 2rem;
+                border-radius: 10px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                text-align: center;
+                max-width: 600px;
+            }
+            h1 {
+                color: #667eea;
+                margin-bottom: 1rem;
+            }
+            p {
+                color: #666;
+                line-height: 1.6;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Mail-in-a-Pods</h1>
+            <p>Mail services are running. This is a placeholder page.</p>
+            <p>SMTP, IMAP, and other mail protocols are available on this domain.</p>
+        </div>
+    </body>
+    </html>
+{{- end }}
