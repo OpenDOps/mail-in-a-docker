@@ -2,7 +2,7 @@
 
 ## Commit Message Format
 
-```
+```xml
 <type>(<scope>): <subject>
 
 <body>
@@ -49,7 +49,7 @@ Optional. Reference issues, breaking changes, etc.
 
 ## Examples
 
-```
+```txt
 feat(nginx): add PHP 8.2 support
 
 Add PHP 8.2 packages to nginx container with version pinning.
@@ -57,7 +57,7 @@ Add PHP 8.2 packages to nginx container with version pinning.
 - Update DEPENDENCIES.md with PHP 8.2 packages
 ```
 
-```
+```txt
 chore(deps): update libtool to 2.4.7-r3
 
 Update libtool version to fix build errors.
@@ -65,7 +65,7 @@ Update libtool version to fix build errors.
 - Update DEPENDENCIES.md
 ```
 
-```
+```txt
 fix(mailinabox): pin perl package versions
 
 Fix version conflicts by updating perl packages to 5.38.5-r0.

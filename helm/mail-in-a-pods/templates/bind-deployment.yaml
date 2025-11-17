@@ -39,6 +39,21 @@ spec:
           mountPath: /var/bind
         resources:
           {{- toYaml .Values.bind.resources | nindent 10 }}
+      {{- $nodeSelector := .Values.bind.nodeSelector | default .Values.global.nodeSelector }}
+      {{- with $nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- $tolerations := .Values.bind.tolerations | default .Values.global.tolerations }}
+      {{- with $tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- $affinity := .Values.bind.affinity | default .Values.global.affinity }}
+      {{- with $affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
       - name: bind-state
         persistentVolumeClaim:

@@ -55,6 +55,21 @@ spec:
           mountPath: {{ .Values.nsd.env.storageRoot }}
         resources:
           {{- toYaml .Values.nsd.resources | nindent 10 }}
+      {{- $nodeSelector := .Values.nsd.nodeSelector | default .Values.global.nodeSelector }}
+      {{- with $nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- $tolerations := .Values.nsd.tolerations | default .Values.global.tolerations }}
+      {{- with $tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- $affinity := .Values.nsd.affinity | default .Values.global.affinity }}
+      {{- with $affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
       - name: nsd-conf
         persistentVolumeClaim:
