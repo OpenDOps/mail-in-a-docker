@@ -3,6 +3,10 @@
 
 # Global configuration
 global:
+  imageTag: "0.1.1"
+  imagePullPolicy: IfNotPresent
+  alpineVersion: "3.20" # Alpine Linux version for httpPlaceholder image (nginx:alpine)
+
   storageClass: "" # Use default storage class if empty
 
   # Global node scheduling configuration (used as defaults for all services)
@@ -34,9 +38,10 @@ global:
 # Mail-in-a-Box configuration
 mailinabox:
   image:
-    repository: mailinabox
-    tag: "v73"
-    pullPolicy: IfNotPresent
+    # Optional: Falls back to global.imageTag if not set
+    tag: ""
+    # Optional: Falls back to global.imagePullPolicy if not set
+    pullPolicy: ""
 
   installFail2ban: false
   enableInternalBind: false
@@ -119,9 +124,10 @@ mailinabox:
 bind:
   enabled: false # Set to true if you need internal recursive DNS resolver
   image:
-    repository: mailinabox-bind
-    tag: "latest"
-    pullPolicy: IfNotPresent
+    # Optional: Falls back to global.imageTag if not set
+    tag: ""
+    # Optional: Falls back to global.imagePullPolicy if not set
+    pullPolicy: ""
 
   storage:
     size: 1Gi
@@ -143,9 +149,10 @@ bind:
 nsd:
   enabled: true
   image:
-    repository: mailinabox-nsd
-    tag: "latest"
-    pullPolicy: IfNotPresent
+    # Optional: Falls back to global.imageTag if not set
+    tag: ""
+    # Optional: Falls back to global.imagePullPolicy if not set
+    pullPolicy: ""
 
   storage:
     size: 1Gi
@@ -204,6 +211,8 @@ gateway:
   httpPlaceholder:
     enabled: true # Set to false to route HTTP directly to mailinabox service
     port: 80
+    # Optional: Falls back to global.imagePullPolicy if not set
+    imagePullPolicy: ""
     resources:
       requests:
         memory: "32Mi"

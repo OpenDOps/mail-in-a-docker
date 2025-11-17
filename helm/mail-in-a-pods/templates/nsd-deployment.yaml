@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
       - name: nsd
-        image: "{{ .Values.nsd.image.repository }}:{{ .Values.nsd.image.tag }}"
-        imagePullPolicy: {{ .Values.nsd.image.pullPolicy }}
+        image: "https://ghcr.io/opendops/mailinadockers-nsd:{{ .Values.nsd.image.tag | default .Values.global.imageTag }}"
+        imagePullPolicy: {{ .Values.nsd.image.pullPolicy | default .Values.global.imagePullPolicy }}
         env:
         - name: NSD_LISTEN_IPV4
           value: {{ .Values.nsd.env.nsdListenIpv4 | quote }}
