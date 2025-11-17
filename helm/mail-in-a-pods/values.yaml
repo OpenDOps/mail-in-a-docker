@@ -230,5 +230,40 @@ gateway:
 # Cert-manager configuration
 certManager:
   enabled: true
-  clusterIssuer: "letsencrypt-prod" # Name of your ClusterIssuer
+  # ACME configuration for Let's Encrypt
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory # Production
+    # Use https://acme-staging-v02.api.letsencrypt.org/directory for staging
+    email: "" # Required: Your email address for Let's Encrypt notifications
+    # HTTP-01 solver configuration for Gateway API
+    http01:
+      # Node selector for cert-manager HTTP-01 solver pods
+      # Falls back to global.nodeSelector if not set
+      nodeSelector: {}
+      # Example:
+      #   kubernetes.io/os: linux
+      #   node-role.kubernetes.io/system-workloads: ""
+      # Tolerations for cert-manager HTTP-01 solver pods
+      # Falls back to global.tolerations if not set
+      tolerations: []
+      # Example:
+      # - key: node-role
+      #   operator: Equal
+      #   value: system-workloads
+      #   effect: NoExecute
+      # Affinity rules for cert-manager HTTP-01 solver pods
+      # Falls back to global.affinity if not set
+      affinity: {}
+      # Example for pod anti-affinity:
+      #   podAntiAffinity:
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #     - weight: 100
+      #       podAffinityTerm:
+      #         labelSelector:
+      #           matchExpressions:
+      #           - key: app.kubernetes.io/name
+      #             operator: In
+      #             values:
+      #             - mail-in-a-pods
+      #         topologyKey: kubernetes.io/hostname
   # Certificate will be created automatically and referenced by Gateway TLS listeners

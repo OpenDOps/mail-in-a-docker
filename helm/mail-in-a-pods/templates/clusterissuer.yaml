@@ -1,0 +1,56 @@
+{{- if and .Values.certManager.enabled .Values.gateway.enabled }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-cert-issuer
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  acme:
+    server: {{ .Values.certManager.acme.server | quote }}
+    email: {{ .Values.certManager.acme.email | quote }}
+    privateKeySecretRef:
+      name: {{ include "mailinabox.fullname" . }}-cert-issuer
+    solvers:
+    # Solver for Gateway API - mail-in-a-pods gateway
+    # This solver will be used for Certificates that match the selector
+    # The parentRefs explicitly specifies which Gateway to use
+    - selector: {}
+      # This solver will be tried for all Certificates,
+      # because selector is empty
+      http01:
+        gatewayHTTPRoute:
+          # Explicitly reference the Gateway to use
+          parentRefs:
+          - name: {{ include "mailinabox.fullname" . }}-gateway
+            namespace: {{ .Release.Namespace }}
+          # Optional: labels to add to the HTTPRoute created by cert-manager
+          labels:
+            cert-manager-solver: http01
+          podTemplate:
+            spec:
+              {{- $nodeSelector := .Values.certManager.acme.http01.nodeSelector }}
+              {{- if not $nodeSelector }}
+                {{- $nodeSelector = .Values.global.nodeSelector }}
+              {{- end }}
+              {{- if $nodeSelector }}
+              nodeSelector:
+                {{- toYaml $nodeSelector | nindent 16 }}
+              {{- end }}
+              {{- $tolerations := .Values.certManager.acme.http01.tolerations }}
+              {{- if not $tolerations }}
+                {{- $tolerations = .Values.global.tolerations }}
+              {{- end }}
+              {{- if $tolerations }}
+              tolerations:
+                {{- toYaml $tolerations | nindent 16 }}
+              {{- end }}
+              {{- $affinity := .Values.certManager.acme.http01.affinity }}
+              {{- if not $affinity }}
+                {{- $affinity = .Values.global.affinity }}
+              {{- end }}
+              {{- if $affinity }}
+              affinity:
+                {{- toYaml $affinity | nindent 16 }}
+              {{- end }}
+{{- end }}

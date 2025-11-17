@@ -12,7 +12,7 @@ metadata:
 spec:
   secretName: {{ $tls.secretName }}
   issuerRef:
-    name: {{ $.Values.certManager.clusterIssuer }}
+    name: {{ include "mailinabox.fullname" $ }}-cert-issuer
     kind: ClusterIssuer
   dnsNames:
   - {{ $hostname | quote }}
