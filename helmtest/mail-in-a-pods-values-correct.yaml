@@ -14,9 +14,20 @@ mailinabox:
     size: 50Gi
 
 bind:
+  # It is disabled by default
   storage:
     size: 10Gi
 
 nsd:
   storage:
     size: 10Gi
+
+httpPlaceholder:
+  nodeSelector:
+    kubernetes.io/os: linux
+    node-role.kubernetes.io/log-workloads: ""
+  tolerations:
+    - key: node-role
+      operator: "Equal"
+      value: log-workloads #Change to dex-app-workloads
+      effect: NoExecute

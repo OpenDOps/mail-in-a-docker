@@ -30,13 +30,17 @@ spec:
     {{- if .Values.gateway.httpPlaceholder.enabled }}
     # Serve static placeholder page
     backendRefs:
-    - name: {{ include "mailinabox.fullname" . }}-placeholder
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-placeholder
       port: {{ .Values.gateway.httpPlaceholder.port }}
       weight: 1
     {{- else }}
     # Route to mailinabox service
     backendRefs:
-    - name: {{ include "mailinabox.fullname" . }}-mailinabox
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-mailinabox
       port: {{ .Values.mailinabox.service.ports.http }}
       weight: 1
     {{- end }}

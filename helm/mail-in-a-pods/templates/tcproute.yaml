@@ -10,11 +10,15 @@ metadata:
     {{- include "mailinabox.labels" . | nindent 4 }}
 spec:
   parentRefs:
-  - name: {{ include "mailinabox.fullname" . }}-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ include "mailinabox.fullname" . }}-gateway
     sectionName: smtp
   rules:
   - backendRefs:
-    - name: {{ include "mailinabox.fullname" . }}-mailinabox
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-mailinabox
       port: 25
       weight: 1
 ---
@@ -26,11 +30,15 @@ metadata:
     {{- include "mailinabox.labels" . | nindent 4 }}
 spec:
   parentRefs:
-  - name: {{ include "mailinabox.fullname" . }}-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ include "mailinabox.fullname" . }}-gateway
     sectionName: imap
   rules:
   - backendRefs:
-    - name: {{ include "mailinabox.fullname" . }}-mailinabox
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-mailinabox
       port: 143
       weight: 1
 {{- range $index, $tls := $tlsConfigs }}
@@ -44,13 +52,17 @@ metadata:
     {{- include "mailinabox.labels" $ | nindent 4 }}
 spec:
   parentRefs:
-  - name: {{ include "mailinabox.fullname" $ }}-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ include "mailinabox.fullname" $ }}-gateway
     sectionName: imaps-{{ $index }}
   hostnames:
   - {{ $hostname | quote }}
   rules:
   - backendRefs:
-    - name: {{ include "mailinabox.fullname" $ }}-mailinabox
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" $ }}-mailinabox
       port: 993
       weight: 1
 ---
@@ -62,13 +74,17 @@ metadata:
     {{- include "mailinabox.labels" $ | nindent 4 }}
 spec:
   parentRefs:
-  - name: {{ include "mailinabox.fullname" $ }}-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ include "mailinabox.fullname" $ }}-gateway
     sectionName: smtps-{{ $index }}
   hostnames:
   - {{ $hostname | quote }}
   rules:
   - backendRefs:
-    - name: {{ include "mailinabox.fullname" $ }}-mailinabox
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" $ }}-mailinabox
       port: 465
       weight: 1
 ---
@@ -80,13 +96,17 @@ metadata:
     {{- include "mailinabox.labels" $ | nindent 4 }}
 spec:
   parentRefs:
-  - name: {{ include "mailinabox.fullname" $ }}-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ include "mailinabox.fullname" $ }}-gateway
     sectionName: submission-{{ $index }}
   hostnames:
   - {{ $hostname | quote }}
   rules:
   - backendRefs:
-    - name: {{ include "mailinabox.fullname" $ }}-mailinabox
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" $ }}-mailinabox
       port: 587
       weight: 1
 {{- end }}
