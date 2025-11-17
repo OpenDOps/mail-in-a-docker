@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - master
+    tags:
+      - 'v*'
     paths:
       - '.github/workflows/build-dockers.yml'
       - 'Dockerfile'
@@ -225,3 +227,43 @@ jobs:
       - name: Image digest
         run: |
           echo "Image built: ${{ steps.meta.outputs.tags }}"
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') && startsWith(github.ref_name, 'v')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tag name
+        id: tag
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "Creating release for tag: ${TAG_NAME}"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.tag.outputs.tag }}
+          tag_name: ${{ steps.tag.outputs.tag }}
+          body: |
+            Release ${{ steps.tag.outputs.tag }}
+
+            ## Docker Images
+
+            This release includes the following Docker images:
+            - `${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-mailinabox-k8s:${{ steps.tag.outputs.tag }}`
+            - `${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-bind:${{ steps.tag.outputs.tag }}`
+            - `${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-nsd:${{ steps.tag.outputs.tag }}`
+
+            See the [build workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for build details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
