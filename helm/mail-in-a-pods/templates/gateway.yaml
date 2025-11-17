@@ -36,6 +36,7 @@ spec:
       certificateRefs:
       - name: {{ $tls.secretName | quote }}
         kind: Secret
+        group: ""
     allowedRoutes:
       namespaces:
         from: Same

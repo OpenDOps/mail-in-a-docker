@@ -9,10 +9,14 @@ metadata:
     {{- include "mailinabox.labels" . | nindent 4 }}
 spec:
   parentRefs:
-  - name: {{ include "mailinabox.fullname" . }}-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ include "mailinabox.fullname" . }}-gateway
     sectionName: http
   {{- range $index, $tls := $tlsConfigs }}
-  - name: {{ include "mailinabox.fullname" $ }}-gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ include "mailinabox.fullname" $ }}-gateway
     sectionName: https-{{ $index }}
   {{- end }}
   hostnames:
