@@ -151,9 +151,67 @@ This repository uses **pre-commit** hooks (see `README-PRE-COMMIT.md` for detail
 - Dockerfiles (hadolint)
 - Python code (ruff + ruff-format)
 - YAML / JSON / Helm templates
+- **Helm chart linting and template testing**
 
 Running `pre-commit` locally before committing helps keep the codebase **clean, consistent, and safer by catching issues early**.
 **All commits are expected to pass the pre-commit checks**, and **pull requests that do not pass pre-commit linting will not be accepted**.
+
+#### Helm Chart Autotesting
+
+The pre-commit hooks include automatic Helm chart testing that validates chart templates with test values files:
+
+**How it works:**
+
+1. **Test values files**: Place test values files in the `helmtest/` folder at the project root, named as `{chart-name}-values*.yaml` (e.g., `mail-in-a-pods-values-correct.yaml`)
+
+2. **Automatic testing**: When you commit changes to Helm chart files, the pre-commit hook will:
+   - Find all test values files matching `{chart-name}-values*.yaml` in `helmtest/`
+   - Render the chart template with each test values file
+   - Save the rendered output to `helmtest/results/{file-name}-result.yaml`
+   - If any template rendering fails, the commit is blocked with an error message
+
+3. **Fallback behavior**: If no test values files are found for a chart, the hook will:
+   - Use the default `values.yaml` from the chart directory
+   - Render the template and save to `helmtest/results/{chart-name}-values-result.yaml`
+
+**Manual execution:**
+
+To run Helm template tests manually (outside of pre-commit):
+
+```bash
+# Run the test script directly
+./scripts/test-helm-charts.sh
+
+# Or via pre-commit
+pre-commit run helmtemplate --all-files
+
+# Test a specific chart manually
+cd helm/mail-in-a-pods
+helm template helm-test . --values ../../helmtest/mail-in-a-pods-values-correct.yaml > ../../helmtest/results/mail-in-a-pods-values-correct-result.yaml
+```
+
+**Test values file structure:**
+
+Create test values files in `helmtest/` to test different scenarios:
+
+```yaml
+# helmtest/mail-in-a-pods-values-correct.yaml
+global:
+  storageClass: vultr-block-storage
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations:
+    - key: node-role
+      operator: Equal
+      value: system-workloads
+      effect: NoExecute
+
+mailinabox:
+  storage:
+    size: 50Gi
+```
+
+The rendered templates are saved to `helmtest/results/` for inspection and can be used to verify that changes to templates produce the expected Kubernetes manifests.
 
 ### CI/CD workflows: building Docker images and publishing the Helm chart
 
@@ -181,13 +239,13 @@ helm registry logout ghcr.io 2>/dev/null || true
 **Pull the chart from the OCI registry:**
 
 ```bash
-helm pull oci://ghcr.io/opendops/mail-in-a-pods --version 0.1.0
+helm pull oci://ghcr.io/opendops/mail-in-a-pods --version 0.1.1
 ```
 
 **Inspect the chart metadata:**
 
 ```bash
-helm show chart oci://ghcr.io/opendops/mail-in-a-pods --version 0.1.0
+helm show chart oci://ghcr.io/opendops/mail-in-a-pods --version 0.1.1
 ```
 
 If these commands succeed without authentication, the chart is published and publicly readable.

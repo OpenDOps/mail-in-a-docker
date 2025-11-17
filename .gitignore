@@ -110,3 +110,6 @@ kubeconfig*
 
 # Mail-in-a-Box working copy
 mailinabox/
+
+# Remove helmtest results
+helmtest/results/*-result.yaml

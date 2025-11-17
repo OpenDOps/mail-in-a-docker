@@ -38,7 +38,6 @@ mailinabox:
     tag: "v73"
     pullPolicy: IfNotPresent
 
-  version: "v73"
   installFail2ban: false
   enableInternalBind: false
 
@@ -59,9 +58,6 @@ mailinabox:
     privateIP: "" # Not needed in Kubernetes
     privateIPV6: ""
     defaultMtaStsMode: "enforce"
-    phpVer: "8.2"
-    mtaStsMode: "enforce"
-    inADocker: "true"
 
   # Resources
   resources:
@@ -208,6 +204,13 @@ gateway:
   httpPlaceholder:
     enabled: true # Set to false to route HTTP directly to mailinabox service
     port: 80
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "64Mi"
+        cpu: "100m"
 
 # Cert-manager configuration
 certManager:

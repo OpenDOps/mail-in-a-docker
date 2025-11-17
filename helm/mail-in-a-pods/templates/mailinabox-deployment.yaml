@@ -42,18 +42,6 @@ spec:
           value: {{ .Values.mailinabox.env.privateIPV6 | quote }}
         - name: DEFAULT_MTA_STS_MODE
           value: {{ .Values.mailinabox.env.defaultMtaStsMode | quote }}
-        - name: PHP_VER
-          value: {{ .Values.mailinabox.env.phpVer | quote }}
-        - name: MTA_STS_MODE
-          value: {{ .Values.mailinabox.env.mtaStsMode | quote }}
-        - name: IN_A_DOCKER
-          value: {{ .Values.mailinabox.env.inADocker | quote }}
-        - name: IN_KUBERNETES
-          value: "true"  # Disable nginx config generation, use Ingress resources instead
-        - name: MAILINABOX_VERSION
-          value: {{ .Values.mailinabox.version | quote }}
-        - name: WITH_SSL
-          value: {{ .Values.mailinabox.withSSL | quote | lower }}
         - name: INSTALL_FAIL2BAN
           value: {{ .Values.mailinabox.installFail2ban | quote | lower }}
         - name: ENABLE_INTERNAL_BIND
@@ -101,20 +89,29 @@ spec:
         {{- end }}
         resources:
           {{- toYaml .Values.mailinabox.resources | nindent 10 }}
-      {{- $nodeSelector := .Values.mailinabox.nodeSelector | default .Values.global.nodeSelector }}
-      {{- with $nodeSelector }}
+      {{- $nodeSelector := .Values.mailinabox.nodeSelector }}
+      {{- if not $nodeSelector }}
+        {{- $nodeSelector = .Values.global.nodeSelector }}
+      {{- end }}
+      {{- if $nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $nodeSelector | nindent 8 }}
       {{- end }}
-      {{- $tolerations := .Values.mailinabox.tolerations | default .Values.global.tolerations }}
-      {{- with $tolerations }}
+      {{- $tolerations := .Values.mailinabox.tolerations }}
+      {{- if not $tolerations }}
+        {{- $tolerations = .Values.global.tolerations }}
+      {{- end }}
+      {{- if $tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $tolerations | nindent 8 }}
       {{- end }}
-      {{- $affinity := .Values.mailinabox.affinity | default .Values.global.affinity }}
-      {{- with $affinity }}
+      {{- $affinity := .Values.mailinabox.affinity }}
+      {{- if not $affinity }}
+        {{- $affinity = .Values.global.affinity }}
+      {{- end }}
+      {{- if $affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $affinity | nindent 8 }}
       {{- end }}
       volumes:
       - name: mail-storage

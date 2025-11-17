@@ -55,20 +55,29 @@ spec:
           mountPath: {{ .Values.nsd.env.storageRoot }}
         resources:
           {{- toYaml .Values.nsd.resources | nindent 10 }}
-      {{- $nodeSelector := .Values.nsd.nodeSelector | default .Values.global.nodeSelector }}
-      {{- with $nodeSelector }}
+      {{- $nodeSelector := .Values.nsd.nodeSelector }}
+      {{- if not $nodeSelector }}
+        {{- $nodeSelector = .Values.global.nodeSelector }}
+      {{- end }}
+      {{- if $nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $nodeSelector | nindent 8 }}
       {{- end }}
-      {{- $tolerations := .Values.nsd.tolerations | default .Values.global.tolerations }}
-      {{- with $tolerations }}
+      {{- $tolerations := .Values.nsd.tolerations }}
+      {{- if not $tolerations }}
+        {{- $tolerations = .Values.global.tolerations }}
+      {{- end }}
+      {{- if $tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $tolerations | nindent 8 }}
       {{- end }}
-      {{- $affinity := .Values.nsd.affinity | default .Values.global.affinity }}
-      {{- with $affinity }}
+      {{- $affinity := .Values.nsd.affinity }}
+      {{- if not $affinity }}
+        {{- $affinity = .Values.global.affinity }}
+      {{- end }}
+      {{- if $affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $affinity | nindent 8 }}
       {{- end }}
       volumes:
       - name: nsd-conf

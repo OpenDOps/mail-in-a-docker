@@ -11,8 +11,9 @@ spec:
   resources:
     requests:
       storage: {{ .Values.mailinabox.storage.size }}
-  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.mailinabox.storage .) }}
-  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.mailinabox.storage .) }}
+  {{- $storageClass := .Values.mailinabox.storage.storageClass | default .Values.global.storageClass }}
+  {{- if $storageClass }}
+  storageClassName: {{ $storageClass }}
   {{- end }}
 ---
 {{- end }}
@@ -30,8 +31,9 @@ spec:
   resources:
     requests:
       storage: {{ .Values.nsd.storage.size }}
-  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.nsd.storage .) }}
-  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.nsd.storage .) }}
+  {{- $storageClass := .Values.nsd.storage.storageClass | default .Values.global.storageClass }}
+  {{- if $storageClass }}
+  storageClassName: {{ $storageClass }}
   {{- end }}
 ---
 {{- end }}
@@ -49,8 +51,9 @@ spec:
   resources:
     requests:
       storage: {{ .Values.bind.storage.size }}
-  {{- if include "mailinabox.storageClassFromRoot" (merge .Values.bind.storage .) }}
-  storageClassName: {{ include "mailinabox.storageClassFromRoot" (merge .Values.bind.storage .) }}
+  {{- $storageClass := .Values.bind.storage.storageClass | default .Values.global.storageClass }}
+  {{- if $storageClass }}
+  storageClassName: {{ $storageClass }}
   {{- end }}
 ---
 {{- end }}

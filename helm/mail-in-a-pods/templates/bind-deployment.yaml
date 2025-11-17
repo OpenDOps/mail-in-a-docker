@@ -39,20 +39,29 @@ spec:
           mountPath: /var/bind
         resources:
           {{- toYaml .Values.bind.resources | nindent 10 }}
-      {{- $nodeSelector := .Values.bind.nodeSelector | default .Values.global.nodeSelector }}
-      {{- with $nodeSelector }}
+      {{- $nodeSelector := .Values.bind.nodeSelector }}
+      {{- if not $nodeSelector }}
+        {{- $nodeSelector = .Values.global.nodeSelector }}
+      {{- end }}
+      {{- if $nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $nodeSelector | nindent 8 }}
       {{- end }}
-      {{- $tolerations := .Values.bind.tolerations | default .Values.global.tolerations }}
-      {{- with $tolerations }}
+      {{- $tolerations := .Values.bind.tolerations }}
+      {{- if not $tolerations }}
+        {{- $tolerations = .Values.global.tolerations }}
+      {{- end }}
+      {{- if $tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $tolerations | nindent 8 }}
       {{- end }}
-      {{- $affinity := .Values.bind.affinity | default .Values.global.affinity }}
-      {{- with $affinity }}
+      {{- $affinity := .Values.bind.affinity }}
+      {{- if not $affinity }}
+        {{- $affinity = .Values.global.affinity }}
+      {{- end }}
+      {{- if $affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml $affinity | nindent 8 }}
       {{- end }}
       volumes:
       - name: bind-state

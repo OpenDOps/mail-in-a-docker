@@ -48,7 +48,7 @@ repos:
   #           "DL3003", # Ignore Use WORKDIR to switch to a directory (warning)
   #         ]
 
-  # Helm chart linting
+  # Helm chart linting and testing
   - repo: local
     hooks:
       - id: helmlint
@@ -56,6 +56,13 @@ repos:
         entry: bash -c 'for chart in helm/*/Chart.yaml; do if [ -f "$chart" ]; then helm lint "$(dirname "$chart")" || exit 1; fi; done'
         language: system
         files: ^helm/.*/Chart\.yaml$
+        pass_filenames: false
+        always_run: false
+      - id: helmtemplate
+        name: Helm Template Test (with test values files)
+        language: system
+        entry: bash scripts/test-helm-charts.sh
+        files: ^helm/.*/(Chart\.yaml|values\.yaml|templates/.*)$
         pass_filenames: false
         always_run: false
 

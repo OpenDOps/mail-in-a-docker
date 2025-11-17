@@ -60,6 +60,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}/mailinadockers
   PHP_VER: "8.2"
+  MAILINABOX_VERSION: "v73"
 
 jobs:
   build:
@@ -79,7 +80,6 @@ jobs:
           dockerfile: Dockerfile
           context: .
           build_args: |
-            MAILINABOX_VERSION=v73
             INSTALL_FAIL2BAN=false
             ENABLE_INTERNAL_BIND=false
         - service: nginx
@@ -102,6 +102,7 @@ jobs:
       - name: Determine build configuration
         id: config
         run: |
+          MAILINABOX_VERSION=${{ env.MAILINABOX_VERSION }}
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             DEPLOYMENT_TYPE="${{ github.event.inputs.deployment_type }}"
             WITH_SSL="${{ github.event.inputs.with_ssl }}"
@@ -124,6 +125,7 @@ jobs:
             echo "BUILD_NGINX=true" >> $GITHUB_OUTPUT
           fi
           echo "DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE}" >> $GITHUB_OUTPUT
+          echo "MAILINABOX_VERSION=${MAILINABOX_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
