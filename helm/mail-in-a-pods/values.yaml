@@ -213,6 +213,12 @@ gateway:
     port: 80
     # Optional: Falls back to global.imagePullPolicy if not set
     imagePullPolicy: ""
+    # Optional: Falls back to global.nodeSelector if not set
+    nodeSelector: {}
+    # Optional: Falls back to global.tolerations if not set
+    tolerations: []
+    # Optional: Falls back to global.affinity if not set
+    affinity: {}
     resources:
       requests:
         memory: "32Mi"

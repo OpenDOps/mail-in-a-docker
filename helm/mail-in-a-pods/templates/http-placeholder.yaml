@@ -31,6 +31,30 @@ spec:
           readOnly: true
         resources:
           {{- toYaml .Values.gateway.httpPlaceholder.resources | nindent 10 }}
+      {{- $nodeSelector := .Values.gateway.httpPlaceholder.nodeSelector }}
+      {{- if not $nodeSelector }}
+        {{- $nodeSelector = .Values.global.nodeSelector }}
+      {{- end }}
+      {{- if $nodeSelector }}
+      nodeSelector:
+        {{- toYaml $nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- $tolerations := .Values.gateway.httpPlaceholder.tolerations }}
+      {{- if not $tolerations }}
+        {{- $tolerations = .Values.global.tolerations }}
+      {{- end }}
+      {{- if $tolerations }}
+      tolerations:
+        {{- toYaml $tolerations | nindent 8 }}
+      {{- end }}
+      {{- $affinity := .Values.gateway.httpPlaceholder.affinity }}
+      {{- if not $affinity }}
+        {{- $affinity = .Values.global.affinity }}
+      {{- end }}
+      {{- if $affinity }}
+      affinity:
+        {{- toYaml $affinity | nindent 8 }}
+      {{- end }}
       volumes:
       - name: placeholder-html
         configMap:
