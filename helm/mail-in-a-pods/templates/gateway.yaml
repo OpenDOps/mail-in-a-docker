@@ -23,9 +23,6 @@ spec:
     {{- if $primaryHostname }}
     hostname: {{ $primaryHostname | quote }}
     {{- end }}
-    allowedRoutes:
-      namespaces:
-        from: Same
   # HTTPS listeners for each domain with TLS
   {{- range $index, $tls := $tlsConfigs }}
   {{- $hostname := $tls.hostname | default $primaryHostname }}
