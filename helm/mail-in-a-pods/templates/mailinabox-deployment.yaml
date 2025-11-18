@@ -22,6 +22,8 @@ spec:
         image: "ghcr.io/opendops/mailinadockers-mailinabox-k8s:{{ .Values.mailinabox.image.tag | default .Values.global.imageTag }}"
         imagePullPolicy: {{ .Values.mailinabox.image.pullPolicy | default .Values.global.imagePullPolicy }}
         env:
+        - name: PRIMARY_HOSTNAME
+          value: {{ .Values.global.primaryHostname | quote }}
         - name: ENABLE_INTERNAL_DNS
           value: {{ .Values.mailinabox.env.enableInternalDns | quote | lower }}
         - name: LOCAL_RESOLVER
