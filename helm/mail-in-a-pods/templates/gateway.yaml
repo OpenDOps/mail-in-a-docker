@@ -73,21 +73,21 @@ spec:
         group: ""
     allowedRoutes:
       namespaces:
-        from:
-  # # SMTPS listener for {{ $hostname }}
-  # - name: smtps-{{ $index }}
-  #   protocol: TLS
-  #   port: 465
-  #   hostname: {{ $hostname | quote }}
-  #   tls:
-  #     mode: Terminate
-  #     certificateRefs:
-  #     - name: {{ $tls.secretName | quote }}
-  #       kind: Secret
-  #       group: ""
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
+        from: Same
+  # SMTPS listener for {{ $hostname }}
+  - name: smtps-{{ $index }}
+    protocol: TLS
+    port: 465
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
   # # SMTP submission listener for {{ $hostname }}
   # - name: submission-{{ $index }}
   #   protocol: TLS
