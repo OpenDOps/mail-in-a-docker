@@ -23,6 +23,9 @@ spec:
             kind: Gateway
             name: {{ include "mailinabox.fullname" . }}-gateway
             namespace: {{ .Release.Namespace }}
+          # Optional: labels to add to the HTTPRoute created by cert-manager
+          labels:
+            cert-manager-solver: http01
           podTemplate:
             spec:
               {{- $nodeSelector := .Values.certManager.acme.http01.nodeSelector }}
