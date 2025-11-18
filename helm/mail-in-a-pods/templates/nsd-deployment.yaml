@@ -43,10 +43,9 @@ spec:
           containerPort: 53
           protocol: TCP
         volumeMounts:
-        - name: nsd-conf
+        # Single storage for NSD (configuration and data)
+        - name: nsd-storage
           mountPath: /etc/nsd
-        # Use separate storage for NSD (doesn't share with mailinabox)
-        # DNS zones will need to be synced separately if mailinabox generates them
         - name: nsd-storage
           mountPath: {{ .Values.nsd.env.storageRoot }}
         resources:
@@ -83,12 +82,10 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       {{- end }}
       volumes:
-      - name: nsd-conf
-        persistentVolumeClaim:
-          claimName: {{ include "mailinabox.fullname" . }}-nsd-conf
+      # Single storage for NSD (configuration and data)
       - name: nsd-storage
         persistentVolumeClaim:
-          claimName: {{ include "mailinabox.fullname" . }}-nsd-storage
+          claimName: {{ include "mailinabox.fullname" . }}-nsd
 ---
 {{- if not .Values.nsd.hostNetwork }}
 # Service is not needed when hostNetwork is enabled (pod is directly accessible)

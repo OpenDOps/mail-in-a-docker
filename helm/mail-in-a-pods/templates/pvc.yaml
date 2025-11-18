@@ -19,28 +19,11 @@ spec:
 {{- end }}
 
 {{- if .Values.nsd.enabled }}
+# Single storage for NSD (configuration and data)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "mailinabox.fullname" . }}-nsd-conf
-  labels:
-    {{- include "mailinabox.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .Values.nsd.storage.size }}
-  {{- $storageClass := .Values.nsd.storage.storageClass | default .Values.global.storageClass }}
-  {{- if $storageClass }}
-  storageClassName: {{ $storageClass }}
-  {{- end }}
----
-# Separate storage for NSD (doesn't share with mailinabox)
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ include "mailinabox.fullname" . }}-nsd-storage
+  name: {{ include "mailinabox.fullname" . }}-nsd
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
     component: nsd
