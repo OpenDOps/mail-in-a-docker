@@ -27,16 +27,28 @@ spec:
   {{- end }}
   {{- end }}
   rules:
+  {{- if .Values.gateway.staticsServer.enabled }}
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /admin/assets/
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: {{ .Values.gateway.staticsServer.port }}
+      weight: 1
+  {{- end }}
   - matches:
     - path:
         type: PathPrefix
         value: /
-    {{- if .Values.gateway.staticsServer.placeholderEnabled }}
+    {{- if and .Values.gateway.staticsServer.placeholderEnabled .Values.gateway.staticsServer.enabled }}
     # Serve static placeholder page
     backendRefs:
     - group: ""
       kind: Service
-      name: {{ include "mailinabox.fullname" . }}-placeholder
+      name: {{ include "mailinabox.fullname" . }}-statics-server
       port: {{ .Values.gateway.staticsServer.port }}
       weight: 1
     {{- else }}

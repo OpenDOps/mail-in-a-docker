@@ -106,7 +106,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "mailinabox.fullname" . }}-placeholder
+  name: {{ include "mailinabox.fullname" . }}-statics-server
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
     component: http-statics-server
