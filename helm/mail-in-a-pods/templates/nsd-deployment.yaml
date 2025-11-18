@@ -45,7 +45,9 @@ spec:
         volumeMounts:
         - name: nsd-conf
           mountPath: /etc/nsd
-        - name: mail-storage
+        # Use separate storage for NSD (doesn't share with mailinabox)
+        # DNS zones will need to be synced separately if mailinabox generates them
+        - name: nsd-storage
           mountPath: {{ .Values.nsd.env.storageRoot }}
         resources:
           {{- toYaml .Values.nsd.resources | nindent 10 }}
@@ -84,9 +86,9 @@ spec:
       - name: nsd-conf
         persistentVolumeClaim:
           claimName: {{ include "mailinabox.fullname" . }}-nsd-conf
-      - name: mail-storage
+      - name: nsd-storage
         persistentVolumeClaim:
-          claimName: {{ include "mailinabox.fullname" . }}-storage
+          claimName: {{ include "mailinabox.fullname" . }}-nsd-storage
 ---
 {{- if not .Values.nsd.hostNetwork }}
 # Service is not needed when hostNetwork is enabled (pod is directly accessible)
