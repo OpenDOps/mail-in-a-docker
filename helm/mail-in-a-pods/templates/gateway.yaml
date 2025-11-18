@@ -50,13 +50,13 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
-  # # IMAP listener (no hostname - accepts all)
-  # - name: imap
-  #   protocol: TCP
-  #   port: 143
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
+  # IMAP listener (no hostname - accepts all)
+  - name: imap
+    protocol: TCP
+    port: 143
+    allowedRoutes:
+      namespaces:
+        from: Same
   # # TLS listeners for mail protocols - one per domain
   # {{- range $index, $tls := $tlsConfigs }}
   # {{- $hostname := $tls.hostname | default $primaryHostname }}
