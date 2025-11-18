@@ -24,6 +24,8 @@ spec:
         env:
         - name: PRIMARY_HOSTNAME
           value: {{ .Values.global.primaryHostname | quote }}
+        - name: PUBLIC_IP
+          value: {{ .Values.global.gateIp | quote }}
         - name: ENABLE_INTERNAL_DNS
           value: {{ .Values.mailinabox.env.enableInternalDns | quote | lower }}
         - name: LOCAL_RESOLVER

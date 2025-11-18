@@ -10,6 +10,7 @@ global:
   storageClass: "" # Use default storage class if empty
 
   primaryHostname: "box.example.com"
+  gateIp: "" # Ip is required
 
   # Global node scheduling configuration (used as defaults for all services)
   nodeSelector: {}
