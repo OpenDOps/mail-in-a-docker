@@ -14,7 +14,10 @@ spec:
   issuerRef:
     name: {{ include "mailinabox.fullname" $ }}-cert-issuer
     kind: ClusterIssuer
-  dnsNames:
+  dnsNames: # 4 times because of 4 TLS listeners to show green in ArgoCD
+  - {{ $hostname | quote }}
+  - {{ $hostname | quote }}
+  - {{ $hostname | quote }}
   - {{ $hostname | quote }}
 {{- end }}
 {{- end }}

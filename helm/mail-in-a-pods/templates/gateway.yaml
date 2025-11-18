@@ -88,19 +88,19 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
-  # # SMTP submission listener for {{ $hostname }}
-  # - name: submission-{{ $index }}
-  #   protocol: TLS
-  #   port: 587
-  #   hostname: {{ $hostname | quote }}
-  #   tls:
-  #     mode: Terminate
-  #     certificateRefs:
-  #     - name: {{ $tls.secretName | quote }}
-  #       kind: Secret
-  #       group: ""
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
+  # SMTP submission listener for {{ $hostname }}
+  - name: submission-{{ $index }}
+    protocol: TLS
+    port: 587
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
   {{- end }}
 {{- end }}
