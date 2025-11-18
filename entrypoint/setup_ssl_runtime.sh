@@ -7,7 +7,24 @@ echo "DEBUG: setup_ssl_runtime.sh - WITH_SSL=${WITH_SSL}"
 
 mkdir -p "${STORAGE_ROOT}/ssl"
 
-if [ -f "/etc/ssl/certs/tls.crt" ] && [ -f "/etc/ssl/private/tls.key" ]; then
+echo "DEBUG: Listing files in /etc/ssl/certs/"
+ls -l /etc/ssl/certs/
+echo "DEBUG: Listing files in /etc/ssl/private/"
+ls -l /etc/ssl/private/
+
+if [ -f "/etc/ssl/private/tls-0.key" ]; then
+    echo "DEBUG: /etc/ssl/private/tls-0.key exist"
+else
+    echo "DEBUG: /etc/ssl/private/tls-0.key do NOT exist"
+fi
+if [ -f "/etc/ssl/certs/tls-0.crt" ]; then
+    echo "DEBUG: /etc/ssl/certs/tls-0.crt exist"
+else
+    echo "DEBUG: /etc/ssl/certs/tls-0.crt do NOT exist"
+fi
+
+
+if [ -f "/etc/ssl/certs/tls-0.crt" ] && [ -f "/etc/ssl/private/tls-0.key" ]; then
     echo "DEBUG: Found cert-manager TLS secret, syncing to ${STORAGE_ROOT}/ssl"
     cp /etc/ssl/certs/tls.crt "${STORAGE_ROOT}/ssl/ssl_certificate.pem"
     cp /etc/ssl/private/tls.key "${STORAGE_ROOT}/ssl/ssl_private_key.pem"
