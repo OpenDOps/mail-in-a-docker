@@ -29,11 +29,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if eq $gatewayClass "nginx" }}
-  gatewayClassName: "mailer-nginx-gateway-fabric"
-  {{- else }}
   gatewayClassName: {{ $gatewayClass | quote }}
-  {{- end }}
   listeners:
   # HTTP listener for web traffic (all domains)
   - name: http
