@@ -17,6 +17,91 @@ spec:
         {{- include "mailinabox.selectorLabels" . | nindent 8 }}
         component: mailinabox
     spec:
+      {{- if and .Values.gateway.enabled (or (not .Values.global.gateIp) (not .Values.global.gateIpV6)) }}
+      serviceAccountName: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
+      # Init container to automatically fetch Gateway LoadBalancer IP (IPv4 and IPv6)
+      initContainers:
+      - name: get-gateway-ip
+        image: bitnami/kubectl:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          GATEWAY_NAME="{{ include "mailinabox.fullname" . }}-gateway"
+          NAMESPACE="{{ .Release.Namespace }}"
+          SECRET_NAME="{{ include "mailinabox.fullname" . }}-gateway-ip"
+
+          echo "Waiting for Gateway ${GATEWAY_NAME} to have IP addresses..."
+          IPV4=""
+          IPV6=""
+
+          for i in $(seq 1 60); do
+            # Get all addresses from Gateway status (as JSON array)
+            ADDRESSES_JSON=$(kubectl get gateway ${GATEWAY_NAME} -n ${NAMESPACE} -o jsonpath='{.status.addresses}' 2>/dev/null || echo "[]")
+
+            if [ -n "${ADDRESSES_JSON}" ] && [ "${ADDRESSES_JSON}" != "null" ] && [ "${ADDRESSES_JSON}" != "[]" ]; then
+              # Parse each address from the JSON array
+              # Use jq if available, otherwise fall back to grep/sed
+              if command -v jq >/dev/null 2>&1; then
+                # Use jq to parse JSON
+                ADDR_COUNT=$(echo "${ADDRESSES_JSON}" | jq 'length' 2>/dev/null || echo "0")
+                for idx in $(seq 0 $((ADDR_COUNT - 1))); do
+                  ADDR_TYPE=$(echo "${ADDRESSES_JSON}" | jq -r ".[${idx}].type" 2>/dev/null || echo "")
+                  ADDR_VALUE=$(echo "${ADDRESSES_JSON}" | jq -r ".[${idx}].value" 2>/dev/null || echo "")
+
+                  if [ "${ADDR_TYPE}" = "IPAddress" ] && [ -n "${ADDR_VALUE}" ]; then
+                    # Check if IPv4 (contains dots and matches pattern)
+                    if echo "${ADDR_VALUE}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+                      IPV4="${ADDR_VALUE}"
+                    # Check if IPv6 (contains colons)
+                    elif echo "${ADDR_VALUE}" | grep -qE ':'; then
+                      IPV6="${ADDR_VALUE}"
+                    fi
+                  fi
+                done
+              else
+                # Fallback: get all IP addresses and classify them
+                ALL_IPS=$(kubectl get gateway ${GATEWAY_NAME} -n ${NAMESPACE} -o jsonpath='{.status.addresses[?(@.type=="IPAddress")].value}' 2>/dev/null || echo "")
+                for addr in ${ALL_IPS}; do
+                  # Check if IPv4
+                  if echo "${addr}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+                    IPV4="${addr}"
+                  # Check if IPv6 (contains colons)
+                  elif echo "${addr}" | grep -qE ':'; then
+                    IPV6="${addr}"
+                  fi
+                done
+              fi
+
+              # If we have at least one IP, create the secret
+              if [ -n "${IPV4}" ] || [ -n "${IPV6}" ]; then
+                echo "Gateway IPv4 found: ${IPV4:-<none>}"
+                echo "Gateway IPv6 found: ${IPV6:-<none>}"
+
+                # Build kubectl command with available IPs
+                CMD="kubectl create secret generic ${SECRET_NAME}"
+                [ -n "${IPV4}" ] && CMD="${CMD} --from-literal=ip=\"${IPV4}\""
+                [ -n "${IPV6}" ] && CMD="${CMD} --from-literal=ipv6=\"${IPV6}\""
+                CMD="${CMD} -n ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
+
+                eval ${CMD}
+                exit 0
+              fi
+            fi
+
+            echo "Attempt ${i}/60: Gateway IPs not ready yet, waiting 5 seconds..."
+            sleep 5
+          done
+
+          echo "Warning: Gateway IPs not found after 5 minutes, creating secret with empty values"
+          kubectl create secret generic ${SECRET_NAME} \
+            --from-literal=ip="" \
+            --from-literal=ipv6="" \
+            -n ${NAMESPACE} \
+            --dry-run=client -o yaml | kubectl apply -f -
+        # Init container needs RBAC to create secrets - ensure ServiceAccount has permissions
+      {{- end }}
       containers:
       - name: mailinabox
         image: "ghcr.io/opendops/mailinadockers-mailinabox-k8s:{{ .Values.mailinabox.image.tag | default .Values.global.imageTag }}"
@@ -25,7 +110,35 @@ spec:
         - name: PRIMARY_HOSTNAME
           value: {{ .Values.global.primaryHostname | quote }}
         - name: PUBLIC_IP
+          {{- if .Values.global.gateIp }}
+          # Use manually configured IP if provided
           value: {{ .Values.global.gateIp | quote }}
+          {{- else if .Values.gateway.enabled }}
+          # Automatically read IP from Gateway LoadBalancer (fetched by init container)
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "mailinabox.fullname" . }}-gateway-ip
+              key: ip
+              optional: true
+          {{- else }}
+          # No Gateway enabled, use empty or manual IP
+          value: {{ .Values.global.gateIp | quote }}
+          {{- end }}
+        - name: PUBLIC_IPV6
+          {{- if .Values.global.gateIpV6 }}
+          # Use manually configured IPv6 if provided
+          value: {{ .Values.global.gateIpV6 | quote }}
+          {{- else if .Values.gateway.enabled }}
+          # Automatically read IPv6 from Gateway LoadBalancer (fetched by init container)
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "mailinabox.fullname" . }}-gateway-ip
+              key: ipv6
+              optional: true
+          {{- else }}
+          # No Gateway enabled, use empty or manual IPv6
+          value: {{ .Values.global.gateIpV6 | quote }}
+          {{- end }}
         - name: ENABLE_INTERNAL_DNS
           value: {{ .Values.mailinabox.env.enableInternalDns | quote | lower }}
         - name: LOCAL_RESOLVER
@@ -34,10 +147,6 @@ spec:
           value: {{ .Values.mailinabox.env.storageUser | quote }}
         - name: STORAGE_ROOT
           value: {{ .Values.mailinabox.env.storageRoot | quote }}
-        - name: PUBLIC_IP
-          value: {{ .Values.mailinabox.env.publicIP | quote }}
-        - name: PUBLIC_IPV6
-          value: {{ .Values.mailinabox.env.publicIPV6 | quote }}
         - name: INSTALL_FAIL2BAN
           value: {{ .Values.mailinabox.installFail2ban | quote | lower }}
         - name: ENABLE_INTERNAL_BIND

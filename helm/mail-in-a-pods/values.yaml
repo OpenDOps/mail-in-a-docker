@@ -10,7 +10,11 @@ global:
   storageClass: "" # Use default storage class if empty
 
   primaryHostname: "box.example.com"
-  gateIp: "" # Ip is required
+  gateIp:
+    "" # Gateway LoadBalancer IP
+    # If empty and gateway.enabled=true, IP will be automatically fetched from Gateway status
+    # If gateway.enabled=false, you must provide the IP manually
+  gateIpV6: ""
 
   # Global node scheduling configuration (used as defaults for all services)
   nodeSelector: {}
@@ -60,8 +64,6 @@ mailinabox:
     localResolver: "kube-dns.kube-system.svc.cluster.local" # Kubernetes DNS service
     storageUser: "user-data"
     storageRoot: "/home/user-data"
-    publicIP: "" # Will be set by service external IP or load balancer
-    publicIPV6: ""
 
   # Resources
   resources:
