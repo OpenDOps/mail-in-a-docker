@@ -413,11 +413,6 @@ COPY --from=pigeonhole-builder /pigeonhole-install/ /
 # Download Mail-in-a-Box management daemon dependencies and pre-requisites
 
 # Install Mail-in-a-Box management daemon dependencies and assets
-# Install b2sdk and boto3 system-wide (used by duplicity for backups)
-# Copy requirements file for version pinning (security: prevents supply chain attacks)
-COPY requirements-system.txt /tmp/requirements-system.txt
-RUN pip3 install --break-system-packages --no-cache-dir -r /tmp/requirements-system.txt
-
 # Create virtualenv for management daemon Python packages
 RUN mkdir -p /usr/local/lib/mailinabox && \
     virtualenv -ppython3 /usr/local/lib/mailinabox/env
