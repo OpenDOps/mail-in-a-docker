@@ -22,8 +22,10 @@ check_required_env() {
 check_required_env "STORAGE_ROOT" || exit 1
 check_required_env "PRIMARY_HOSTNAME" || exit 1
 check_required_env "PUBLIC_IP" || exit 1
-check_required_env "MTA_STS_MODE" || exit 1
 # check_required_env "PUBLIC_IPV6" || exit 1
+
+# Set default MTA_STS_MODE if not provided
+export MTA_STS_MODE="${MTA_STS_MODE:-enforce}"
 
 RESOLVER="${LOCAL_RESOLVER:-127.0.0.1}"
 printf "nameserver %s\n" "$RESOLVER" > /etc/resolv.conf

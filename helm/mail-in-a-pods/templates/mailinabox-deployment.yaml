@@ -151,6 +151,8 @@ spec:
           value: {{ .Values.mailinabox.installFail2ban | quote | lower }}
         - name: ENABLE_INTERNAL_BIND
           value: {{ .Values.mailinabox.enableInternalBind | quote | lower }}
+        - name: MTA_STS_MODE
+          value: "enforce"
         # Cert-manager certificate paths (mounted from secret)
         # Cert-manager creates secrets with keys: tls.crt and tls.key
         - name: SSL_CERTIFICATE
