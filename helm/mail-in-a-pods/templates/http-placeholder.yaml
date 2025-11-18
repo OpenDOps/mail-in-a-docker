@@ -35,12 +35,12 @@ spec:
           echo "Downloading jQuery..."
           wget --progress=dot:giga -O /assets/vendor/assets/jquery.min.js \
             https://code.jquery.com/jquery-2.2.4.min.js
-          echo "69bb69e25ca7d5ef0935317584e6153f3fd9a88c  /assets/vendor/assets/jquery.min.js" | sha1sum -c --strict -
+          echo "69bb69e25ca7d5ef0935317584e6153f3fd9a88c  /assets/vendor/assets/jquery.min.js" | sha1sum -cw -
 
           echo "Downloading Bootstrap..."
           wget --progress=dot:giga -O /tmp/bootstrap.zip \
             https://github.com/twbs/bootstrap/releases/download/v3.4.1/bootstrap-3.4.1-dist.zip
-          echo "0bb64c67c2552014d48ab4db81c2e8c01781f580  /tmp/bootstrap.zip" | sha1sum -c --strict -
+          echo "0bb64c67c2552014d48ab4db81c2e8c01781f580  /tmp/bootstrap.zip" | sha1sum -cw -
           unzip -q /tmp/bootstrap.zip -d /assets/vendor/assets
           mv /assets/vendor/assets/bootstrap-3.4.1-dist /assets/vendor/assets/bootstrap
           rm -f /tmp/bootstrap.zip
