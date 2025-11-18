@@ -7,22 +7,13 @@ metadata:
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
 spec:
-  {{- if .Values.gateway.logging.enabled }}
+  {{- if or .Values.gateway.logging.enabled }}
   logging:
-    {{- if .Values.gateway.logging.accessLogEnabled }}
-    accessLog:
-      enable: true
-      {{- if .Values.gateway.logging.logFormat }}
-      format: {{ .Values.gateway.logging.logFormat | quote }}
-      {{- end }}
-    {{- else }}
-    accessLog:
-      enable: false
+    {{- if .Values.gateway.logging.agentLogLevel }}
+    agentLevel: {{ .Values.gateway.logging.agentLogLevel | quote }}
     {{- end }}
     {{- if .Values.gateway.logging.errorLogLevel }}
-    errorLog:
-      enable: true
-      level: {{ .Values.gateway.logging.errorLogLevel | quote }}
+    errorLevel: {{ .Values.gateway.logging.errorLogLevel | quote }}
     {{- end }}
   {{- end }}
 {{- end }}
