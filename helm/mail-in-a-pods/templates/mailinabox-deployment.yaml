@@ -230,13 +230,13 @@ spec:
           secretName: {{ $tls.secretName }}
           items:
           - key: tls.crt
-            path: /etc/ssl/certs/tls-{{ $index }}.crt
+            path: tls-{{ $index }}.crt
       - name: tls-key-{{ $index }}
         secret:
           secretName: {{ $tls.secretName }}
           items:
           - key: tls.key
-            path: /etc/ssl/private/tls-{{ $index }}.key
+            path: tls-{{ $index }}.key
       {{- end }}
       {{- end }}
       dnsPolicy: ClusterFirst
