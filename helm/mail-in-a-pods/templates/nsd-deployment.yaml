@@ -73,6 +73,13 @@ spec:
       affinity:
         {{- toYaml $affinity | nindent 8 }}
       {{- end }}
+      {{- if .Values.nsd.hostNetwork }}
+      # hostNetwork allows pod to bind directly to node's port 53
+      # WARNING: Only use if MetalLB or external proxy is not available
+      # Ensure no other service is using port 53 on the node
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
       volumes:
       - name: nsd-conf
         persistentVolumeClaim:
@@ -81,6 +88,8 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "mailinabox.fullname" . }}-storage
 ---
+{{- if not .Values.nsd.hostNetwork }}
+# Service is not needed when hostNetwork is enabled (pod is directly accessible)
 apiVersion: v1
 kind: Service
 metadata:
@@ -95,11 +104,41 @@ spec:
       targetPort: dns-udp
       protocol: UDP
       name: dns-udp
+      {{- if and (eq .Values.nsd.service.type "NodePort") .Values.nsd.service.nodePort.udp }}
+      nodePort: {{ .Values.nsd.service.nodePort.udp }}
+      {{- end }}
     - port: 53
       targetPort: dns-tcp
+      protocol: TCP
+      name: dns-tcp
+      {{- if and (eq .Values.nsd.service.type "NodePort") .Values.nsd.service.nodePort.tcp }}
+      nodePort: {{ .Values.nsd.service.nodePort.tcp }}
+      {{- end }}
+  selector:
+    {{- include "mailinabox.selectorLabels" . | nindent 4 }}
+    component: nsd
+{{- else }}
+# Headless service for hostNetwork mode (for service discovery within cluster)
+# Pod is directly accessible via <NodeIP>:53
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-nsd
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: nsd
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 53
+      protocol: UDP
+      name: dns-udp
+    - port: 53
       protocol: TCP
       name: dns-tcp
   selector:
     {{- include "mailinabox.selectorLabels" . | nindent 4 }}
     component: nsd
+{{- end }}
 {{- end }}

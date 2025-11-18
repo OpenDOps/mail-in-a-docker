@@ -177,9 +177,50 @@ nsd:
   tolerations: []
   affinity: {}
 
+  # hostNetwork: Use node's network namespace directly (for bare metal port 53 access)
+  # WARNING: Only use if you cannot use MetalLB or external proxy
+  # - Pod binds directly to node's port 53 (requires no other service using port 53)
+  # - Pod uses node's IP address directly
+  # - Reduces network isolation (security consideration)
+  # - Access DNS via <NodeIP>:53 (both UDP and TCP)
+  # - When enabled: Service automatically becomes headless (ClusterIP: None)
+  #   The service.type value below is ignored when hostNetwork=true
+  hostNetwork: false
+
   service:
-    type: LoadBalancer # For external DNS access
-    port: 53
+    # Service type options:
+    # - LoadBalancer: Creates an external load balancer
+    #   * Cloud providers: Automatically provisions LB with external IP
+    #   * Bare metal: Requires MetalLB or similar LoadBalancer implementation
+    #   * Note: Some cloud providers don't support UDP LoadBalancers
+    # - NodePort: Exposes service on each node's IP at a static port (30000-32767)
+    #   * Access via <NodeIP>:<nodePort>
+    #   * NodePort uses high ports, not port 53
+    #   * Requires external proxy/port forwarding to map 53 → nodePort
+    type: LoadBalancer # Options: NodePort, LoadBalancer
+    # NodePort configuration (only used when type: NodePort)
+    # If not specified, Kubernetes will auto-assign ports in range 30000-32767
+    nodePort:
+      udp: null # Optional: Specify UDP nodePort (30000-32767), null = auto-assign
+      tcp: null # Optional: Specify TCP nodePort (30000-32767), null = auto-assign
+    # Bare Metal Solutions for Port 53:
+    #
+    # Option 1: MetalLB (Recommended)
+    #   Install MetalLB in your cluster to provide LoadBalancer support:
+    #   kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+    #   Configure IP address pool, then use type: LoadBalancer
+    #   MetalLB will assign an external IP and expose port 53 directly
+    #
+    # Option 2: External Proxy/Load Balancer
+    #   Use NodePort (e.g., 30053) and configure external proxy:
+    #   - HAProxy: Forward port 53 (UDP/TCP) → NodeIP:30053
+    #   - nginx: Forward port 53 → NodeIP:30053
+    #   - Router/Firewall: Port forward 53 → NodeIP:30053
+    #
+    # Option 3: hostNetwork (Not Recommended)
+    #   Pod binds directly to node's port 53
+    #   Requires privileged access and can conflict with system services
+    #   See nsd.hostNetwork option below
 
 # Gateway API configuration (replaces Ingress for SMTP/IMAP/HTTP traffic)
 gateway:
