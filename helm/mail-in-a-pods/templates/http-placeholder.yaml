@@ -45,6 +45,13 @@ spec:
           mv /assets/vendor/assets/bootstrap-3.4.1-dist /assets/vendor/assets/bootstrap
           rm -f /tmp/bootstrap.zip
 
+          # Verify structure
+          echo "Verifying asset structure..."
+          ls -la /assets/vendor/assets/
+          ls -la /assets/vendor/assets/bootstrap/ || echo "Bootstrap directory not found"
+          ls -la /assets/vendor/assets/bootstrap/css/ || echo "Bootstrap CSS directory not found"
+          test -f /assets/vendor/assets/bootstrap/css/bootstrap.min.css && echo "✓ bootstrap.min.css found" || echo "✗ bootstrap.min.css NOT found"
+
           echo "Assets downloaded successfully"
         volumeMounts:
         - name: vendor-assets
@@ -138,8 +145,9 @@ data:
         index index.html;
 
         # Serve static mailinabox admin dashboard assets from vendor directory
-        location /admin/assets/ {
-            alias /mailinabox/vendor/assets/;
+        # Match both /admin/assets and /admin/assets/ (with and without trailing slash)
+        location /admin/assets {
+            alias /mailinabox/vendor/assets;
             expires 1y;
             add_header Cache-Control "public, immutable";
 
