@@ -232,9 +232,23 @@ nsd:
 gateway:
   enabled: true
   className: "nginx" # nginx gateway fabric class
+
+  # Logging configuration
+  logging:
+    enabled: true # Enable access and error logging
+    accessLogEnabled: true # Enable access logs
+    errorLogLevel: "warn" # Error log level: debug, info, notice, warn, error, crit, alert, emerg
+    # Custom log format (optional, uses default if empty)
+    # Example: '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent'
+    # logFormat: ""
+
+  # Custom annotations (merged with automatic logging annotations if logging.enabled=true)
+  # Gateway-specific annotations (e.g., for LoadBalancer configuration)
   # annotations:
-  #   # Gateway-specific annotations (e.g., for LoadBalancer configuration)
   #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb" # Example for AWS
+  #   # Override logging annotations if needed:
+  #   # nginx.org/enable-access-log: "true"
+  #   # nginx.org/error-log-level: "info"
 
   # TLS configuration - supports multiple domains with separate certificates
   # Each domain can have its own TLS secret (useful for multi-domain setups)

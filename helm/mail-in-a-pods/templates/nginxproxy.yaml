@@ -1,0 +1,28 @@
+{{- if and .Values.gateway.enabled (eq .Values.gateway.className "nginx") }}
+apiVersion: gateway.nginx.org/v1alpha1
+kind: NginxProxy
+metadata:
+  name: mailer-proxy-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.gateway.logging.enabled }}
+  logging:
+    {{- if .Values.gateway.logging.accessLogEnabled }}
+    accessLog:
+      enable: true
+      {{- if .Values.gateway.logging.logFormat }}
+      format: {{ .Values.gateway.logging.logFormat | quote }}
+      {{- end }}
+    {{- else }}
+    accessLog:
+      enable: false
+    {{- end }}
+    {{- if .Values.gateway.logging.errorLogLevel }}
+    errorLog:
+      enable: true
+      level: {{ .Values.gateway.logging.errorLogLevel | quote }}
+    {{- end }}
+  {{- end }}
+{{- end }}

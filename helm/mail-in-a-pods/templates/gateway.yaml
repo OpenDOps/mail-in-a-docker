@@ -1,4 +1,19 @@
 {{- if .Values.gateway.enabled }}
+{{- $gatewayClass := .Values.gateway.className }}
+{{- if eq $gatewayClass "nginx" }}
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GatewayClass
+metadata:
+  name: mailer-nginx-gateway-fabric
+spec:
+  controllerName: gateway.nginx.org/nginx-gateway-fabric
+  parametersRef:
+    group: gateway.nginx.org
+    kind: NginxProxy
+    name: mailer-proxy-config # References the NginxProxy resource above
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+---
 {{- $primaryHostname := .Values.global.primaryHostname }}
 {{- $tlsConfigs := .Values.gateway.tls }}
 apiVersion: gateway.networking.k8s.io/v1
@@ -14,7 +29,11 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  gatewayClassName: {{ .Values.gateway.className | quote }}
+  {{- if eq $gatewayClass "nginx" }}
+  gatewayClassName: "mailer-nginx-gateway-fabric"
+  {{- else }}
+  gatewayClassName: {{ $gatewayClass | quote }}
+  {{- end }}
   listeners:
   # HTTP listener for web traffic (all domains)
   - name: http
