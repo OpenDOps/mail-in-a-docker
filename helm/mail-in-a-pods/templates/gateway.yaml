@@ -6,7 +6,7 @@ kind: GatewayClass
 metadata:
   name: mailer-nginx-gateway-fabric
 spec:
-  controllerName: gateway.nginx.org/nginx-gateway-fabric
+  controllerName: gateway.nginx.org/nginx-gateway-controller
   parametersRef:
     group: gateway.nginx.org
     kind: NginxProxy

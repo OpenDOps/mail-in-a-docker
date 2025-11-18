@@ -235,9 +235,9 @@ gateway:
 
   # Logging configuration
   logging:
-    enabled: true # Enable access and error logging
-    agentLogLevel: "warn" # Access log level: debug, info, notice, warn, error, crit, alert, emerg
-    errorLogLevel: "warn" # Error log level: debug, info, notice, warn, error, crit, alert, emerg
+    enabled: false # Enable access and error logging
+    agentLogLevel: "error" # Access log level: "debug", "info", "error", "panic", "fatal"
+    errorLogLevel: "error" # Error log level: "debug", "info", "error", "panic", "fatal"
     # Custom log format (optional, uses default if empty)
     # Example: '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent'
     # logFormat: ""
