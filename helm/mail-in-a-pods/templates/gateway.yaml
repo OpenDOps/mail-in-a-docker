@@ -44,12 +44,12 @@ spec:
         from: Same
   {{- end }}
   # SMTP listener (no hostname - accepts all)
-  # - name: smtp
-  #   protocol: TCP
-  #   port: 25
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
+  - name: smtp
+    protocol: TCP
+    port: 25
+    allowedRoutes:
+      namespaces:
+        from: Same
   # # IMAP listener (no hostname - accepts all)
   # - name: imap
   #   protocol: TCP
