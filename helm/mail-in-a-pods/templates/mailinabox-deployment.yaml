@@ -250,6 +250,9 @@ metadata:
     component: mailinabox
 spec:
   type: {{ .Values.mailinabox.service.type }}
+  {{- if or (eq .Values.mailinabox.service.type "LoadBalancer") (eq .Values.mailinabox.service.type "NodePort") }}
+  externalTrafficPolicy: Cluster
+  {{- end }}
   ports:
     - port: {{ .Values.mailinabox.service.ports.http }}
       targetPort: http

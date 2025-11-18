@@ -101,6 +101,9 @@ metadata:
     component: nsd
 spec:
   type: {{ .Values.nsd.service.type }}
+  {{- if or (eq .Values.nsd.service.type "LoadBalancer") (eq .Values.nsd.service.type "NodePort") }}
+  externalTrafficPolicy: Cluster
+  {{- end }}
   ports:
     - port: 53
       targetPort: dns-udp
