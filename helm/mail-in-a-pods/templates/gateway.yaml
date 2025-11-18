@@ -58,64 +58,64 @@ spec:
       namespaces:
         from: Same
   {{- end }}
-  # # SMTP listener (no hostname - accepts all)
-  # - name: smtp
-  #   protocol: TCP
-  #   port: 25
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
-  # # IMAP listener (no hostname - accepts all)
-  # - name: imap
-  #   protocol: TCP
-  #   port: 143
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
-  # # TLS listeners for mail protocols - one per domain
-  # {{- range $index, $tls := $tlsConfigs }}
-  # {{- $hostname := $tls.hostname | default $primaryHostname }}
-  # # IMAPS listener for {{ $hostname }}
-  # - name: imaps-{{ $index }}
-  #   protocol: TLS
-  #   port: 993
-  #   hostname: {{ $hostname | quote }}
-  #   tls:
-  #     mode: Terminate
-  #     certificateRefs:
-  #     - name: {{ $tls.secretName | quote }}
-  #       kind: Secret
-  #       group: ""
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
-  # # SMTPS listener for {{ $hostname }}
-  # - name: smtps-{{ $index }}
-  #   protocol: TLS
-  #   port: 465
-  #   hostname: {{ $hostname | quote }}
-  #   tls:
-  #     mode: Terminate
-  #     certificateRefs:
-  #     - name: {{ $tls.secretName | quote }}
-  #       kind: Secret
-  #       group: ""
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
-  # # SMTP submission listener for {{ $hostname }}
-  # - name: submission-{{ $index }}
-  #   protocol: TLS
-  #   port: 587
-  #   hostname: {{ $hostname | quote }}
-  #   tls:
-  #     mode: Terminate
-  #     certificateRefs:
-  #     - name: {{ $tls.secretName | quote }}
-  #       kind: Secret
-  #       group: ""
-  #   allowedRoutes:
-  #     namespaces:
-  #       from: Same
-  # {{- end }}
+  # SMTP listener (no hostname - accepts all)
+  - name: smtp
+    protocol: TCP
+    port: 25
+    allowedRoutes:
+      namespaces:
+        from: Same
+  # IMAP listener (no hostname - accepts all)
+  - name: imap
+    protocol: TCP
+    port: 143
+    allowedRoutes:
+      namespaces:
+        from: Same
+  # TLS listeners for mail protocols - one per domain
+  {{- range $index, $tls := $tlsConfigs }}
+  {{- $hostname := $tls.hostname | default $primaryHostname }}
+  # IMAPS listener for {{ $hostname }}
+  - name: imaps-{{ $index }}
+    protocol: TLS
+    port: 993
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+  # SMTPS listener for {{ $hostname }}
+  - name: smtps-{{ $index }}
+    protocol: TLS
+    port: 465
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+  # SMTP submission listener for {{ $hostname }}
+  - name: submission-{{ $index }}
+    protocol: TLS
+    port: 587
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+  {{- end }}
 {{- end }}
