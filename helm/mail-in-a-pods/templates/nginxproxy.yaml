@@ -1,5 +1,5 @@
 {{- if and .Values.gateway.enabled (eq .Values.gateway.className "nginx") }}
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.nginx.org/v1alpha2
 kind: NginxProxy
 metadata:
   name: mailer-proxy-config

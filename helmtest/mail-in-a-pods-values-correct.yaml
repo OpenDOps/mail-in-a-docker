@@ -1,43 +1,18 @@
-global:
-  primaryHostname: mailer.kuprin.su
-  storageClass: vultr-block-storage
-  nodeSelector:
-    kubernetes.io/os: linux
-    node-role.kubernetes.io/system-workloads: ""
-  tolerations:
-    - key: node-role
-      operator: Equal
-      value: system-workloads
-      effect: NoExecute
+mail-in-a-pods:
+  global:
+    primaryHostname: mailer4.kuprin.su
+    # gateIp: "95.179.138.227"
+    storageClass: vultr-block-storage-hdd
+    nodeSelector:
+      kubernetes.io/os: linux
+      node-role.kubernetes.io/system-workloads: ""
+    tolerations:
+      - key: node-role
+        operator: Equal
+        value: system-workloads
+        effect: NoExecute
 
-mailinabox:
-  nodeSelector:
-    kubernetes.io/os: linux
-    node-role.kubernetes.io/log-workloads: ""
-  tolerations:
-    - key: node-role
-      operator: "Equal"
-      value: log-workloads #Change to dex-app-workloads
-      effect: NoExecute
-  storage:
-    size: 50Gi
-
-bind:
-  # It is disabled by default
-  storage:
-    size: 10Gi
-
-nsd:
-  storage:
-    size: 10Gi
-
-  type: NodePort
-  nodePort:
-    udp: 32767
-    tcp: 32767
-
-gateway:
-  httpPlaceholder:
+  mailinabox:
     nodeSelector:
       kubernetes.io/os: linux
       node-role.kubernetes.io/log-workloads: ""
@@ -46,16 +21,47 @@ gateway:
         operator: "Equal"
         value: log-workloads #Change to dex-app-workloads
         effect: NoExecute
+    storage:
+      size: 50Gi
 
-certManager:
-  acme:
-    email: "admin@opendops.tech"
-    http01:
+  bind:
+    # It is disabled by default
+    storage:
+      size: 40Gi
+
+  nsd:
+    storage:
+      size: 40Gi
+
+    service:
+      type: NodePort
+      nodePort:
+        udp: 32767
+        tcp: 32767
+
+  gateway:
+    staticsServer:
+      enabled: true
+      placeholderEnabled: false
       nodeSelector:
         kubernetes.io/os: linux
-        node-role.kubernetes.io/system-workloads: ""
+        node-role.kubernetes.io/log-workloads: ""
       tolerations:
         - key: node-role
-          operator: Equal
-          value: system-workloads
+          operator: "Equal"
+          value: log-workloads #Change to dex-app-workloads
           effect: NoExecute
+
+  certManager:
+    acme:
+      # server: https://acme-staging-v02.api.letsencrypt.org/directory # Use for staging
+      email: "admin@opendops.tech"
+      http01:
+        nodeSelector:
+          kubernetes.io/os: linux
+          node-role.kubernetes.io/system-workloads: ""
+        tolerations:
+          - key: node-role
+            operator: Equal
+            value: system-workloads
+            effect: NoExecute
