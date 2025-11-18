@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: mailinabox
-        image: "ghcr.io/opendops/mailinadockers-mailinabox:{{ .Values.mailinabox.image.tag | default .Values.global.imageTag }}"
+        image: "ghcr.io/opendops/mailinadockers-mailinabox-k8s:{{ .Values.mailinabox.image.tag | default .Values.global.imageTag }}"
         imagePullPolicy: {{ .Values.mailinabox.image.pullPolicy | default .Values.global.imagePullPolicy }}
         env:
         - name: ENABLE_INTERNAL_DNS

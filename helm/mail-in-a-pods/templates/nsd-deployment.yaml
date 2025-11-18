@@ -44,8 +44,11 @@ spec:
           protocol: TCP
         volumeMounts:
         # Single storage for NSD (configuration and data)
+        # Mount root of volume to /etc/nsd for NSD configuration
         - name: nsd-storage
           mountPath: /etc/nsd
+        # Mount same volume to storage root for DNS zones and DNSSEC keys
+        # Both paths point to the same storage, allowing NSD to access config and data
         - name: nsd-storage
           mountPath: {{ .Values.nsd.env.storageRoot }}
         resources:
