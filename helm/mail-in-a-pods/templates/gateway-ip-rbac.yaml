@@ -1,4 +1,4 @@
-{{- if and .Values.gateway.enabled (not .Values.global.gateIp) }}
+{{- if and .Values.gateway.enabled (or (not .Values.global.gateIp) (not .Values.global.gateIpV6)) }}
 # ServiceAccount for init container to fetch Gateway IP
 apiVersion: v1
 kind: ServiceAccount
