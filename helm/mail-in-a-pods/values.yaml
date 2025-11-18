@@ -5,7 +5,7 @@
 global:
   imageTag: "0.1.5"
   imagePullPolicy: IfNotPresent
-  alpineVersion: "3.20" # Alpine Linux version for httpPlaceholder image (nginx:alpine)
+  alpineVersion: "3.20" # Alpine Linux version for staticsServer image (nginx:alpine)
 
   storageClass: "" # Use default storage class if empty
 
@@ -249,8 +249,9 @@ gateway:
     #   secretName: "smtp-example-com-tls"
 
   # HTTP placeholder configuration
-  httpPlaceholder:
+  staticsServer:
     enabled: true # Set to false to route HTTP directly to mailinabox service
+    placeholderEnabled: true # Set to false to disable the placeholder server
     port: 80
     # Optional: Falls back to global.imagePullPolicy if not set
     imagePullPolicy: ""

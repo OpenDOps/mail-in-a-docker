@@ -69,6 +69,19 @@ RUN chmod +x /opt/setup/*.sh && \
     find /etc/cont-init.d -type f -exec chmod +x {} \; && \
     find /etc/services.d -name run -type f -exec chmod +x {} \;
 
+# Download jQuery and Bootstrap assets with checksum verification
+# hadolint ignore=DL4006
+RUN mkdir -p /usr/local/lib/mailinabox/vendor/assets && \
+    wget --progress=dot:giga -O /usr/local/lib/mailinabox/vendor/assets/jquery.min.js \
+        https://code.jquery.com/jquery-2.2.4.min.js && \
+    echo "69bb69e25ca7d5ef0935317584e6153f3fd9a88c  /usr/local/lib/mailinabox/vendor/assets/jquery.min.js" | sha1sum -c --strict - && \
+    wget --progress=dot:giga -O /tmp/bootstrap.zip \
+        https://github.com/twbs/bootstrap/releases/download/v3.4.1/bootstrap-3.4.1-dist.zip && \
+    echo "0bb64c67c2552014d48ab4db81c2e8c01781f580  /tmp/bootstrap.zip" | sha1sum -c --strict - && \
+    unzip -q /tmp/bootstrap.zip -d /usr/local/lib/mailinabox/vendor/assets && \
+    mv /usr/local/lib/mailinabox/vendor/assets/bootstrap-3.4.1-dist /usr/local/lib/mailinabox/vendor/assets/bootstrap && \
+    rm -f /tmp/bootstrap.zip
+
 # Run nginx setup
 RUN /bin/sh /opt/setup/setup_nginx.sh
 

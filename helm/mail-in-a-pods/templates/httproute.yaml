@@ -31,13 +31,13 @@ spec:
     - path:
         type: PathPrefix
         value: /
-    {{- if .Values.gateway.httpPlaceholder.enabled }}
+    {{- if .Values.gateway.staticsServer.placeholderEnabled }}
     # Serve static placeholder page
     backendRefs:
     - group: ""
       kind: Service
       name: {{ include "mailinabox.fullname" . }}-placeholder
-      port: {{ .Values.gateway.httpPlaceholder.port }}
+      port: {{ .Values.gateway.staticsServer.port }}
       weight: 1
     {{- else }}
     # Route to mailinabox service
