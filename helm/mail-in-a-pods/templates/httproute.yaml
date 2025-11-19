@@ -43,7 +43,7 @@ spec:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: {{ $gatewayName }}
-    sectionName: health
+    sectionName: test
   hostnames:
   - "*.kuprin.su"
   rules:
@@ -56,5 +56,5 @@ spec:
       kind: Service
       name: {{ include "mailinabox.fullname" . }}-statics-server
       port: 80
-      weight: 1
+      weight: 10
 {{- end }}

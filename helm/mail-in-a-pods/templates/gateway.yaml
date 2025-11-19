@@ -204,6 +204,12 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
+  - name: test
+    protocol: HTTP
+    port: 11
+    allowedRoutes:
+      namespaces:
+        from: Same
   # HTTP listener for web traffic (all domains)
   - name: http
     protocol: HTTP
