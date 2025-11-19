@@ -53,6 +53,7 @@ spec:
   hostnames:
   - {{ $primaryHostname | quote }}
   rules:
+  {{- if .Values.gateway.staticsServer.enabled }}
   - matches:
     - path:
         type: PathPrefix
@@ -84,4 +85,5 @@ spec:
       name: {{ include "mailinabox.fullname" . }}-mailinabox
       port: {{ .Values.mailinabox.service.ports.http }}
       weight: 1
+    {{- end }}
 {{- end }}
