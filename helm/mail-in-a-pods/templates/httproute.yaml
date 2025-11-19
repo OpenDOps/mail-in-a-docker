@@ -1,6 +1,13 @@
 {{- if .Values.gateway.enabled }}
 {{- $primaryHostname := .Values.global.primaryHostname }}
 {{- $tlsConfigs := .Values.gateway.tls }}
+{{- $gatewayClass := .Values.gateway.className }}
+{{- $gatewayName := include "mailinabox.fullname" . }}
+{{- if eq $gatewayClass "cilium" }}
+{{- $gatewayName = printf "%s-gateway-http" $gatewayName }}
+{{- else }}
+{{- $gatewayName = printf "%s-gateway" $gatewayName }}
+{{- end }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -11,12 +18,12 @@ spec:
   parentRefs:
   - group: gateway.networking.k8s.io
     kind: Gateway
-    name: {{ include "mailinabox.fullname" . }}-gateway
+    name: {{ $gatewayName }}
     sectionName: http
   {{- range $index, $tls := $tlsConfigs }}
   - group: gateway.networking.k8s.io
     kind: Gateway
-    name: {{ include "mailinabox.fullname" $ }}-gateway
+    name: {{ $gatewayName }}
     sectionName: https-{{ $index }}
   {{- end }}
   hostnames:

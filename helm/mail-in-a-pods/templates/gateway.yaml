@@ -2,6 +2,158 @@
 {{- $primaryHostname := .Values.global.primaryHostname }}
 {{- $tlsConfigs := .Values.gateway.tls }}
 {{- $gatewayClass := .Values.gateway.className }}
+{{- if eq $gatewayClass "cilium" }}
+# Cilium Gateway: HTTP/HTTPS traffic
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-gateway-http
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+  annotations:
+    # ClusterIssuer reference (not required for Gateway API, but included for compatibility)
+    cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
+    # Cilium LoadBalancer IP sharing annotation
+    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    {{- with .Values.gateway.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  gatewayClassName: {{ $gatewayClass | quote }}
+  listeners:
+  # HTTP listener for web traffic (all domains)
+  - name: http
+    protocol: HTTP
+    port: 80
+    allowedRoutes:
+      namespaces:
+        from: Same
+  # HTTPS listeners for each domain with TLS
+  {{- range $index, $tls := $tlsConfigs }}
+  {{- $hostname := $tls.hostname | default $primaryHostname }}
+  - name: https-{{ $index }}
+    protocol: HTTPS
+    port: 443
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+  {{- end }}
+  # SMTP listener (no hostname - accepts all)
+  - name: smtp
+    protocol: TCP
+    port: 25
+    allowedRoutes:
+      namespaces:
+        from: Same
+  # IMAP listener (no hostname - accepts all)
+  - name: imap
+    protocol: TCP
+    port: 143
+    allowedRoutes:
+      namespaces:
+        from: Same
+{{- range $index, $tls := $tlsConfigs }}
+{{- $hostname := $tls.hostname | default $primaryHostname }}
+---
+# Cilium Gateway: IMAPS (port 993) for {{ $hostname }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mailinabox.fullname" $ }}-gateway-imaps-{{ $index }}
+  labels:
+    {{- include "mailinabox.labels" $ | nindent 4 }}
+  annotations:
+    # Cilium LoadBalancer IP sharing annotation
+    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    {{- with $.Values.gateway.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  gatewayClassName: {{ $gatewayClass | quote }}
+  listeners:
+  - name: imaps
+    protocol: TLS
+    port: 993
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+# Cilium Gateway: SMTPS (port 465) for {{ $hostname }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mailinabox.fullname" $ }}-gateway-smtps-{{ $index }}
+  labels:
+    {{- include "mailinabox.labels" $ | nindent 4 }}
+  annotations:
+    # Cilium LoadBalancer IP sharing annotation
+    service.cilium.io/lb-ipam-sharing-key: "my-shared-gw-ip"
+    {{- with $.Values.gateway.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  gatewayClassName: {{ $gatewayClass | quote }}
+  listeners:
+  - name: smtps
+    protocol: TLS
+    port: 465
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+# Cilium Gateway: Submission (port 587) for {{ $hostname }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mailinabox.fullname" $ }}-gateway-submission-{{ $index }}
+  labels:
+    {{- include "mailinabox.labels" $ | nindent 4 }}
+  annotations:
+    # Cilium LoadBalancer IP sharing annotation
+    service.cilium.io/lb-ipam-sharing-key: "my-shared-gw-ip"
+    {{- with $.Values.gateway.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  gatewayClassName: {{ $gatewayClass | quote }}
+  listeners:
+  - name: submission
+    protocol: TLS
+    port: 587
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+{{- end }}
+{{- else }}
+# Non-Cilium Gateway: Single Gateway for all traffic
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -24,9 +176,6 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
-    # {{- if $primaryHostname }}
-    # hostname: {{ $primaryHostname | quote }}
-    # {{- end }}
   # HTTPS listeners for each domain with TLS
   {{- range $index, $tls := $tlsConfigs }}
   {{- $hostname := $tls.hostname | default $primaryHostname }}
@@ -104,4 +253,5 @@ spec:
       namespaces:
         from: Same
   {{- end }}
+{{- end }}
 {{- end }}

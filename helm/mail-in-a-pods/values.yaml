@@ -231,7 +231,7 @@ nsd:
 # Gateway API configuration (replaces Ingress for SMTP/IMAP/HTTP traffic)
 gateway:
   enabled: true
-  className: "nginx" # nginx gateway fabric class
+  className: "cilium" # Use Cilium Gateway API for routing
 
   # Logging configuration
   logging:
