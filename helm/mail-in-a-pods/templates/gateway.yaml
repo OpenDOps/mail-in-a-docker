@@ -17,7 +17,7 @@ spec:
   # When using service.cilium.io/lb-ipam-sharing-key, all services with the same key
   # will share the same IP from this pool
   # Using 0.0.0.0/0 allows allocation of any IPv4 address
-  cidrs:
+  blocks:
   - cidr: "0.0.0.0/0"  # Allows any IPv4 address to be allocated
 
   # Alternative: Use specific IP blocks instead of CIDR
