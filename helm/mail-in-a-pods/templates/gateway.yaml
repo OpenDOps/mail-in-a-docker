@@ -101,7 +101,7 @@ metadata:
     {{- include "mailinabox.labels" $ | nindent 4 }}
   annotations:
     # Cilium LoadBalancer IP sharing annotation
-    service.cilium.io/lb-ipam-sharing-key: "my-shared-gw-ip"
+    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
     {{- with $.Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -131,7 +131,7 @@ metadata:
     {{- include "mailinabox.labels" $ | nindent 4 }}
   annotations:
     # Cilium LoadBalancer IP sharing annotation
-    service.cilium.io/lb-ipam-sharing-key: "my-shared-gw-ip"
+    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
     {{- with $.Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
