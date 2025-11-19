@@ -23,14 +23,14 @@ spec:
   rules:
   - matches:
     - path:
-      type: PathPrefix
-      value: /
+        type: PathPrefix
+        value: /
     backendRefs:
-      - group: ""
-        kind: Service
-        name: {{ include "mailinabox.fullname" . }}-statics-server
-        port: 10
-        weight: 1
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: 10
+      weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -46,15 +46,62 @@ spec:
   hostnames:
   - "*.kuprin.su"  # Explicit wildcard (if supported)
   rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: 10
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-http
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $gatewayName }}
+    sectionName: http
+  {{- range $index, $tls := $tlsConfigs }}
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $gatewayName }}
+    sectionName: https-{{ $index }}
+  {{- end }}
+  hostnames:
+  - {{ $primaryHostname | quote }}
+  rules:
   - matches:
     - path:
-      type: PathPrefix
-      value: /
+        type: PathPrefix
+        value: /admin/assets/
     backendRefs:
-      - group: ""
-        kind: Service
-        name: {{ include "mailinabox.fullname" . }}-statics-server
-        port: 10
-        weight: 1
-
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: {{ .Values.gateway.staticsServer.port }}
+      weight: 1
+  {{- end }}
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    {{- if and .Values.gateway.staticsServer.placeholderEnabled }}
+    # Serve static placeholder page
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: {{ .Values.gateway.staticsServer.port }}
+      weight: 1
+    {{- else }}
+    # Route to mailinabox service
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-mailinabox
+      port: {{ .Values.mailinabox.service.ports.http }}
+      weight: 1
 {{- end }}
