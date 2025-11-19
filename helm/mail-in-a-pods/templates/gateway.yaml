@@ -3,6 +3,34 @@
 {{- $tlsConfigs := .Values.gateway.tls }}
 {{- $gatewayClass := .Values.gateway.className }}
 {{- if eq $gatewayClass "cilium" }}
+# Cilium LoadBalancer IP Pool
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: mail-in-a-pods-lb-pool
+spec:
+  # IP ranges that can be allocated for LoadBalancers
+  # When using service.cilium.io/lb-ipam-sharing-key, all services with the same key
+  # will share the same IP from this pool
+
+  # CIDR blocks for LoadBalancer IP allocation
+  # When using service.cilium.io/lb-ipam-sharing-key, all services with the same key
+  # will share the same IP from this pool
+  # Using 0.0.0.0/0 allows allocation of any IPv4 address
+  cidrs:
+  - cidr: "0.0.0.0/0"  # Allows any IPv4 address to be allocated
+
+  # Alternative: Use specific IP blocks instead of CIDR
+  # blocks:
+  # - start: "95.179.135.8"
+  #   stop: "95.179.135.8"
+
+  # Optional: Service selector to limit which services can use this pool
+  # serviceSelector:
+  #   matchLabels:
+  #     app: mail-in-a-pods
+
+---
 # Cilium Gateway: HTTP/HTTPS traffic
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
