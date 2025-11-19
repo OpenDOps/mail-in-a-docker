@@ -19,6 +19,10 @@ spec:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: {{ $gatewayName }}
+    sectionName: health
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $gatewayName }}
     sectionName: http
   {{- range $index, $tls := $tlsConfigs }}
   - group: gateway.networking.k8s.io
@@ -34,7 +38,13 @@ spec:
   {{- end }}
   {{- end }}
   rules:
-  {{- if .Values.gateway.staticsServer.enabled }}
+  - matches:
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: 10
+      weight: 1
   - matches:
     - path:
         type: PathPrefix
@@ -50,7 +60,7 @@ spec:
     - path:
         type: PathPrefix
         value: /
-    {{- if and .Values.gateway.staticsServer.placeholderEnabled .Values.gateway.staticsServer.enabled }}
+    {{- if and .Values.gateway.staticsServer.placeholderEnabled }}
     # Serve static placeholder page
     backendRefs:
     - group: ""
@@ -66,5 +76,4 @@ spec:
       name: {{ include "mailinabox.fullname" . }}-mailinabox
       port: {{ .Values.mailinabox.service.ports.http }}
       weight: 1
-    {{- end }}
 {{- end }}

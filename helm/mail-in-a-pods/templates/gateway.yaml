@@ -87,6 +87,99 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
+{{- range $index, $tls := $tlsConfigs }}
+{{- $hostname := $tls.hostname | default $primaryHostname }}
+---
+# Cilium Gateway: IMAPS (port 993) for {{ $hostname }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mailinabox.fullname" $ }}-gateway-imaps-{{ $index }}
+  labels:
+    {{- include "mailinabox.labels" $ | nindent 4 }}
+  annotations:
+    # Cilium LoadBalancer IP sharing annotation
+    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    {{- with $.Values.gateway.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  gatewayClassName: {{ $gatewayClass | quote }}
+  listeners:
+  - name: imaps
+    protocol: TLS
+    port: 993
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+# Cilium Gateway: SMTPS (port 465) for {{ $hostname }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mailinabox.fullname" $ }}-gateway-smtps-{{ $index }}
+  labels:
+    {{- include "mailinabox.labels" $ | nindent 4 }}
+  annotations:
+    # Cilium LoadBalancer IP sharing annotation
+    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    {{- with $.Values.gateway.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  gatewayClassName: {{ $gatewayClass | quote }}
+  listeners:
+  - name: smtps
+    protocol: TLS
+    port: 465
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+# Cilium Gateway: Submission (port 587) for {{ $hostname }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "mailinabox.fullname" $ }}-gateway-submission-{{ $index }}
+  labels:
+    {{- include "mailinabox.labels" $ | nindent 4 }}
+  annotations:
+    # Cilium LoadBalancer IP sharing annotation
+    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    {{- with $.Values.gateway.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  gatewayClassName: {{ $gatewayClass | quote }}
+  listeners:
+  - name: submission
+    protocol: TLS
+    port: 587
+    hostname: {{ $hostname | quote }}
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: {{ $tls.secretName | quote }}
+        kind: Secret
+        group: ""
+    allowedRoutes:
+      namespaces:
+        from: Same
+{{- end }}
 {{- else }}
 # Non-Cilium Gateway: Single Gateway for all traffic
 apiVersion: gateway.networking.k8s.io/v1
@@ -104,6 +197,13 @@ metadata:
 spec:
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
+  # Health check listener (lowest port is used for health checks by default)
+  - name: health
+    protocol: HTTP
+    port: 10 #It's just the lowest port
+    allowedRoutes:
+      namespaces:
+        from: Same
   # HTTP listener for web traffic (all domains)
   - name: http
     protocol: HTTP

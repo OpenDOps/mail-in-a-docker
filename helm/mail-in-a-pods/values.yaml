@@ -242,6 +242,10 @@ gateway:
     # Example: '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent'
     # logFormat: ""
 
+  # Health check port for Gateway LoadBalancer (Cilium and other implementations)
+  # If set, adds health check configuration to Gateway annotations
+  # healthCheckPort: null # Example: 8080
+
   # Custom annotations (merged with automatic logging annotations if logging.enabled=true)
   # Gateway-specific annotations (e.g., for LoadBalancer configuration)
   # annotations:
@@ -264,7 +268,6 @@ gateway:
 
   # HTTP placeholder configuration
   staticsServer:
-    enabled: true # Set to false to route HTTP directly to mailinabox service
     placeholderEnabled: true # Set to false to disable the placeholder server
     port: 80
     # Optional: Falls back to global.imagePullPolicy if not set
