@@ -35,6 +35,24 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
+  name: mail-in-a-pods-catchall
+  namespace: mailer
+spec:
+  parentRefs:
+  - name: mail-in-a-pods-gateway
+    sectionName: health
+  hostnames:
+  - "*"  # Explicit wildcard (if supported)
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: 10
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
   name: {{ include "mailinabox.fullname" . }}-http
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
