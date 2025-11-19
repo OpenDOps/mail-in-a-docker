@@ -39,6 +39,9 @@ spec:
   {{- end }}
   rules:
   - matches:
+    - path:
+      type: PathPrefix
+      value: /
     backendRefs:
     - group: ""
       kind: Service
