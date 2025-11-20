@@ -75,21 +75,144 @@ spec:
                   fi
                 done
               fi
+            fi
 
-              # If we have at least one IP, create the secret
-              if [ -n "${IPV4}" ] || [ -n "${IPV6}" ]; then
-                echo "Gateway IPv4 found: ${IPV4:-<none>}"
-                echo "Gateway IPv6 found: ${IPV6:-<none>}"
+            # If Gateway doesn't have addresses, try to get them from associated LoadBalancer service
+            if [ -z "${IPV4}" ] && [ -z "${IPV6}" ]; then
+              echo "Gateway ${GATEWAY_NAME} has no addresses in status, checking associated LoadBalancer service..."
 
-                # Build kubectl command with available IPs
-                CMD="kubectl create secret generic ${SECRET_NAME}"
-                [ -n "${IPV4}" ] && CMD="${CMD} --from-literal=ip=\"${IPV4}\""
-                [ -n "${IPV6}" ] && CMD="${CMD} --from-literal=ipv6=\"${IPV6}\""
-                CMD="${CMD} -n ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
+              # Try common LoadBalancer service name patterns
+              # Pattern 1: gateway-<gateway-name>
+              # Pattern 2: <gateway-name>-lb
+              # Pattern 3: Find by label selector (gateway controller often labels services)
+              LB_SERVICE_NAMES=(
+                "gateway-${GATEWAY_NAME}"
+                "${GATEWAY_NAME}-lb"
+                "${GATEWAY_NAME}"
+              )
 
-                eval ${CMD}
-                exit 0
+              for LB_SVC_NAME in "${LB_SERVICE_NAMES[@]}"; do
+                echo "Checking LoadBalancer service: ${LB_SVC_NAME}"
+                # Get all ingress entries (both IP and hostname)
+                LB_INGRESS_JSON=$(kubectl get svc ${LB_SVC_NAME} -n ${NAMESPACE} -o jsonpath='{.status.loadBalancer.ingress}' 2>/dev/null || echo "[]")
+
+                if [ -n "${LB_INGRESS_JSON}" ] && [ "${LB_INGRESS_JSON}" != "null" ] && [ "${LB_INGRESS_JSON}" != "[]" ]; then
+                  # Try to parse with jq if available
+                  if command -v jq >/dev/null 2>&1; then
+                    INGRESS_COUNT=$(echo "${LB_INGRESS_JSON}" | jq 'length' 2>/dev/null || echo "0")
+                    for idx in $(seq 0 $((INGRESS_COUNT - 1))); do
+                      INGRESS_IP=$(echo "${LB_INGRESS_JSON}" | jq -r ".[${idx}].ip // empty" 2>/dev/null || echo "")
+                      INGRESS_HOSTNAME=$(echo "${LB_INGRESS_JSON}" | jq -r ".[${idx}].hostname // empty" 2>/dev/null || echo "")
+
+                      # Process IP if present
+                      if [ -n "${INGRESS_IP}" ]; then
+                        if echo "${INGRESS_IP}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+                          IPV4="${INGRESS_IP}"
+                        elif echo "${INGRESS_IP}" | grep -qE ':'; then
+                          IPV6="${INGRESS_IP}"
+                        fi
+                      fi
+                    done
+                  else
+                    # Fallback: get IPs directly
+                    LB_INGRESS=$(kubectl get svc ${LB_SVC_NAME} -n ${NAMESPACE} -o jsonpath='{.status.loadBalancer.ingress[*].ip}' 2>/dev/null || echo "")
+                    if [ -n "${LB_INGRESS}" ]; then
+                      for addr in ${LB_INGRESS}; do
+                        # Check if IPv4
+                        if echo "${addr}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+                          IPV4="${addr}"
+                        # Check if IPv6 (contains colons)
+                        elif echo "${addr}" | grep -qE ':'; then
+                          IPV6="${addr}"
+                        fi
+                      done
+                    fi
+                  fi
+                fi
+
+                # If we found IPs, break out of the loop
+                if [ -n "${IPV4}" ] || [ -n "${IPV6}" ]; then
+                  echo "Found IPs from LoadBalancer service ${LB_SVC_NAME}"
+                  break
+                fi
+              done
+
+              # If still no IPs, try to find any LoadBalancer service that might be related
+              if [ -z "${IPV4}" ] && [ -z "${IPV6}" ]; then
+                echo "Trying to find LoadBalancer services by label selector..."
+                LB_SERVICES=$(kubectl get svc -n ${NAMESPACE} -l gateway.networking.k8s.io/gateway-name=${GATEWAY_NAME} -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")
+
+                if [ -z "${LB_SERVICES}" ]; then
+                  # Try finding all LoadBalancer services and check if any match the gateway name pattern
+                  ALL_LB_SERVICES=$(kubectl get svc -n ${NAMESPACE} --field-selector spec.type=LoadBalancer -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")
+                  for svc in ${ALL_LB_SERVICES}; do
+                    # Check if service name contains gateway name
+                    if echo "${svc}" | grep -q "${GATEWAY_NAME}"; then
+                      LB_SERVICES="${svc}"
+                      break
+                    fi
+                  done
+                fi
+
+                for svc in ${LB_SERVICES}; do
+                  echo "Checking LoadBalancer service: ${svc}"
+                  LB_INGRESS_JSON=$(kubectl get svc ${svc} -n ${NAMESPACE} -o jsonpath='{.status.loadBalancer.ingress}' 2>/dev/null || echo "[]")
+
+                  if [ -n "${LB_INGRESS_JSON}" ] && [ "${LB_INGRESS_JSON}" != "null" ] && [ "${LB_INGRESS_JSON}" != "[]" ]; then
+                    # Try to parse with jq if available
+                    if command -v jq >/dev/null 2>&1; then
+                      INGRESS_COUNT=$(echo "${LB_INGRESS_JSON}" | jq 'length' 2>/dev/null || echo "0")
+                      for idx in $(seq 0 $((INGRESS_COUNT - 1))); do
+                        INGRESS_IP=$(echo "${LB_INGRESS_JSON}" | jq -r ".[${idx}].ip // empty" 2>/dev/null || echo "")
+
+                        # Process IP if present
+                        if [ -n "${INGRESS_IP}" ]; then
+                          if echo "${INGRESS_IP}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+                            IPV4="${INGRESS_IP}"
+                          elif echo "${INGRESS_IP}" | grep -qE ':'; then
+                            IPV6="${INGRESS_IP}"
+                          fi
+                        fi
+                      done
+                    else
+                      # Fallback: get IPs directly
+                      LB_INGRESS=$(kubectl get svc ${svc} -n ${NAMESPACE} -o jsonpath='{.status.loadBalancer.ingress[*].ip}' 2>/dev/null || echo "")
+                      if [ -n "${LB_INGRESS}" ]; then
+                        for addr in ${LB_INGRESS}; do
+                          # Check if IPv4
+                          if echo "${addr}" | grep -qE '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+                            IPV4="${addr}"
+                          # Check if IPv6 (contains colons)
+                          elif echo "${addr}" | grep -qE ':'; then
+                            IPV6="${addr}"
+                          fi
+                        done
+                      fi
+                    fi
+
+                    # If we found IPs, break out of the loop
+                    if [ -n "${IPV4}" ] || [ -n "${IPV6}" ]; then
+                      echo "Found IPs from LoadBalancer service ${svc}"
+                      break
+                    fi
+                  fi
+                done
               fi
+            fi
+
+            # If we have at least one IP, create the secret
+            if [ -n "${IPV4}" ] || [ -n "${IPV6}" ]; then
+              echo "Gateway IPv4 found: ${IPV4:-<none>}"
+              echo "Gateway IPv6 found: ${IPV6:-<none>}"
+
+              # Build kubectl command with available IPs
+              CMD="kubectl create secret generic ${SECRET_NAME}"
+              [ -n "${IPV4}" ] && CMD="${CMD} --from-literal=ip=\"${IPV4}\""
+              [ -n "${IPV6}" ] && CMD="${CMD} --from-literal=ipv6=\"${IPV6}\""
+              CMD="${CMD} -n ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
+
+              eval ${CMD}
+              exit 0
             fi
 
             echo "Attempt ${i}/60: Gateway IPs not ready yet, waiting 5 seconds..."
