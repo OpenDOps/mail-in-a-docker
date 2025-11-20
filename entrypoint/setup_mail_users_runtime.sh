@@ -26,6 +26,12 @@ echo "DEBUG: setup_mail_users.sh - db_path exists: $([ -f "$db_path" ] && echo "
 # Create directory if it doesn't exist
 mkdir -p "$(dirname "$db_path")"
 
+# If db exists but size is 0, remove it to trigger database recreation.
+if [ -f "$db_path" ] && [ ! -s "$db_path" ]; then
+	echo "Database exists but is 0 bytes. Removing $db_path before initializing."
+	rm -f "$db_path"
+fi
+
 # Create an empty database if it doesn't yet exist.
 if [ ! -f "$db_path" ]; then
 	echo "Creating new user database: $db_path";
