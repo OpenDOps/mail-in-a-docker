@@ -35,7 +35,7 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ include "mailinabox.fullname" . }}-fallback
+  name: {{ include "mailinabox.fullname" . }}-http
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
 spec:
@@ -43,22 +43,48 @@ spec:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: {{ $gatewayName }}
-    sectionName: test
+    sectionName: http
+  {{- range $index, $tls := $tlsConfigs }}
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $gatewayName }}
+    sectionName: https-{{ $index }}
+  {{- end }}
   hostnames:
-  - "*.kuprin.su"
+  - {{ $primaryHostname | quote }}
   rules:
   - matches:
     - path:
         type: PathPrefix
-        value: /
+        value: /admin/assets/
     backendRefs:
     - group: ""
       kind: Service
       name: {{ include "mailinabox.fullname" . }}-statics-server
-      port: 80
-      weight: 10
+      port: {{ .Values.gateway.staticsServer.port }}
+      weight: 1
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    {{- if .Values.gateway.staticsServer.placeholderEnabled }}
+    # Serve static placeholder page
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: {{ .Values.gateway.staticsServer.port }}
+      weight: 1
+    {{- else }}
+    # Route to mailinabox service
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-mailinabox
+      port: {{ .Values.mailinabox.service.ports.http }}
+      weight: 1
+    {{- end }}
 {{- end }}
-
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -68,7 +94,7 @@ metadata:
   namespace: mailer
 spec:
   hostnames:
-  - mailer3.kuprin.su
+  - "*.kuprin.su"
   parentRefs:
   - group: gateway.networking.k8s.io
     kind: Gateway
