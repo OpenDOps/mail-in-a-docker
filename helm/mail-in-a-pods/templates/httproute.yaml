@@ -45,7 +45,7 @@ spec:
     name: {{ $gatewayName }}
     sectionName: test
   hostnames:
-  - "*.kuprin.su"
+  - "mailer4.kuprin.su"
   rules:
   - matches:
     - path:
