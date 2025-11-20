@@ -38,7 +38,9 @@ spec:
 
           for i in $(seq 1 60); do
             # Get all addresses from Gateway status (as JSON array)
+            echo "Getting addresses from Gateway ${GATEWAY_NAME} in namespace ${NAMESPACE}"
             ADDRESSES_JSON=$(kubectl get gateway ${GATEWAY_NAME} -n ${NAMESPACE} -o jsonpath='{.status.addresses}' 2>/dev/null || echo "[]")
+            echo "Addresses JSON: ${ADDRESSES_JSON}"
 
             if [ -n "${ADDRESSES_JSON}" ] && [ "${ADDRESSES_JSON}" != "null" ] && [ "${ADDRESSES_JSON}" != "[]" ]; then
               # Parse each address from the JSON array
