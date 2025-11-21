@@ -24,7 +24,7 @@ def migrate_version(previous_version, new_version, env):
     """
     print(f"Migrating from {previous_version} to {new_version}")
 
-    if previous_version == "v73" and new_version.startswith("kube-"):
+    if new_version == "kube-v0.1.15" and previous_version != "kube-v0.1.15":
         print("echo 'Migrating from classic v73 to Mail-in-a-Pods (kube-*) version.'")
 
         # Add "is_system" column to the mail/users.sqlite users table if it doesn't exist
@@ -42,7 +42,7 @@ def migrate_version(previous_version, new_version, env):
             conn.close()
         except Exception as e:
             print(f"Error migrating users table to add 'is_system': {e}")
-            return 1
+            raise
 
     # End of migrations
 
