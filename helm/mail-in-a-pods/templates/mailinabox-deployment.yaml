@@ -9,7 +9,7 @@ spec:
   serviceName: {{ include "mailinabox.fullname" . }}-mailinabox
   replicas: 1
   updateStrategy:
-    type: OnDelete
+    type: RollingUpdate
   selector:
     matchLabels:
       {{- include "mailinabox.selectorLabels" . | nindent 6 }}
