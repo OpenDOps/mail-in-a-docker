@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/lib/mailinabox/env/bin/python3
 """
 Daemon task to sync system user from Kubernetes secret to SQLite database.
 Gets USER_NAME and USER_PASSWORD from a Kubernetes secret and ensures
