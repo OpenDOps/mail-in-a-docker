@@ -1,4 +1,3 @@
-{{- if and .Values.gateway.enabled (or (not .Values.global.gateIp) (not .Values.global.gateIpV6)) }}
 # ServiceAccount for init container to fetch Gateway IP
 apiVersion: v1
 kind: ServiceAccount
@@ -54,4 +53,3 @@ subjects:
 - kind: ServiceAccount
   name: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
   namespace: {{ .Release.Namespace }}
-{{- end }}

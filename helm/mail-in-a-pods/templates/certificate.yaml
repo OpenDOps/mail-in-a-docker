@@ -1,4 +1,4 @@
-{{- if and .Values.certManager.enabled .Values.gateway.enabled .Values.gateway.tls }}
+{{- if and .Values.certManager.enabled .Values.gateway.tls }}
 {{- $primaryHostname := .Values.global.primaryHostname }}
 {{- $gatewayClass := .Values.gateway.className }}
 {{- range $index, $tls := .Values.gateway.tls }}

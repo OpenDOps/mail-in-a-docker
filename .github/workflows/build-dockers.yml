@@ -105,6 +105,22 @@ jobs:
         id: config
         run: |
           MAILINABOX_VERSION=${{ env.MAILINABOX_VERSION }}
+
+          # Extract current git tag (remove refs/tags/ prefix if present)
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            MAILINAPODS_VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            # Fallback: get latest tag from git, or use default
+            MAILINAPODS_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -z "$MAILINAPODS_VERSION" ]; then
+              # Get the latest commit SHA as fallback if no tags exist
+              MAILINAPODS_VERSION=$(git rev-parse --short HEAD)
+            fi
+          fi
+
+          echo "MAILINAPODS_VERSION=${MAILINAPODS_VERSION}" >> $GITHUB_ENV
+          echo "MAILINAPODS_VERSION=${MAILINAPODS_VERSION}" >> $GITHUB_OUTPUT
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             DEPLOYMENT_TYPE="${{ github.event.inputs.deployment_type }}"
             WITH_SSL="${{ github.event.inputs.with_ssl }}"
@@ -199,6 +215,7 @@ jobs:
           if [ "${{ matrix.service }}" = "mailinabox" ]; then
             echo "args<<EOF" >> $GITHUB_OUTPUT
             echo "$BASE_ARGS" >> $GITHUB_OUTPUT
+            echo "MAILINAPODS_VERSION=${{ steps.config.outputs.MAILINAPODS_VERSION }}" >> $GITHUB_OUTPUT
             echo "IN_KUBERNETES=${{ steps.config.outputs.IN_KUBERNETES }}" >> $GITHUB_OUTPUT
             echo "WITH_SSL=${{ steps.config.outputs.WITH_SSL }}" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT

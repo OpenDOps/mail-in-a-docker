@@ -18,22 +18,24 @@ check_required_env() {
 	fi
 }
 
-IN_A_KUBERNETES="${IN_A_KUBERNETES:-false}"
-
-if [ "${IN_A_KUBERNETES}" = "true" ]; then
-    # Get the PUBLIC_IP from Kubernetes
-
-fi
-
 # Check required environment variables - exit immediately if missing
 check_required_env "STORAGE_ROOT" || exit 1
 check_required_env "PRIMARY_HOSTNAME" || exit 1
-check_required_env "PUBLIC_IP" || exit 1
-# check_required_env "PUBLIC_IPV6" || exit 1
+
+IN_A_KUBERNETES="${IN_A_KUBERNETES:-false}"
+if [ "${IN_A_KUBERNETES}" = "true" ]; then
+    # Get the PUBLIC_IP and PUBLIC_IPV6 from Kubernetes
+    # Use venv Python to access kubernetes library
+    /usr/local/lib/mailinabox/env/bin/python3 /opt/entrypoint/get_gateway_ip.py
+else
+    check_required_env "PUBLIC_IP" || exit 1
+    # check_required_env "PUBLIC_IPV6" || exit 1
+fi
 
 # Set default MTA_STS_MODE if not provided
 export MTA_STS_MODE="${MTA_STS_MODE:-enforce}"
 
+# TODO: Reunderstand why LOCAL_RESOLVER is needed
 RESOLVER="${LOCAL_RESOLVER:-127.0.0.1}"
 printf "nameserver %s\n" "$RESOLVER" > /etc/resolv.conf
 

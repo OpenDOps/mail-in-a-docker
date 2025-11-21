@@ -1,5 +1,5 @@
 1. Get the application URL by running these commands:
-{{- if .Values.gateway.enabled }}
+Gateway is always enabled, and is important part of the mail-in-a-Pods
 {{- $primaryHostname := .Values.global.primaryHostname | default .Values.mailinabox.env.primaryHostname }}
   Gateway is enabled. Access your Mail-in-a-Box at:
   - HTTP:  http://{{ $primaryHostname }}
@@ -18,9 +18,6 @@
   Additional domain: {{ $hostname }} (TLS secret: {{ $tls.secretName }})
   {{- end }}
   {{- end }}
-{{- else }}
-  Gateway is disabled. Configure gateway.enabled=true to enable external access.
-{{- end }}
 
 2. Check certificate status:
 {{- if .Values.certManager.enabled }}
@@ -29,12 +26,10 @@
 {{- end }}
 
 3. Check Gateway status:
-{{- if .Values.gateway.enabled }}
   kubectl get gateway -n {{ .Release.Namespace }}
   kubectl get httproute -n {{ .Release.Namespace }}
   kubectl get tcproute -n {{ .Release.Namespace }}
   kubectl get tlsroute -n {{ .Release.Namespace }}
-{{- end }}
 
 4. Check certificate challenges (if certificates are pending):
 {{- if .Values.certManager.enabled }}

@@ -3,18 +3,15 @@
 
 # Global configuration
 global:
-  imageTag: "0.1.9"
+  imageTag: "0.1.10"
   imagePullPolicy: IfNotPresent
   alpineVersion: "3.20" # Alpine Linux version for staticsServer image (nginx:alpine)
 
   storageClass: "" # Use default storage class if empty
 
-  primaryHostname: "box.example.com"
-  gateIp:
-    "" # Gateway LoadBalancer IP
-    # If empty and gateway.enabled=true, IP will be automatically fetched from Gateway status
-    # If gateway.enabled=false, you must provide the IP manually
-  gateIpV6: ""
+  primaryHostname:
+    "box.example.com"
+    # Gateway LoadBalancer IP will be automatically fetched from Gateway status
 
   # Global node scheduling configuration (used as defaults for all services)
   nodeSelector: {}
@@ -235,7 +232,6 @@ nsd:
 
 # Gateway API configuration (replaces Ingress for SMTP/IMAP/HTTP traffic)
 gateway:
-  enabled: true
   className: "cilium" # Use Cilium Gateway API for routing
 
   # Logging configuration

@@ -60,7 +60,14 @@ def main():
     version_file = os.path.join(storage_root, "mailinabox.version")
 
     # Get current version from environment
-    new_version = os.environ.get("MAILINABOX_VERSION")
+    if os.environ.get("IN_KUBERNETES") == "true":
+        mailinapods_version = os.environ.get("MAILINAPODS_VERSION")
+        if not mailinapods_version:
+            print("Error: MAILINAPODS_VERSION environment variable not set")
+            raise RuntimeError("MAILINAPODS_VERSION environment variable not set")
+        new_version = f"kube-{mailinapods_version}"
+    else:
+        new_version = os.environ.get("MAILINABOX_VERSION")
     if not new_version:
         print("Warning: MAILINABOX_VERSION environment variable not set")
         # Fallback to getting version from migrate.py --current

@@ -1,4 +1,3 @@
-{{- if .Values.gateway.enabled }}
 {{- $primaryHostname := .Values.global.primaryHostname }}
 {{- $tlsConfigs := .Values.gateway.tls }}
 {{- $gatewayClass := .Values.gateway.className }}
@@ -289,40 +288,3 @@ spec:
         from: Same
   {{- end }}
 {{- end }}
-{{- end }}
-
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: {{ include "mailinabox.fullname" . }}-gateway-test
-  labels:
-    {{- include "mailinabox.labels" . | nindent 4 }}
-  annotations:
-    # ClusterIssuer reference (not required for Gateway API, but included for compatibility)
-    cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
-    {{- with .Values.gateway.annotations }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-spec:
-  gatewayClassName: nginx
-  listeners:
-  - allowedRoutes:
-      namespaces:
-        from: Same
-    name: http
-    port: 80
-    protocol: HTTP
-  - allowedRoutes:
-      namespaces:
-        from: Same
-    hostname: mailer3.kuprin.su
-    name: https
-    port: 443
-    protocol: HTTPS
-    tls:
-      certificateRefs:
-      - group: ""
-        kind: Secret
-        name: cafe-secret
-      mode: Terminate

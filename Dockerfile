@@ -256,6 +256,7 @@ ARG BIND_TOOLS_VERSION
 
 ARG MAILINABOX_REPO_URL="https://github.com/mail-in-a-box/mailinabox.git"
 ARG MAILINABOX_VERSION="v73"
+ARG MAILINAPODS_VERSION="v0.1.10"
 # In container orchestration (e.g. Kubernetes), consider ingress-based protections instead of Fail2Ban.
 ARG INSTALL_FAIL2BAN="false"
 # In container orchestration (e.g. Kubernetes), or when you have infront nginx,
@@ -297,6 +298,7 @@ ENV INSTALL_FAIL2BAN=${INSTALL_FAIL2BAN} \
     DEFAULT_MTA_STS_MODE=${DEFAULT_MTA_STS_MODE} \
     ENABLE_INTERNAL_BIND=${ENABLE_INTERNAL_BIND} \
     MAILINABOX_VERSION=${MAILINABOX_VERSION} \
+    MAILINAPODS_VERSION=${MAILINAPODS_VERSION} \
     IN_KUBERNETES=${IN_KUBERNETES}
 
 # Set WITH_SSL from computed value
