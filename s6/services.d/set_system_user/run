@@ -1,14 +1,16 @@
 #!/command/with-contenv sh
 set -eu
 
-IN_A_KUBERNETES="${IN_A_KUBERNETES:-false}"
-if [ "${IN_A_KUBERNETES}" = "true" ]; then
+IN_KUBERNETES="${IN_KUBERNETES:-false}"
+if [ "${IN_KUBERNETES}" = "true" ]; then
+    echo "DEBUG (set_system_user): IN_KUBERNETES=true, syncing system user from Kubernetes secret to SQLite database"
     # Run every 5 seconds to sync system user from Kubernetes secret to SQLite database
     python3 /opt/entrypoint/get_user_secret.py
 
     # Exit after 5 seconds to restart the service
     sleep 5
 else
+    echo "DEBUG (set_system_user): IN_KUBERNETES=false, downing service"
     # If we are not in a Kubernetes environment, down the service BEFORE exiting to prevent s6 from restarting
     # The service directory exists at /run/service/set-system-user when the service is active
     if [ -d /run/service/set-system-user ]; then
