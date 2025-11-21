@@ -25,8 +25,33 @@ check_required_env "PRIMARY_HOSTNAME" || exit 1
 IN_KUBERNETES="${IN_KUBERNETES:-false}"
 if [ "${IN_KUBERNETES}" = "true" ]; then
     # Get the PUBLIC_IP and PUBLIC_IPV6 from Kubernetes
-    # Use venv Python to access kubernetes library
+    # Python script writes to /tmp/gateway-ips.sh (writable location)
+    # for container-wide availability
     /usr/local/lib/mailinabox/env/bin/python3 /opt/entrypoint/get_gateway_ip.py
+    GATEWAY_IP_EXIT_CODE=$?
+
+    # Source the script file to load variables into current shell
+    # This makes PUBLIC_IP and PUBLIC_IPV6 available to all subsequent scripts
+    if [ -f "/tmp/gateway-ips.sh" ]; then
+        source /tmp/gateway-ips.sh
+        echo "Loaded Gateway IPs from /tmp/gateway-ips.sh"
+    else
+        # Fallback: script might have printed export statements to stdout
+        # In this case, variables should already be set from the script's output
+        echo "Warning: /tmp/gateway-ips.sh not found, using environment from script" >&2
+    fi
+
+    # Ensure variables are exported for all subsequent scripts
+    export PUBLIC_IP="${PUBLIC_IP:-}"
+    export PUBLIC_IPV6="${PUBLIC_IPV6:-}"
+
+    # Log the values
+    echo "Gateway IPs set: PUBLIC_IP=${PUBLIC_IP:-<empty>}, PUBLIC_IPV6=${PUBLIC_IPV6:-<empty>}"
+
+    # Warn if script failed and no IPs were set
+    if [ -z "${PUBLIC_IP:-}" ] && [ "$GATEWAY_IP_EXIT_CODE" -ne 0 ]; then
+        echo "WARNING: Gateway IPs not found, PUBLIC_IP is empty. Some services may not work correctly." >&2
+    fi
 else
     check_required_env "PUBLIC_IP" || exit 1
     # check_required_env "PUBLIC_IPV6" || exit 1

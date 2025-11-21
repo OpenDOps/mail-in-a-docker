@@ -152,7 +152,8 @@ def find_loadbalancer_services(gateway_name, namespace):
 def export_env_vars(ipv4=None, ipv6=None):
     """
     Export IP addresses as environment variables.
-    Sets PUBLIC_IP and PUBLIC_IPV6 in the current process and prints export statements.
+    Sets PUBLIC_IP and PUBLIC_IPV6 in the current process and writes to a file
+    for container-wide availability.
 
     Args:
         ipv4: IPv4 address (optional)
@@ -162,11 +163,25 @@ def export_env_vars(ipv4=None, ipv6=None):
     os.environ["PUBLIC_IP"] = ipv4 or ""
     os.environ["PUBLIC_IPV6"] = ipv6 or ""
 
-    # Print export statements so they can be sourced if needed
-    print(f'export PUBLIC_IP="{ipv4 or ""}"')
-    print(f'export PUBLIC_IPV6="{ipv6 or ""}"')
-
-    print("Environment variables exported successfully")
+    # Write to a writable location: /tmp/gateway-ips.sh
+    # This file will be sourced by the init script to make variables available
+    env_script_file = "/tmp/gateway-ips.sh"
+    try:
+        with open(env_script_file, "w") as f:
+            f.write("#!/bin/sh\n")
+            f.write("# Gateway IP addresses exported from get_gateway_ip.py\n")
+            f.write(f'export PUBLIC_IP="{ipv4 or ""}"\n')
+            f.write(f'export PUBLIC_IPV6="{ipv6 or ""}"\n')
+        # Make readable by all
+        os.chmod(env_script_file, 0o644)
+        print(f"Environment variables written to {env_script_file}")
+        print("Environment variables exported successfully")
+    except (OSError, PermissionError) as e:
+        print(f"Warning: Could not write to {env_script_file}: {e}", file=sys.stderr)
+        # Fallback: print export statements to stdout
+        print(f'export PUBLIC_IP="{ipv4 or ""}"')
+        print(f'export PUBLIC_IPV6="{ipv6 or ""}"')
+        print("Environment variables exported (fallback to stdout)")
 
 
 def main():
@@ -234,7 +249,8 @@ def main():
         time.sleep(5)
 
     # If we get here, no IPs were found after 20 attempts
-    print("Warning: Gateway IPs not found after 1 minute, exporting empty values")
+    print("Warning: Gateway IPs not found after 1 minute, exporting empty values", file=sys.stderr)
+    export_env_vars("", "")
     sys.exit(1)
 
 
