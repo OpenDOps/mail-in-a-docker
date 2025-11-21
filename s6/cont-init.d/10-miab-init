@@ -18,6 +18,13 @@ check_required_env() {
 	fi
 }
 
+IN_A_KUBERNETES="${IN_A_KUBERNETES:-false}"
+
+if [ "${IN_A_KUBERNETES}" = "true" ]; then
+    # Get the PUBLIC_IP from Kubernetes
+
+fi
+
 # Check required environment variables - exit immediately if missing
 check_required_env "STORAGE_ROOT" || exit 1
 check_required_env "PRIMARY_HOSTNAME" || exit 1

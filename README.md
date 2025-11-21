@@ -294,6 +294,8 @@ To customize your setup, simply edit the `.env` file with your desired values. D
 
 Spamassasin should be added as a separate container. Currently it is disabled and there is no spamassasin.
 
+Use PostrgeSQL instead of SQlite and make `mailinabox` to be `Deployment` instead of `StatefulSet`.
+
 Decouple GUI (management) from the mail server.
 
 Add zpush and nextcloud to extend functionality.

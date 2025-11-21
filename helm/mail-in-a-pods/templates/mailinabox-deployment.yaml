@@ -1,14 +1,15 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "mailinabox.fullname" . }}-mailinabox
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
     component: mailinabox
 spec:
+  serviceName: {{ include "mailinabox.fullname" . }}-mailinabox
   replicas: 1
-  strategy:
-    type: Recreate
+  updateStrategy:
+    type: OnDelete
   selector:
     matchLabels:
       {{- include "mailinabox.selectorLabels" . | nindent 6 }}

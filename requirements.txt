@@ -24,3 +24,4 @@ idna==3.6
 cryptography==37.0.2
 psutil==5.9.6
 postfix-mta-sts-resolver==1.0.0
+kubernetes==33.0.0
