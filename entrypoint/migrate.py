@@ -24,33 +24,27 @@ def migrate_version(previous_version, new_version, env):
     """
     print(f"Migrating from {previous_version} to {new_version}")
 
-    # Run the standard migration system if needed
-    # This will handle database schema changes, etc.
-    migration_script = "/opt/MailInABox/setup/migrate.py"
-    if os.path.exists(migration_script):
-        import subprocess
+    if previous_version == "v73" and new_version.startswith("kube-"):
+        print("echo 'Migrating from classic v73 to Mail-in-a-Pods (kube-*) version.'")
 
+        # Add "is_system" column to the mail/users.sqlite users table if it doesn't exist
+
+        import sqlite3
+
+        users_db_path = os.path.join(env["STORAGE_ROOT"], "mail/users.sqlite")
         try:
-            # Run the standard migration system
-            result = subprocess.run(
-                ["python3", migration_script, "--migrate"],
-                cwd="/opt/MailInABox",
-                env=dict(os.environ, **env),
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode != 0:
-                print(f"Warning: Migration script returned non-zero exit code: {result.returncode}")
-                if result.stderr:
-                    print(f"Error output: {result.stderr}")
-        except Exception as e:
-            print(f"Warning: Could not run migration script: {e}")
+            conn = sqlite3.connect(users_db_path)
+            c = conn.cursor()
 
-    # Add version-specific migration logic here if needed
-    # For example:
-    # if previous_version == "v72" and new_version == "v73":
-    #     # Handle specific v72 -> v73 migrations
-    #     pass
+            c.execute("ALTER TABLE users ADD COLUMN is_system BOOLEAN NOT NULL DEFAULT FALSE;")
+            conn.commit()
+
+            conn.close()
+        except Exception as e:
+            print(f"Error migrating users table to add 'is_system': {e}")
+            return 1
+
+    # End of migrations
 
 
 def main():
