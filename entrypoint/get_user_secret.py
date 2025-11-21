@@ -152,6 +152,7 @@ def main():
     secret_name = os.environ.get("SECRET_NAME")
     namespace = os.environ.get("NAMESPACE")
     storage_root = os.environ.get("STORAGE_ROOT")
+    primary_hostname = os.environ.get("PRIMARY_HOSTNAME")
 
     if not secret_name:
         print("Error: SECRET_NAME environment variable is required", file=sys.stderr)
@@ -163,6 +164,10 @@ def main():
 
     if not storage_root:
         print("Error: STORAGE_ROOT environment variable is required", file=sys.stderr)
+        sys.exit(1)
+
+    if not primary_hostname:
+        print("Error: PRIMARY_HOSTNAME environment variable is required", file=sys.stderr)
         sys.exit(1)
 
     db_path = os.path.join(storage_root, "mail", "users.sqlite")
@@ -190,6 +195,10 @@ def main():
             print("Error: USER_PASSWORD (or user_password/password) not found in secret", file=sys.stderr)
             sys.exit(1)
 
+        # Construct user email: USER_NAME@PRIMARY_HOSTNAME
+        user_mail = f"{user_name}@{primary_hostname}"
+        print(f"Constructed user email: {user_mail}")
+
         # Get current system user from database
         db_email, db_password = get_system_user(db_path)
 
@@ -203,9 +212,9 @@ def main():
             # No system user exists
             print("No system user found in database, creating one...")
             needs_update = True
-        elif db_email != user_name:
+        elif db_email != user_mail:
             # Email doesn't match
-            print(f"System user email mismatch: DB has '{db_email}', secret has '{user_name}'")
+            print(f"System user email mismatch: DB has '{db_email}', secret has '{user_mail}'")
             needs_update = True
         elif db_password != password_hash:
             # Password doesn't match
@@ -213,7 +222,7 @@ def main():
             needs_update = True
 
         if needs_update:
-            create_or_update_system_user(db_path, user_name, password_hash)
+            create_or_update_system_user(db_path, user_mail, password_hash)
             print("System user synchronized successfully")
         else:
             print("System user is already in sync")

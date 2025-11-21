@@ -53,6 +53,11 @@ mailinabox:
   installFail2ban: false
   enableInternalBind: false
 
+  # System user configuration (for initial admin user)
+  # WARNING: This is insecure and should be replaced with Vault later
+  systemUserName: "admin"
+  systemUserPassword: "" # Should not be empty
+
   # Storage configuration
   storage:
     size: 50Gi

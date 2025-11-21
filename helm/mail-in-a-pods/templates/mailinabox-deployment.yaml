@@ -231,6 +231,12 @@ spec:
           value: {{ .Values.mailinabox.enableInternalBind | quote | lower }}
         - name: MTA_STS_MODE
           value: "enforce"
+        {{- if and .Values.mailinabox.systemUserName .Values.mailinabox.systemUserPassword }}
+        - name: SECRET_NAME
+          value: {{ include "mailinabox.fullname" . }}-system-user
+        - name: NAMESPACE
+          value: {{ .Release.Namespace | quote }}
+        {{- end }}
         ports:
         - name: http
           containerPort: 10222
