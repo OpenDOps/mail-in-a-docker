@@ -22,8 +22,8 @@ check_required_env() {
 check_required_env "STORAGE_ROOT" || exit 1
 check_required_env "PRIMARY_HOSTNAME" || exit 1
 
-IN_A_KUBERNETES="${IN_A_KUBERNETES:-false}"
-if [ "${IN_A_KUBERNETES}" = "true" ]; then
+IN_KUBERNETES="${IN_KUBERNETES:-false}"
+if [ "${IN_KUBERNETES}" = "true" ]; then
     # Get the PUBLIC_IP and PUBLIC_IPV6 from Kubernetes
     # Use venv Python to access kubernetes library
     /usr/local/lib/mailinabox/env/bin/python3 /opt/entrypoint/get_gateway_ip.py
