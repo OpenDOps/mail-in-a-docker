@@ -149,13 +149,13 @@ def create_or_update_system_user(db_path, email, password_hash):
 
 def main():
     # Read environment variables
-    secret_name = os.environ.get("SECRET_NAME")
+    secret_name = os.environ.get("SYSTEM_USER_SECRET_NAME")
     namespace = os.environ.get("NAMESPACE")
     storage_root = os.environ.get("STORAGE_ROOT")
     primary_hostname = os.environ.get("PRIMARY_HOSTNAME")
 
     if not secret_name:
-        print("Error: SECRET_NAME environment variable is required", file=sys.stderr)
+        print("Error: SYSTEM_USER_SECRET_NAME environment variable is required", file=sys.stderr)
         sys.exit(1)
 
     if not namespace:

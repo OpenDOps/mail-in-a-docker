@@ -43,8 +43,10 @@ spec:
         - name: MTA_STS_MODE
           value: "enforce"
         {{- if and .Values.mailinabox.systemUserName .Values.mailinabox.systemUserPassword }}
-        - name: SECRET_NAME
+        - name: SYSTEM_USER_SECRET_NAME
           value: {{ include "mailinabox.fullname" . }}-system-user
+        - name: GATEWAY_NAME
+          value: {{ include "mailinabox.fullname" . }}-gateway
         - name: NAMESPACE
           value: {{ .Release.Namespace | quote }}
         {{- end }}

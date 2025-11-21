@@ -20,11 +20,11 @@ jobs:
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
-      - name: 'Normalize owner to lowercase'
-        run: echo "OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
-      - name: 'Set Helm env'
+      - name: 'Set Helm registry'
+        id: helm-registry
         run: |
-          echo "OCI_REGISTRY=oci://ghcr.io/${OWNER_LC}" >> "$GITHUB_ENV"
+          OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          echo "registry=oci://ghcr.io/${OWNER_LC}" >> "$GITHUB_OUTPUT"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -33,8 +33,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Helm lint'
         run: |
-          ./pack_and_push_chart.sh lint ${{ env.OCI_REGISTRY }} ${{ env.HELM_CHARTS_FOLDER }}
+          ./pack_and_push_chart.sh lint ${{ steps.helm-registry.outputs.registry }} ${{ env.HELM_CHARTS_FOLDER }}
       - name: 'Helm push'
         if: success()
         run: |
-          ./pack_and_push_chart.sh push ${{ env.OCI_REGISTRY }} ${{ env.HELM_CHARTS_FOLDER }}
+          ./pack_and_push_chart.sh push ${{ steps.helm-registry.outputs.registry }} ${{ env.HELM_CHARTS_FOLDER }}
