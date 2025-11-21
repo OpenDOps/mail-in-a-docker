@@ -239,8 +239,17 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ github.ref }}
-          cache-to: type=gha,mode=max,scope=${{ github.ref }}
+          # Optimized cache configuration:
+          # 1. GHA cache: Primary cache, scoped by service and branch (not full ref) for better sharing
+          # 2. Inline cache: Embedded in pushed images, enables cross-workflow cache reuse
+          # 3. Shared scope across similar builds (same service on same branch)
+          cache-from: |
+            type=gha,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-${{ github.ref_name }}
+            type=gha,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-main
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}${{ steps.suffix.outputs.suffix }}:buildcache
+          cache-to: |
+            type=gha,mode=max,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-${{ github.ref_name }}
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}${{ steps.suffix.outputs.suffix }}:buildcache,mode=max
           build-args: ${{ steps.buildargs.outputs.args }}
 
       - name: Image digest
