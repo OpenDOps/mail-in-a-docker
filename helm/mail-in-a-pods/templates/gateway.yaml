@@ -25,7 +25,7 @@ spec:
     group: cilium.io
     kind: CiliumGatewayClassConfig
     name: nodeport-config
-    namespace: {{ .Release.Namespace }}
+    namespace: kube-system
 
 ---
 # Cilium Gateway: HTTP/HTTPS traffic
