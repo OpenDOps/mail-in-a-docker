@@ -3,7 +3,7 @@
 {{- $gatewayClass := .Values.gateway.className }}
 {{- $gatewayName := include "mailinabox.fullname" . }}
 {{- if eq $gatewayClass "cilium" }}
-{{- $gatewayName = printf "%s-gateway-http" $gatewayName }}
+{{- $gatewayName = printf "%s-gateway-main" $gatewayName }}
 {{- else }}
 {{- $gatewayName = printf "%s-gateway" $gatewayName }}
 {{- end }}
