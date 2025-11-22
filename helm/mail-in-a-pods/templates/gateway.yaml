@@ -120,7 +120,9 @@ spec:
   {{- end }}
   gatewayClassName: cilium-nodeport
   listeners:
-  - name: imaps
+  {{- range $index, $tls := $tlsConfigs }}
+  {{- $hostname := $tls.hostname | default $primaryHostname }}
+  - name: imaps-{{ $index }}
     protocol: TLS
     port: 993
     hostname: {{ $hostname | quote }}
@@ -133,6 +135,7 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
+  {{- end }}
 ---
 # Cilium Gateway: SMTPS (port 465) for {{ $hostname }}
 apiVersion: gateway.networking.k8s.io/v1
@@ -155,7 +158,9 @@ spec:
   {{- end }}
   gatewayClassName: cilium-nodeport
   listeners:
-  - name: smtps
+  {{- range $index, $tls := $tlsConfigs }}
+  {{- $hostname := $tls.hostname | default $primaryHostname }}
+  - name: smtps-{{ $index }}
     protocol: TLS
     port: 465
     hostname: {{ $hostname | quote }}
@@ -168,6 +173,7 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
+  {{- end }}
 ---
 # Cilium Gateway: Submission (port 587) for {{ $hostname }}
 apiVersion: gateway.networking.k8s.io/v1
