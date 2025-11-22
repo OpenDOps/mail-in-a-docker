@@ -206,22 +206,34 @@ def main():
         # Get current system user from database
         db_email, db_password = get_system_user(db_path)
 
-        # Hash the password from secret
-        password_hash = hash_password(user_password.strip())
+        # Verify password using doveadm
+        # doveadm pw -t HASH -p PASSWORD tests if PASSWORD matches HASH
+        # Returns exit code 0 if matches, non-zero if doesn't match
+        # Use trap=True to catch exceptions and get exit code instead of raising
+        password_matched = False
+        if db_password:
+            try:
+                code, _ = shell(
+                    "check_call",
+                    [
+                        "/usr/bin/doveadm",
+                        "pw",
+                        "-t",
+                        db_password,
+                        "-p",
+                        user_password.strip(),
+                    ],
+                    trap=True,
+                )
+                password_matched = code == 0
+                print(f"Password verification: {'matched' if password_matched else 'mismatched'}")
+            except Exception as e:
+                print(f"Error verifying password: {e}", file=sys.stderr)
+                password_matched = False
+        else:
+            print("No password hash in database, password mismatch")
 
-        password_matched = shell(
-            "check_call",
-            [
-                "/usr/bin/doveadm",
-                "pw",
-                "-p",
-                user_password.strip(),
-                "-t",
-                db_password,
-            ],
-        )
-
-        print(f"Password hash: {password_hash}, db_password: {db_password}, matched: {password_matched}")
+        print(f"db_password: {db_password}, matched: {password_matched}")
 
         # Check if update is needed
         needs_update = False
@@ -240,6 +252,9 @@ def main():
             needs_update = True
 
         if needs_update:
+            # Hash the password from secret
+            password_hash = hash_password(user_password.strip())
+
             create_or_update_system_user(db_path, user_mail, password_hash)
             print("System user synchronized successfully")
         else:
