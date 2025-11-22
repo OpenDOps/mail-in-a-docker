@@ -58,6 +58,20 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
+  # SMTP listener (no hostname - accepts all)
+  - name: smtp
+    protocol: TCP
+    port: 25
+    allowedRoutes:
+      namespaces:
+        from: Same
+  # IMAP listener (no hostname - accepts all)
+  - name: imap
+    protocol: TCP
+    port: 143
+    allowedRoutes:
+      namespaces:
+        from: Same
   # HTTP listener for web traffic (all domains)
   - name: http
     protocol: HTTP
@@ -82,20 +96,6 @@ spec:
       namespaces:
         from: Same
   {{- end }}
-  # SMTP listener (no hostname - accepts all)
-  - name: smtp
-    protocol: TCP
-    port: 25
-    allowedRoutes:
-      namespaces:
-        from: Same
-  # IMAP listener (no hostname - accepts all)
-  - name: imap
-    protocol: TCP
-    port: 143
-    allowedRoutes:
-      namespaces:
-        from: Same
 {{- range $index, $tls := $tlsConfigs }}
 {{- $hostname := $tls.hostname | default $primaryHostname }}
 ---
