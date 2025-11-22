@@ -2,6 +2,42 @@
 {{- $tlsConfigs := .Values.gateway.tls }}
 {{- $gatewayClass := .Values.gateway.className }}
 {{- if eq $gatewayClass "cilium" }}
+# Define LoadBalancer that targets to Gateway NodePorts
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-gateway-hw-lb
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 443
+      protocol: TCP
+    - name: smtp
+      port: 25
+      targetPort: 25
+      protocol: TCP
+    - name: imap
+      port: 993
+      targetPort: 993
+      protocol: TCP
+    - name: submission
+      port: 587
+      targetPort: 587
+      protocol: TCP
+    - name: health
+      port: 10
+      targetPort: 10
+      protocol: TCP
+  selector:
+    gateway.networking.k8s.io/gateway-name: {{ include "mailinabox.fullname" . }}-gateway-http
+
+
 # We define the NodePort mode for the Gateway API
 apiVersion: cilium.io/v2alpha1
 kind: CiliumGatewayClassConfig
@@ -28,34 +64,6 @@ spec:
     namespace: {{ .Release.Namespace }}
 
 ---
-# Cilium LoadBalancer IP Pool
-apiVersion: cilium.io/v2alpha1
-kind: CiliumLoadBalancerIPPool
-metadata:
-  name: mail-in-a-pods-lb-pool
-spec:
-  # IP ranges that can be allocated for LoadBalancers
-  # When using service.cilium.io/lb-ipam-sharing-key, all services with the same key
-  # will share the same IP from this pool
-
-  # CIDR blocks for LoadBalancer IP allocation
-  # When using service.cilium.io/lb-ipam-sharing-key, all services with the same key
-  # will share the same IP from this pool
-  # Using 0.0.0.0/0 allows allocation of any IPv4 address
-  blocks:
-  - cidr: "0.0.0.0/0"  # Allows any IPv4 address to be allocated
-
-  # Alternative: Use specific IP blocks instead of CIDR
-  # blocks:
-  # - start: "95.179.135.8"
-  #   stop: "95.179.135.8"
-
-  # Optional: Service selector to limit which services can use this pool
-  # serviceSelector:
-  #   matchLabels:
-  #     app: mail-in-a-pods
-
----
 # Cilium Gateway: HTTP/HTTPS traffic
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -72,8 +80,6 @@ metadata:
 spec:
   infrastructure:
     annotations:
-      # Cilium LoadBalancer IP sharing annotation
-      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -141,8 +147,6 @@ metadata:
 spec:
   infrastructure:
     annotations:
-      # Cilium LoadBalancer IP sharing annotation
-      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -176,8 +180,6 @@ metadata:
 spec:
   infrastructure:
     annotations:
-      # Cilium LoadBalancer IP sharing annotation
-      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -211,8 +213,6 @@ metadata:
 spec:
   infrastructure:
     annotations:
-      # Cilium LoadBalancer IP sharing annotation
-      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
