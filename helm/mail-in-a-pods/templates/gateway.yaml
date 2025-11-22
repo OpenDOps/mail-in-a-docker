@@ -2,6 +2,30 @@
 {{- $tlsConfigs := .Values.gateway.tls }}
 {{- $gatewayClass := .Values.gateway.className }}
 {{- if eq $gatewayClass "cilium" }}
+# We define the NodePort mode for the Gateway API
+apiVersion: cilium.io/v2alpha1
+kind: CiliumGatewayClassConfig
+metadata:
+  name: nodeport-config
+  namespace: {{ .Release.Namespace }}
+spec:
+  loadbalancerMode: NodePort
+
+---
+# We define the Gateway Class for the NodePort mode
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GatewayClass
+metadata:
+  name: cilium-nodeport
+spec:
+  controllerName: io.cilium.gateway.controller
+  parametersRef:
+    group: cilium.io
+    kind: CiliumGatewayClassConfig
+    name: nodeport-config
+    namespace: {{ .Release.Namespace }}
+
+---
 # Cilium LoadBalancer IP Pool
 apiVersion: cilium.io/v2alpha1
 kind: CiliumLoadBalancerIPPool
@@ -51,7 +75,7 @@ spec:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
-  gatewayClassName: {{ $gatewayClass | quote }}
+  gatewayClassName: cilium-nodeport
   listeners:
   # Health check listener (lowest port is used for health checks by default)
   - name: health
@@ -120,7 +144,7 @@ spec:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
-  gatewayClassName: {{ $gatewayClass | quote }}
+  gatewayClassName: cilium-nodeport
   listeners:
   - name: imaps
     protocol: TLS
@@ -155,7 +179,7 @@ spec:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
-  gatewayClassName: {{ $gatewayClass | quote }}
+  gatewayClassName: cilium-nodeport
   listeners:
   - name: smtps
     protocol: TLS
@@ -190,7 +214,7 @@ spec:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
-  gatewayClassName: {{ $gatewayClass | quote }}
+  gatewayClassName: cilium-nodeport
   listeners:
   - name: submission
     protocol: TLS
@@ -206,6 +230,7 @@ spec:
       namespaces:
         from: Same
 {{- end }}
+
 {{- else }}
 # Non-Cilium Gateway: Single Gateway for all traffic
 apiVersion: gateway.networking.k8s.io/v1
