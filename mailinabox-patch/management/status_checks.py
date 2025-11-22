@@ -36,18 +36,7 @@ import dns.reversename
 
 
 def get_services():
-    return [
-        {
-            "name": "Local DNS (bind9)",
-            "port": 53,
-            "public": False,
-        },
-        # { "name": "NSD Control", "port": 8952, "public": False, },
-        {
-            "name": "Local DNS Control (bind9/rndc)",
-            "port": 953,
-            "public": False,
-        },
+    base_services = [
         {
             "name": "Dovecot LMTP LDA",
             "port": 10026,
@@ -56,11 +45,6 @@ def get_services():
         {
             "name": "Postgrey",
             "port": 10023,
-            "public": False,
-        },
-        {
-            "name": "Spamassassin",
-            "port": 10025,
             "public": False,
         },
         {
@@ -78,16 +62,12 @@ def get_services():
             "port": 10222,
             "public": False,
         },
-        {
-            "name": "SSH Login (ssh)",
-            "port": get_ssh_port(),
-            "public": True,
-        },
-        {
-            "name": "Public DNS (nsd4)",
-            "port": 53,
-            "public": True,
-        },
+        # Will be added later
+        # {
+        #     "name": "Public DNS (nsd4)",
+        #     "port": 53,
+        #     "public": True,
+        # },
         {
             "name": "Incoming Mail (SMTP/postfix)",
             "port": 25,
@@ -103,7 +83,6 @@ def get_services():
             "port": 587,
             "public": True,
         },
-        # { "name": "Postfix/master", "port": 10587, "public": True, },
         {
             "name": "IMAPS (dovecot)",
             "port": 993,
@@ -125,6 +104,45 @@ def get_services():
             "public": True,
         },
     ]
+    IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
+    IN_KUBERNETES = os.environ.get("IN_KUBERNETES", "false") == "true"
+    if not IN_KUBERNETES:
+        base_services.append(
+            {
+                "name": "Local DNS (bind9)",
+                "port": 53,
+                "public": False,
+            }
+        )
+        base_services.append(
+            {
+                "name": "Local DNS Control (bind9/rndc)",
+                "port": 953,
+                "public": False,
+            }
+        )
+        base_services.append(
+            {
+                "name": "Public DNS (nsd4)",
+                "port": 53,
+                "public": True,
+            }
+        )
+    if not IN_A_DOCKER:
+        base_services.append(
+            {
+                "name": "Spamassassin",
+                "port": 10025,
+                "public": False,
+            }
+        )
+        base_services.append(
+            {
+                "name": "SSH Login (ssh)",
+                "port": get_ssh_port(),
+                "public": True,
+            }
+        )
 
 
 def run_checks(rounded_values, env, output, pool, domains_to_check=None):
@@ -196,6 +214,7 @@ def check_service(i, service, env):
             s.connect((ip, service["port"]))
             return True
         except OSError:
+            print(f"DEBUG (check_service): OSError: {OSError}", file=sys.stdout)
             # timed out or some other odd error
             return False
         finally:

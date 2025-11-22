@@ -154,7 +154,7 @@ service lmtp {
   #  group = postfix
   #}
   inet_listener lmtp {
-    address = 127.0.0.1
+    address = 0.0.0.0
     port = 10026
   }
 }
@@ -163,7 +163,7 @@ service lmtp {
 # for Nextcloud to do imap authentication. (See #1577)
 service imap-login {
   inet_listener imap {
-    address = 127.0.0.1
+    address = 0.0.0.0
     port = 143
   }
 }
