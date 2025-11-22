@@ -76,3 +76,27 @@ Storage class helper that accepts root context
 {{- "" }}
 {{- end }}
 {{- end }}
+
+{{/*
+Generate backendRefs for HTTPRoute rules based on placeholderEnabled setting
+Routes to statics-server if placeholderEnabled is true, otherwise routes to mailinabox service
+*/}}
+{{- define "mailinabox.httproute.backendRefs" -}}
+{{- if .Values.gateway.staticsServer.placeholderEnabled }}
+# Serve static placeholder page
+backendRefs:
+- group: ""
+  kind: Service
+  name: {{ include "mailinabox.fullname" . }}-statics-server
+  port: {{ .Values.gateway.staticsServer.port }}
+  weight: 1
+{{- else }}
+# Route to mailinabox service
+backendRefs:
+- group: ""
+  kind: Service
+  name: {{ include "mailinabox.fullname" . }}-mailinabox
+  port: {{ .Values.mailinabox.service.ports.http }}
+  weight: 1
+{{- end }}
+{{- end }}

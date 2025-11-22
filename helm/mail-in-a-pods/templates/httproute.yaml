@@ -62,24 +62,21 @@ spec:
       name: {{ include "mailinabox.fullname" . }}-statics-server
       port: {{ .Values.gateway.staticsServer.port }}
       weight: 1
+  # Exact match for root path
+  - matches:
+    - path:
+        type: Exact
+        value: /
+    {{- include "mailinabox.httproute.backendRefs" . | nindent 4 }}
+  # PathPrefix match for /admin - strips /admin prefix before forwarding
+  # /admin/something will be rewritten to /something
   - matches:
     - path:
         type: PathPrefix
-        value: /
-    {{- if .Values.gateway.staticsServer.placeholderEnabled }}
-    # Serve static placeholder page
-    backendRefs:
-    - group: ""
-      kind: Service
-      name: {{ include "mailinabox.fullname" . }}-statics-server
-      port: {{ .Values.gateway.staticsServer.port }}
-      weight: 1
-    {{- else }}
-    # Route to mailinabox service
-    backendRefs:
-    - group: ""
-      kind: Service
-      name: {{ include "mailinabox.fullname" . }}-mailinabox
-      port: {{ .Values.mailinabox.service.ports.http }}
-      weight: 1
-    {{- end }}
+        value: /admin
+    filters:
+    - type: HTTPRequestRewriteFilter
+      path:
+        type: ReplacePrefixMatch
+        replacePrefixMatch: /
+    {{- include "mailinabox.httproute.backendRefs" . | nindent 4 }}
