@@ -201,7 +201,7 @@ def check_service(i, service, env):
         finally:
             s.close()
 
-    print(f"DEBUG (check_service): service['public']: {service['public']}", file=sys.stdout)
+    print(f"DEBUG (check_service): service: {service}", file=sys.stdout)
 
     if service["public"]:
         # Service should be publicly accessible.
@@ -239,8 +239,8 @@ def check_service(i, service, env):
         print(f"DEBUG (check_service): running: {running}", file=sys.stdout)
 
         # Why is nginx not running?
-        if not running and service["port"] in {80, 443}:
-            output.print_line(shell("check_output", ["nginx", "-t"], capture_stderr=True, trap=True)[1].strip())
+        # if not running and service["port"] in {80, 443}:
+        #     output.print_line(shell("check_output", ["nginx", "-t"], capture_stderr=True, trap=True)[1].strip())
 
     # Service should be running locally.
     elif try_connect("127.0.0.1"):
