@@ -234,6 +234,9 @@ nsd:
 gateway:
   className: "cilium" # Use Cilium Gateway API for routing
 
+  loadBalancer:
+    annotations: {} # Here we can annotate existing LoadBalancer selector
+
   infrastructure:
     annotations: {}
 
