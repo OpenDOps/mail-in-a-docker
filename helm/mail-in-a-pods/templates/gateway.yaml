@@ -9,7 +9,8 @@ metadata:
   name: nodeport-config
   namespace: {{ .Release.Namespace }}
 spec:
-  loadbalancerMode: NodePort
+  service:
+    type: NodePort
 
 ---
 # We define the Gateway Class for the NodePort mode
