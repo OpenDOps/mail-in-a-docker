@@ -78,11 +78,13 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if .Values.gateway.infrastructure.annotations }}
   infrastructure:
     annotations:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
+  {{- end }}
   gatewayClassName: cilium-nodeport
   listeners:
   # Health check listener (lowest port is used for health checks by default)
@@ -145,11 +147,13 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if $.Values.gateway.infrastructure.annotations }}
   infrastructure:
     annotations:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
+  {{- end }}
   gatewayClassName: cilium-nodeport
   listeners:
   - name: imaps
@@ -178,11 +182,13 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if $.Values.gateway.infrastructure.annotations }}
   infrastructure:
     annotations:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
+  {{- end }}
   gatewayClassName: cilium-nodeport
   listeners:
   - name: smtps
@@ -211,11 +217,13 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if $.Values.gateway.infrastructure.annotations }}
   infrastructure:
     annotations:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
+  {{- end }}
   gatewayClassName: cilium-nodeport
   listeners:
   - name: submission
