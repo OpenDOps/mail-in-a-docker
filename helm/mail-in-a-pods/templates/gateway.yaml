@@ -41,13 +41,21 @@ metadata:
     # ClusterIssuer reference (not required for Gateway API, but included for compatibility)
     cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
     # Cilium LoadBalancer IP sharing annotation
-    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    io.cilium/lb-ipam-sharing-key: "mailinapods-gw1-lb"
+    lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
     {{- with .Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
+  # Health check listener (lowest port is used for health checks by default)
+  - name: health
+    protocol: HTTP
+    port: 10
+    allowedRoutes:
+      namespaces:
+        from: Same
   # HTTP listener for web traffic (all domains)
   - name: http
     protocol: HTTP
@@ -98,7 +106,8 @@ metadata:
     {{- include "mailinabox.labels" $ | nindent 4 }}
   annotations:
     # Cilium LoadBalancer IP sharing annotation
-    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    io.cilium/lb-ipam-sharing-key: "mailinapods-gw1-lb"
+    lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
     {{- with $.Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -128,7 +137,8 @@ metadata:
     {{- include "mailinabox.labels" $ | nindent 4 }}
   annotations:
     # Cilium LoadBalancer IP sharing annotation
-    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    io.cilium/lb-ipam-sharing-key: "mailinapods-gw1-lb"
+    lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
     {{- with $.Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -158,7 +168,8 @@ metadata:
     {{- include "mailinabox.labels" $ | nindent 4 }}
   annotations:
     # Cilium LoadBalancer IP sharing annotation
-    service.cilium.io/lb-ipam-sharing-key: "mail-in-a-pods-lb"
+    io.cilium/lb-ipam-sharing-key: "mailinapods-gw1-lb"
+    lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
     {{- with $.Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
