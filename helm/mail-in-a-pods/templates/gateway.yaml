@@ -37,10 +37,6 @@ metadata:
   name: {{ include "mailinabox.fullname" . }}-gateway-http
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
-  infrastructure:
-    annotations:
-      # Cilium LoadBalancer IP sharing annotation
-      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
   annotations:
     # ClusterIssuer reference (not required for Gateway API, but included for compatibility)
     cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
@@ -48,6 +44,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  infrastructure:
+    annotations:
+      # Cilium LoadBalancer IP sharing annotation
+      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
   # Health check listener (lowest port is used for health checks by default)
