@@ -143,6 +143,7 @@ def get_services():
                 "public": True,
             }
         )
+    return base_services
 
 
 def run_checks(rounded_values, env, output, pool, domains_to_check=None):
