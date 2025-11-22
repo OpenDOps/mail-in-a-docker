@@ -187,10 +187,6 @@ def main():
             secret_data.get("USER_PASSWORD") or secret_data.get("user_password") or secret_data.get("password")
         )
 
-        # Debug secret_data, and print user_password
-        print(f"secret_data: {secret_data}")
-        print(f"user_password: {user_password}")
-
         if not user_name:
             print("Error: USER_NAME (or user_name/username) not found in secret", file=sys.stderr)
             sys.exit(1)
@@ -201,7 +197,6 @@ def main():
 
         # Construct user email: USER_NAME@PRIMARY_HOSTNAME
         user_mail = f"{user_name.strip()}@{primary_hostname.strip()}".lower()
-        print(f"Constructed user email: {user_mail}")
 
         # Get current system user from database
         db_email, db_password = get_system_user(db_path)
@@ -213,7 +208,7 @@ def main():
         password_matched = False
         if db_password:
             try:
-                code, _ = shell(
+                shell(
                     "check_call",
                     [
                         "/usr/bin/doveadm",
@@ -223,17 +218,12 @@ def main():
                         "-p",
                         user_password.strip(),
                     ],
-                    trap=True,
                 )
-                password_matched = code == 0
-                print(f"Password verification: {'matched' if password_matched else 'mismatched'}")
+                password_matched = True
             except Exception as e:
                 print(f"Error verifying password: {e}", file=sys.stderr)
-                password_matched = False
         else:
             print("No password hash in database, password mismatch")
-
-        print(f"db_password: {db_password}, matched: {password_matched}")
 
         # Check if update is needed
         needs_update = False
