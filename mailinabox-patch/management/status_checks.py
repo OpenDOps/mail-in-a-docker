@@ -183,10 +183,12 @@ def run_services_checks(env, output, pool):
         output2.playback(output)
 
     # Check fail2ban.
-    code, ret = shell("check_output", ["fail2ban-client", "status"], capture_stderr=True, trap=True)
-    if code != 0:
-        output.print_error("fail2ban is not running.")
-        all_running = False
+    IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
+    if not IN_A_DOCKER:
+        code, ret = shell("check_output", ["fail2ban-client", "status"], capture_stderr=True, trap=True)
+        if code != 0:
+            output.print_error("fail2ban is not running.")
+            all_running = False
 
     if all_running:
         output.print_ok("All system services are running.")
@@ -214,8 +216,11 @@ def check_service(i, service, env):
         try:
             s.connect((ip, service["port"]))
             return True
-        except OSError:
-            print(f"DEBUG (check_service): OSError: {OSError}", file=sys.stdout)
+        except OSError as e:
+            print(
+                f"DEBUG (check_service): OSError connecting to {ip}:{service['port']}: {type(e).__name__}: {e} (errno: {e.errno})",
+                file=sys.stdout,
+            )
             # timed out or some other odd error
             return False
         finally:
