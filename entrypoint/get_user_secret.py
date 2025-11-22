@@ -11,6 +11,9 @@ import sqlite3
 import subprocess
 import sys
 
+sys.path.insert(0, "/opt/MailInABox/management")
+from utils import shell
+
 try:
     from kubernetes import client, config
 except ImportError:
@@ -206,7 +209,19 @@ def main():
         # Hash the password from secret
         password_hash = hash_password(user_password.strip())
 
-        print(f"Password hash: {password_hash}, db_password: {db_password}")
+        password_matched = shell(
+            "check_call",
+            [
+                "/usr/bin/doveadm",
+                "pw",
+                "-p",
+                user_password.strip(),
+                "-t",
+                db_password,
+            ],
+        )
+
+        print(f"Password hash: {password_hash}, db_password: {db_password}, matched: {password_matched}")
 
         # Check if update is needed
         needs_update = False
@@ -219,7 +234,7 @@ def main():
             # Email doesn't match
             print(f"System user email mismatch: DB has '{db_email}', secret has '{user_mail}'")
             needs_update = True
-        elif db_password != password_hash:
+        elif not password_matched:
             # Password doesn't match
             print("System user password mismatch, updating...")
             needs_update = True
