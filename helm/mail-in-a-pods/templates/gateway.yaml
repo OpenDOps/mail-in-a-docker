@@ -106,13 +106,14 @@ metadata:
   labels:
     {{- include "mailinabox.labels" $ | nindent 4 }}
   annotations:
-    # Cilium LoadBalancer IP sharing annotation
-    io.cilium/lb-ipam-sharing-key: "mailinapods-gw1-lb"
-    lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
     {{- with $.Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  infrastructure:
+    annotations:
+      # Cilium LoadBalancer IP sharing annotation
+      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
   - name: imaps
@@ -137,13 +138,14 @@ metadata:
   labels:
     {{- include "mailinabox.labels" $ | nindent 4 }}
   annotations:
-    # Cilium LoadBalancer IP sharing annotation
-    io.cilium/lb-ipam-sharing-key: "mailinapods-gw1-lb"
-    lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
     {{- with $.Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  infrastructure:
+    annotations:
+      # Cilium LoadBalancer IP sharing annotation
+      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
   - name: smtps
@@ -168,13 +170,14 @@ metadata:
   labels:
     {{- include "mailinabox.labels" $ | nindent 4 }}
   annotations:
-    # Cilium LoadBalancer IP sharing annotation
-    io.cilium/lb-ipam-sharing-key: "mailinapods-gw1-lb"
-    lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
     {{- with $.Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  infrastructure:
+    annotations:
+      # Cilium LoadBalancer IP sharing annotation
+      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
   - name: submission
