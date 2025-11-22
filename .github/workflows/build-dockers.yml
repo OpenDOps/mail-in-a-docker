@@ -245,17 +245,21 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Optimized cache configuration:
-          # 1. GHA cache: Primary cache, scoped by service and branch (not full ref) for better sharing
-          # 2. Registry cache: Stored in registry, enables cross-workflow cache reuse
-          # 3. Shared scope across similar builds (same service on same branch)
+          # Optimized cache configuration for maximum cache reuse:
+          # 1. GHA cache: Scoped by service and deployment type (stable across tags)
+          #    - Primary: deployment type scope (kubernetes/compose) - shared across all tags
+          #    - Fallback: kubernetes scope (for kubernetes builds)
+          #    - Fallback: main branch scope
+          #    - This allows tag builds to reuse cache from previous tag builds
+          # 2. Registry cache: Stored in registry, persists longer than GHA cache
           # Note: Using lowercase image prefix for registry cache (Docker requirement)
           cache-from: |
-            type=gha,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-${{ github.ref_name }}
+            type=gha,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-${{ steps.config.outputs.DEPLOYMENT_TYPE }}
+            type=gha,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-kubernetes
             type=gha,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-main
             type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.image_prefix_lc }}-${{ matrix.service }}${{ steps.suffix.outputs.suffix }}:buildcache
           cache-to: |
-            type=gha,mode=max,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-${{ github.ref_name }}
+            type=gha,mode=max,scope=${{ matrix.service }}${{ steps.suffix.outputs.suffix }}-${{ steps.config.outputs.DEPLOYMENT_TYPE }}
             type=registry,ref=${{ env.REGISTRY }}/${{ steps.registry.outputs.image_prefix_lc }}-${{ matrix.service }}${{ steps.suffix.outputs.suffix }}:buildcache,mode=max
           build-args: ${{ steps.buildargs.outputs.args }}
 

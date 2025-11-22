@@ -289,7 +289,8 @@ RUN if [ "${IN_KUBERNETES}" = "true" ]; then \
         echo "WITH_SSL=${WITH_SSL}" > /tmp/override_with_ssl; \
     fi
 
-# Set environment variables
+# Set environment variables (excluding version vars that change frequently)
+# Version variables are set later to avoid cache invalidation on early layers
 ENV INSTALL_FAIL2BAN=${INSTALL_FAIL2BAN} \
     STORAGE_USER=${STORAGE_USER} \
     STORAGE_ROOT=${STORAGE_ROOT} \
@@ -298,7 +299,6 @@ ENV INSTALL_FAIL2BAN=${INSTALL_FAIL2BAN} \
     DEFAULT_MTA_STS_MODE=${DEFAULT_MTA_STS_MODE} \
     ENABLE_INTERNAL_BIND=${ENABLE_INTERNAL_BIND} \
     MAILINABOX_VERSION=${MAILINABOX_VERSION} \
-    MAILINAPODS_VERSION=${MAILINAPODS_VERSION} \
     IN_KUBERNETES=${IN_KUBERNETES}
 
 # Set WITH_SSL from computed value
@@ -494,6 +494,10 @@ RUN rm -f /tmp/override_with_ssl
 # It is needed because the SSL certificate generation can take several minutes:
 # openssl dhparam -out "${STORAGE_ROOT}/ssl/dh2048.pem" 2048 can take several minutes
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=300000
+
+# Set version environment variable here (after package installations)
+# This prevents cache invalidation of package layers when version changes
+ENV MAILINAPODS_VERSION=${MAILINAPODS_VERSION}
 
 ENTRYPOINT ["/init"]
 CMD []

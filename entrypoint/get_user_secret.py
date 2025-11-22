@@ -184,6 +184,10 @@ def main():
             secret_data.get("USER_PASSWORD") or secret_data.get("user_password") or secret_data.get("password")
         )
 
+        # Debug secret_data, and print user_password
+        print(f"secret_data: {secret_data}")
+        print(f"user_password: {user_password}")
+
         if not user_name:
             print("Error: USER_NAME (or user_name/username) not found in secret", file=sys.stderr)
             sys.exit(1)
