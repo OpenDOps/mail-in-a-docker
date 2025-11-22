@@ -114,7 +114,6 @@ mailinabox:
 
   # Service configuration
   service:
-    type: ClusterIP
     ports:
       http: 10222
       smtp: 25

@@ -146,12 +146,47 @@ metadata:
     {{- include "mailinabox.labels" . | nindent 4 }}
     component: mailinabox
 spec:
-  type: {{ .Values.mailinabox.service.type }}
+  type: ClusterIP
   ports:
     - port: {{ .Values.mailinabox.service.ports.http }}
       targetPort: http
       protocol: TCP
       name: http
+    - port: {{ .Values.mailinabox.service.ports.smtp }}
+      targetPort: smtp
+      protocol: TCP
+      name: smtp
+    - port: {{ .Values.mailinabox.service.ports.imap }}
+      targetPort: imap
+      protocol: TCP
+      name: imap
+    - port: {{ .Values.mailinabox.service.ports.imaps }}
+      targetPort: imaps
+      protocol: TCP
+      name: imaps
+    - port: {{ .Values.mailinabox.service.ports.smtps }}
+      targetPort: smtps
+      protocol: TCP
+      name: smtps
+    - port: {{ .Values.mailinabox.service.ports.submission }}
+      targetPort: submission
+      protocol: TCP
+      name: submission
+  selector:
+    {{- include "mailinabox.selectorLabels" . | nindent 4 }}
+    component: mailinabox
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-mailinabox-tcp
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: mailinabox
+spec:
+  type: NodePort
+  ports:
     - port: {{ .Values.mailinabox.service.ports.smtp }}
       targetPort: smtp
       protocol: TCP
