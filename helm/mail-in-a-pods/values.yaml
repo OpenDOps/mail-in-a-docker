@@ -234,6 +234,9 @@ nsd:
 gateway:
   className: "cilium" # Use Cilium Gateway API for routing
 
+  infrastructure:
+    annotations: {}
+
   # Logging configuration
   logging:
     enabled: false # Enable access and error logging
