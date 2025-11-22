@@ -49,7 +49,7 @@ spec:
       # Cilium LoadBalancer IP sharing annotation
       lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
       {{- with $.Values.gateway.infrastructure.annotations }}
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
@@ -118,7 +118,7 @@ spec:
       # Cilium LoadBalancer IP sharing annotation
       lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
       {{- with $.Values.gateway.infrastructure.annotations }}
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
@@ -153,7 +153,7 @@ spec:
       # Cilium LoadBalancer IP sharing annotation
       lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
       {{- with $.Values.gateway.infrastructure.annotations }}
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
@@ -188,7 +188,7 @@ spec:
       # Cilium LoadBalancer IP sharing annotation
       lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
       {{- with $.Values.gateway.infrastructure.annotations }}
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
       {{- end }}
   gatewayClassName: {{ $gatewayClass | quote }}
   listeners:
