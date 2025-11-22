@@ -75,8 +75,9 @@ spec:
         type: PathPrefix
         value: /admin
     filters:
-    - type: HTTPRequestRewriteFilter
-      path:
-        type: ReplacePrefixMatch
-        replacePrefixMatch: /
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
     {{- include "mailinabox.httproute.backendRefs" . | nindent 4 }}
