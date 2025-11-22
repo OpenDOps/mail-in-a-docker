@@ -1,4 +1,10 @@
 #!/command/with-contenv sh
 set -eu
 
+if [ -f "/tmp/gateway-ips.sh" ]; then
+    # For kubernetes version PUBLIC_IP and PUBLIC_IPV6 are set in /tmp/gateway-ips.sh
+    source /tmp/gateway-ips.sh
+    echo "DEBUG (mailinabox): Loaded Gateway IPs from /tmp/gateway-ips.sh"
+fi
+
 exec /usr/local/lib/mailinabox/start

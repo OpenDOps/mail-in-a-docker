@@ -11,9 +11,6 @@ import sqlite3
 import subprocess
 import sys
 
-sys.path.insert(0, "/opt/MailInABox/management")
-from utils import shell
-
 try:
     from kubernetes import client, config
 except ImportError:
@@ -204,12 +201,11 @@ def main():
         # Verify password using doveadm
         # doveadm pw -t HASH -p PASSWORD tests if PASSWORD matches HASH
         # Returns exit code 0 if matches, non-zero if doesn't match
-        # Use trap=True to catch exceptions and get exit code instead of raising
         password_matched = False
         if db_password:
             try:
-                shell(
-                    "check_call",
+                # Use subprocess directly to suppress output
+                subprocess.check_call(
                     [
                         "/usr/bin/doveadm",
                         "pw",
@@ -218,10 +214,16 @@ def main():
                         "-p",
                         user_password.strip(),
                     ],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
                 )
                 password_matched = True
+            except subprocess.CalledProcessError:
+                # Password doesn't match (non-zero exit code)
+                password_matched = False
             except Exception as e:
                 print(f"Error verifying password: {e}", file=sys.stderr)
+                password_matched = False
         else:
             print("No password hash in database, password mismatch")
 
@@ -247,8 +249,6 @@ def main():
 
             create_or_update_system_user(db_path, user_mail, password_hash)
             print("System user synchronized successfully")
-        else:
-            print("System user is already in sync")
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
