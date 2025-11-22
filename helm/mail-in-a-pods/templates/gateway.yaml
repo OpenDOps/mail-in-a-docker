@@ -37,12 +37,13 @@ metadata:
   name: {{ include "mailinabox.fullname" . }}-gateway-http
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
+  infrastructure:
+    annotations:
+      # Cilium LoadBalancer IP sharing annotation
+      lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
   annotations:
     # ClusterIssuer reference (not required for Gateway API, but included for compatibility)
     cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
-    # Cilium LoadBalancer IP sharing annotation
-    io.cilium/lb-ipam-sharing-key: "mailinapods-gw1-lb"
-    lbipam.cilium.io/sharing-key: "mailinapods-gw1-lb"
     {{- with .Values.gateway.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
