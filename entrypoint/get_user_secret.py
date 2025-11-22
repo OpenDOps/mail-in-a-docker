@@ -112,7 +112,8 @@ def get_system_user(db_path):
 
 def create_or_update_system_user(db_path, email, password_hash):
     """
-    Create or update the system user in the database.
+    Create or update the system user in the database using SQLite UPSERT.
+    Uses INSERT ... ON CONFLICT for atomic upsert operation.
 
     Args:
         db_path: Path to the SQLite database
@@ -123,25 +124,21 @@ def create_or_update_system_user(db_path, email, password_hash):
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        # Check if user exists
-        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
-        existing = cursor.fetchone()
-
-        if existing:
-            # Update existing user
-            cursor.execute("UPDATE users SET password = ?, is_system = TRUE WHERE email = ?", (password_hash, email))
-            print(f"Updated system user: {email}")
-        else:
-            # Create new system user
-            cursor.execute(
-                """INSERT INTO users (email, password, privileges, quota, is_system)
-                   VALUES (?, ?, 'admin', '0', TRUE)""",
-                (email, password_hash),
-            )
-            print(f"Created system user: {email}")
+        # Use UPSERT (INSERT ... ON CONFLICT) for atomic create-or-update
+        # email has UNIQUE constraint, so conflict on email will trigger DO UPDATE
+        cursor.execute(
+            """INSERT INTO users (email, password, privileges, quota, is_system)
+               VALUES (?, ?, 'admin', '0', TRUE)
+               ON CONFLICT(email) DO UPDATE SET
+                   password = excluded.password,
+                   is_system = TRUE""",
+            (email, password_hash),
+        )
 
         conn.commit()
         conn.close()
+
+        print(f"Upserted system user: {email}")
     except sqlite3.Error as e:
         print(f"Error updating database: {e}", file=sys.stderr)
         raise
@@ -196,14 +193,16 @@ def main():
             sys.exit(1)
 
         # Construct user email: USER_NAME@PRIMARY_HOSTNAME
-        user_mail = f"{user_name}@{primary_hostname}"
+        user_mail = f"{user_name.strip()}@{primary_hostname.strip()}".lower()
         print(f"Constructed user email: {user_mail}")
 
         # Get current system user from database
         db_email, db_password = get_system_user(db_path)
 
         # Hash the password from secret
-        password_hash = hash_password(user_password)
+        password_hash = hash_password(user_password.strip())
+
+        print(f"Password hash: {password_hash}, db_password: {db_password}")
 
         # Check if update is needed
         needs_update = False

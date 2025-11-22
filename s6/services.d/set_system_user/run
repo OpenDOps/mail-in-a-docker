@@ -3,7 +3,6 @@ set -eu
 
 IN_KUBERNETES="${IN_KUBERNETES:-false}"
 if [ "${IN_KUBERNETES}" = "true" ]; then
-    echo "DEBUG (set_system_user): IN_KUBERNETES=true, syncing system user from Kubernetes secret to SQLite database"
     # Run every 5 seconds to sync system user from Kubernetes secret to SQLite database
     # Use venv Python to access kubernetes library
     /usr/local/lib/mailinabox/env/bin/python3 /opt/entrypoint/get_user_secret.py

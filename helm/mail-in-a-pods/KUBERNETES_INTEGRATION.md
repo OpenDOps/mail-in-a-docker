@@ -40,27 +40,28 @@ Mail-in-a-Pods uses the **Gateway API** (not the older Ingress API) for all netw
 #### Gateway API Resources
 
 **Gateway (HTTP/HTTPS)**
-- Listens on HTTP (80) and HTTPS (443) ports
-- Supports multiple TLS configurations per hostname
-- Health check listener on separate port (optional)
-- Annotations for LoadBalancer IP sharing (Cilium)
+    - Listens on HTTP (80) and HTTPS (443) ports
+    - Supports multiple TLS configurations per hostname
+    - Health check listener on separate port (optional)
+    - Annotations for LoadBalancer IP sharing (Cilium)
 
 **Gateway (TCP)**
-- Listens on SMTP, IMAP, IMAPS, SMTPS, and Submission ports
-- Routes TCP traffic directly to mailinabox service
+    - Listens on SMTP, IMAP, IMAPS, SMTPS, and Submission ports
+    - Routes TCP traffic directly to mailinabox service
 
 **HTTPRoute**
-- Routes `/admin/assets/` to static placeholder server
-- Routes `/` to mailinabox service (or placeholder if enabled)
-- Health check route to static server
+    - Routes `/admin/assets/` to static placeholder server
+    - Routes `/` to mailinabox service (or placeholder if enabled)
+    - Health check route to static server
 
 **TCPRoute**
-- Separate routes for each mail protocol
-- Routes TCP traffic to mailinabox service on appropriate ports
+    - Separate routes for each mail protocol
+    - Routes TCP traffic to mailinabox service on appropriate ports
 
 #### StatefulSet
 
 The mailinabox application runs as a **StatefulSet** (not Deployment) to:
+
 - Support ReadWriteOnce persistent volumes
 - Maintain stable network identity
 - Handle stateful data properly
@@ -171,6 +172,7 @@ gateway:
 ```
 
 Each TLS configuration:
+
 - Creates a Certificate resource (if cert-manager is enabled)
 - Adds a TLS listener to Gateway
 - Mounts certificate secrets into mailinabox pod
@@ -199,13 +201,14 @@ Currently, HTTPRoute resources are statically defined in Helm templates. Future 
 3. **Add RBAC permissions** for mailinabox pod to manage HTTPRoute resources
 
 Benefits:
+
 - Dynamic domain management
 - Automatic route updates when domains change
 - No manual Helm upgrades needed for domain changes
 
 ### Required Changes
 
-1. **Add RBAC permissions** for HTTPRoute management:
+#### 1. **Add RBAC permissions** for HTTPRoute management
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -218,7 +221,7 @@ rules:
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ```
 
-2. **Modify `web_update.py`**:
+#### 2. **Modify `web_update.py`**
 
 ```python
 if env.get('IN_KUBERNETES', 'false') == 'true':
@@ -230,7 +233,7 @@ if env.get('IN_KUBERNETES', 'false') == 'true':
         generate_httproute_for_domain(domain, env)
 ```
 
-3. **Example HTTPRoute generation**:
+#### 3. **Example HTTPRoute generation**
 
 ```python
 def generate_httproute_for_domain(domain, env):
@@ -273,60 +276,69 @@ def generate_httproute_for_domain(domain, env):
 
 If Gateway LoadBalancer IPs are not being discovered:
 
-1. Check init container logs:
-   ```bash
-   kubectl logs <pod-name> -c get-gateway-ip
-   ```
+#### 1. Check init container logs
 
-2. Verify RBAC permissions:
-   ```bash
-   kubectl get rolebinding -n <namespace>
-   ```
+  ```bash
+  kubectl logs <pod-name> -c get-gateway-ip
+  ```
 
-3. Check Gateway status:
-   ```bash
-   kubectl get gateway <gateway-name> -o yaml
-   ```
+#### 2. Verify RBAC permissions
+
+  ```bash
+  kubectl get rolebinding -n <namespace>
+  ```
+
+#### 3. Check Gateway status
+
+  ```bash
+  kubectl get gateway <gateway-name> -o yaml
+  ```
 
 ### System User Not Syncing
 
 If the system user is not being created/updated:
 
-1. Check daemon service logs:
-   ```bash
-   kubectl logs <pod-name> -c mailinabox | grep set_system_user
-   ```
+#### 1. Check daemon service logs
 
-2. Verify secret exists:
-   ```bash
-   kubectl get secret <secret-name> -n <namespace>
-   ```
+  ```bash
+  kubectl logs <pod-name> -c mailinabox | grep set_system_user
+  ```
 
-3. Check environment variables:
-   ```bash
-   kubectl describe pod <pod-name> | grep SYSTEM_USER
-   ```
+#### 2. Verify secret exists
+
+  ```bash
+  kubectl get secret <secret-name> -n <namespace>
+  ```
+
+#### 3. Check environment variables
+
+  ```bash
+  kubectl describe pod <pod-name> | grep SYSTEM_USER
+  ```
 
 ### Certificates Not Issued
 
 If TLS certificates are not being issued:
 
-1. Check Certificate status:
-   ```bash
-   kubectl get certificate -n <namespace>
-   kubectl describe certificate <certificate-name>
-   ```
+#### 1. Check Certificate status
 
-2. Verify ClusterIssuer:
-   ```bash
-   kubectl get clusterissuer
-   kubectl describe clusterissuer <issuer-name>
-   ```
+  ```bash
+  kubectl get certificate -n <namespace>
+  kubectl describe certificate <certificate-name>
+  ```
 
-3. Check cert-manager logs:
-   ```bash
-   kubectl logs -n cert-manager -l app=cert-manager
-   ```
+#### 2. Verify ClusterIssuer
+
+  ```bash
+  kubectl get clusterissuer
+  kubectl describe clusterissuer <issuer-name>
+  ```
+
+#### 3. Check cert-manager logs
+
+  ```bash
+  kubectl logs -n cert-manager -l app=cert-manager
+  ```
 
 ## Additional Resources
 
