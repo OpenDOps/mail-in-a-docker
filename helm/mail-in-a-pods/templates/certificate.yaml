@@ -17,10 +17,5 @@ spec:
     kind: ClusterIssuer
   dnsNames: # 4 times because of 4 TLS listeners to show green in ArgoCD
   - {{ $hostname | quote }}
-  {{- if eq $gatewayClass "nginx" }}
-  - {{ $hostname | quote }}
-  - {{ $hostname | quote }}
-  - {{ $hostname | quote }}
-  {{- end }}
 {{- end }}
 {{- end }}
