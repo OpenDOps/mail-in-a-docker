@@ -201,17 +201,17 @@ def check_service(i, service, env):
         finally:
             s.close()
 
-    output.print_error(f"DEBUG (check_service): service['public']: {service['public']}")
+    print(f"DEBUG (check_service): service['public']: {service['public']}", file=sys.stdout)
 
     if service["public"]:
         # Service should be publicly accessible.
-        output.print_error(f"DEBUG (check_service): try_connect(env['PUBLIC_IP']): {env['PUBLIC_IP']}")
+        print(f"DEBUG (check_service): try_connect(env['PUBLIC_IP']): {env['PUBLIC_IP']}", file=sys.stdout)
         if try_connect(env["PUBLIC_IP"]):
-            output.print_error("DEBUG (check_service): try_connect(env['PUBLIC_IP']) returned True")
-            output.print_error(f"DEBUG (check_service): env.get('PUBLIC_IPV6'): {env.get('PUBLIC_IPV6')}")
+            print("DEBUG (check_service): try_connect(env['PUBLIC_IP']) returned True", file=sys.stdout)
+            print(f"DEBUG (check_service): env.get('PUBLIC_IPV6'): {env.get('PUBLIC_IPV6')}", file=sys.stdout)
             # IPv4 ok.
             if not env.get("PUBLIC_IPV6") or service.get("ipv6") is False or try_connect(env["PUBLIC_IPV6"]):
-                output.print_error("DEBUG (check_service): try_connect(env['PUBLIC_IPV6']) returned True")
+                print("DEBUG (check_service): try_connect(env['PUBLIC_IPV6']) returned True", file=sys.stdout)
                 # No IPv6, or service isn't meant to run on IPv6, or IPv6 is good.
                 running = True
 
@@ -236,7 +236,7 @@ def check_service(i, service, env):
         else:
             output.print_error("%s is not running (port %d)." % (service["name"], service["port"]))
 
-        output.print_error(f"DEBUG (check_service): running: {running}")
+        print(f"DEBUG (check_service): running: {running}", file=sys.stdout)
 
         # Why is nginx not running?
         if not running and service["port"] in {80, 443}:
