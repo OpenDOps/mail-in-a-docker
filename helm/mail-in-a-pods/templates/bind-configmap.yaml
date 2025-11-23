@@ -53,7 +53,7 @@ data:
 
     logging {
         channel query_log {
-            file "/var/bind/query.log" versions 3 size 10m;
+            stderr;
             print-time yes;
             print-category yes;
             print-severity yes;

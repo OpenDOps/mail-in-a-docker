@@ -55,7 +55,7 @@ if [ -f /tmp/named.conf.template ]; then
         # This awk command replaces ALL lines containing UPSTREAM_RESOLVER_PLACEHOLDER
         # Indentation matches the template (8 spaces for zone blocks)
         awk -v ip="$BIND_UPSTREAM_RESOLVER" '/UPSTREAM_RESOLVER_PLACEHOLDER/ {
-            print "      forwarders { " ip "; };"
+            print "    forwarders { " ip "; };"
             next
         } { print }' /tmp/named.conf.template > /etc/bind/named.conf
     else
