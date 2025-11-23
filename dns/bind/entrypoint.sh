@@ -59,8 +59,40 @@ if [ -f /tmp/named.conf.template ]; then
     echo "DEBUG (dns/bind/entrypoint.sh): Generated /etc/bind/named.conf from ConfigMap template"
 else
     echo "DEBUG (dns/bind/entrypoint.sh): No ConfigMap template found, running setup_bind.sh"
+    # Fallback: generate named.conf using setup_bind.sh (for non-Kubernetes deployments)
+    /bin/sh /opt/install/setup_bind.sh
 fi
 
+# Validate named.conf exists before starting
+if [ ! -f /etc/bind/named.conf ]; then
+    echo "ERROR (dns/bind/entrypoint.sh): /etc/bind/named.conf does not exist!"
+    echo "DEBUG (dns/bind/entrypoint.sh): Listing /etc/bind"
+    ls -la /etc/bind || true
+    echo "DEBUG (dns/bind/entrypoint.sh): Listing /var/bind"
+    ls -la /var/bind || true
+    exit 1
+fi
+
+# Validate named.conf syntax before starting
+echo "DEBUG (dns/bind/entrypoint.sh): Validating named.conf syntax"
+if ! named-checkconf -z /etc/bind/named.conf 2>&1; then
+    echo "ERROR (dns/bind/entrypoint.sh): named.conf validation failed!"
+    echo "DEBUG (dns/bind/entrypoint.sh): named.conf contents:"
+    cat /etc/bind/named.conf
+    exit 1
+fi
+echo "DEBUG (dns/bind/entrypoint.sh): named.conf validation passed"
+
+echo "DEBUG (dns/bind/entrypoint.sh): Starting named with command: $*"
+echo "DEBUG (dns/bind/entrypoint.sh): Final named.conf contents:"
 cat /etc/bind/named.conf
 
-exec "$@"
+echo "DEBUG (dns/bind/entrypoint.sh): Listing /etc/bind"
+ls -la /etc/bind
+
+echo "DEBUG (dns/bind/entrypoint.sh): Listing /var/bind"
+ls -la /var/bind
+
+# Run named and capture errors
+# Redirect stderr to stdout so errors are visible in Kubernetes logs
+exec "$@" 2>&1
