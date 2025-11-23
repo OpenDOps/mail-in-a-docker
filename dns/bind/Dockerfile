@@ -7,7 +7,7 @@ RUN apk add --no-cache \
         bind-tools=9.18.41-r0 \
         coreutils=9.5-r2 \
         tzdata=2025b-r0 \
-        wget=1.21.4-r4
+        wget=1.24.5-r0
 
 # Download root hints from IANA (official source) at build time
 RUN mkdir -p /usr/share/dns && \
