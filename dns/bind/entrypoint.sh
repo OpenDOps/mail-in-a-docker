@@ -94,17 +94,41 @@ if ! named-checkconf -z /etc/bind/named.conf 2>&1; then
 fi
 echo "DEBUG (dns/bind/entrypoint.sh): named.conf validation passed"
 
-echo "DEBUG (dns/bind/entrypoint.sh): Starting named with command: $*"
 echo "DEBUG (dns/bind/entrypoint.sh): Final named.conf contents:"
 cat /etc/bind/named.conf
 
-echo "DEBUG (dns/bind/entrypoint.sh): Set insecure zone 'local'"
-rndc nta local 604800
-echo "DEBUG (dns/bind/entrypoint.sh): Set insecure zone 'cluster.local'"
-rndc nta cluster.local 604800
-echo "DEBUG (dns/bind/entrypoint.sh): Set insecure zone 'svc.cluster.local'"
-rndc nta svc.cluster.local 604800
+# Start named in background to set up negative trust anchors
+echo "DEBUG (dns/bind/entrypoint.sh): Starting named in background to configure NTAs"
+"$@" > /tmp/named.log 2>&1 &
+NAMED_PID=$!
 
-# Run named and capture errors
-# Redirect stderr to stdout so errors are visible in Kubernetes logs
+# Wait for named to be ready (check if rndc responds)
+echo "DEBUG (dns/bind/entrypoint.sh): Waiting for named to start..."
+for i in $(seq 1 30); do
+    if rndc -k /etc/bind/rndc.key status >/dev/null 2>&1; then
+        echo "DEBUG (dns/bind/entrypoint.sh): named is ready"
+        break
+    fi
+    if [ $i -eq 30 ]; then
+        echo "ERROR (dns/bind/entrypoint.sh): named failed to start within 30 seconds"
+        cat /tmp/named.log
+        kill $NAMED_PID 2>/dev/null || true
+        exit 1
+    fi
+    sleep 1
+done
+
+# Set negative trust anchors for .local zones (disable DNSSEC validation)
+echo "DEBUG (dns/bind/entrypoint.sh): Setting negative trust anchors for .local zones"
+rndc -k /etc/bind/rndc.key nta local 604800 2>&1 || echo "WARNING: Failed to set NTA for local"
+rndc -k /etc/bind/rndc.key nta cluster.local 604800 2>&1 || echo "WARNING: Failed to set NTA for cluster.local"
+rndc -k /etc/bind/rndc.key nta svc.cluster.local 604800 2>&1 || echo "WARNING: Failed to set NTA for svc.cluster.local"
+
+# Stop background named and restart in foreground
+echo "DEBUG (dns/bind/entrypoint.sh): Stopping background named and restarting in foreground"
+rndc -k /etc/bind/rndc.key stop 2>&1 || kill $NAMED_PID 2>/dev/null || true
+wait $NAMED_PID 2>/dev/null || true
+
+# Now run named in foreground (this replaces the shell process)
+echo "DEBUG (dns/bind/entrypoint.sh): Starting named in foreground"
 exec "$@" 2>&1

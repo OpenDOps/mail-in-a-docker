@@ -15,6 +15,11 @@ RUN mkdir -p /usr/share/dns && \
     (echo "Warning: Failed to download root hints, creating minimal version" && \
      printf '.                        3600000  IN  NS    A.ROOT-SERVERS.NET.\nA.ROOT-SERVERS.NET.      3600000  A     198.41.0.4\nA.ROOT-SERVERS.NET.      3600000  AAAA  2001:503:ba3e::2:30\n' > /usr/share/dns/root.hints)
 
+# Generate rndc key for remote control
+RUN rndc-confgen -a -k rndc-key -c /etc/bind/rndc.key -r /dev/urandom && \
+    chmod 640 /etc/bind/rndc.key && \
+    chown root:named /etc/bind/rndc.key
+
 COPY install/setup_bind.sh /opt/install/setup_bind.sh
 COPY dns/bind/entrypoint.sh /usr/local/bin/bind-entrypoint.sh
 

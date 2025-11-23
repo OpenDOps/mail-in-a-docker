@@ -160,6 +160,7 @@ def run_checks(rounded_values, env, output, pool, domains_to_check=None):
     IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
     if IN_A_DOCKER:
         # We currently do not use bind9 in Docker
+        # TODO: Call flush for other container with a bind9
         pass
     else:
         # clear bind9's DNS cache so our DNS checks are up to date

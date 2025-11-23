@@ -25,6 +25,11 @@ data:
         {{- end }}
     };
 
+    # RNDC control channel for remote administration
+    controls {
+        inet 127.0.0.1 port 953 allow { 127.0.0.1; } keys { "rndc-key"; };
+    };
+
     # Zone for .local domains - forward without DNSSEC
     zone "local" {
         type forward;
