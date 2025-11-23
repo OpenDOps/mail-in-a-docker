@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-bind-config
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+    component: bind
+data:
+  named.conf.template: |
+    options {
+        directory "/var/bind";
+        pid-file "/run/named/named.pid";
+        listen-on { 127.0.0.1; };
+        listen-on-v6 { none; };
+        recursion yes;
+        allow-query { 127.0.0.1; };
+        allow-recursion { 127.0.0.1; };
+        dnssec-validation auto;
+        auth-nxdomain no;
+        max-recursion-queries 100;
+        {{- if .Values.mailinabox.dnsResolver }}
+        forwarders { {{ .Values.mailinabox.dnsResolver }}; };
+        forward only;
+        {{- else }}
+        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+        {{- end }}
+    };
+
+    zone "." IN {
+        type hint;
+        file "root.hint";
+    };

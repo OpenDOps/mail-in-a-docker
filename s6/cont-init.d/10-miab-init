@@ -60,9 +60,13 @@ fi
 # Set default MTA_STS_MODE if not provided
 export MTA_STS_MODE="${MTA_STS_MODE:-enforce}"
 
-# TODO: Reunderstand why LOCAL_RESOLVER is needed
-RESOLVER="${LOCAL_RESOLVER:-127.0.0.1}"
-printf "nameserver %s\n" "$RESOLVER" > /etc/resolv.conf
+# Configure /etc/resolv.conf to use bind9 sidecar if enabled
+# bind9 sidecar listens on 127.0.0.1:53 and validates DNSSEC while forwarding to kube-dns
+if [ "${ENABLE_INTERNAL_BIND:-false}" = "true" ] || [ -n "${BIND_SIDECAR_ENABLED:-}" ]; then
+    RESOLVER="127.0.0.1"
+    printf "nameserver %s\n" "$RESOLVER" > /etc/resolv.conf
+    echo "Configured /etc/resolv.conf to use bind9 at $RESOLVER"
+fi
 
 cd /opt/MailInABox
 
