@@ -20,6 +20,8 @@ RUN rndc-confgen -a -k rndc-key -c /etc/bind/rndc.key && \
     chmod 640 /etc/bind/rndc.key && \
     chown root:named /etc/bind/rndc.key
 
+RUN ls -la /etc/bind
+
 COPY install/setup_bind.sh /opt/install/setup_bind.sh
 COPY dns/bind/entrypoint.sh /usr/local/bin/bind-entrypoint.sh
 
