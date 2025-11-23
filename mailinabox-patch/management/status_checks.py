@@ -158,7 +158,7 @@ def run_checks(rounded_values, env, output, pool, domains_to_check=None):
         return
 
     IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
-    if not IN_A_DOCKER:
+    if IN_A_DOCKER:
         # We currently do not use bind9 in Docker
         pass
     else:
@@ -468,10 +468,15 @@ def run_network_checks(env, output):
 
     check_ufw(env, output)
 
+    IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
+    nc_path = "/bin/nc"
+    if IN_A_DOCKER:
+        nc_path = "/usr/bin/nc"
+
     # Stop if we cannot make an outbound connection on port 25. Many residential
     # networks block outbound port 25 to prevent their network from sending spam.
     # See if we can reach one of Google's MTAs with a 5-second timeout.
-    _code, ret = shell("check_call", ["/bin/nc", "-z", "-w5", "aspmx.l.google.com", "25"], trap=True)
+    _code, ret = shell("check_call", [nc_path, "-z", "-w5", "aspmx.l.google.com", "25"], trap=True)
     if ret == 0:
         output.print_ok("Outbound mail (SMTP port 25) is not blocked.")
     else:
@@ -566,6 +571,8 @@ def run_domain_checks(rounded_time, env, output, pool, domains_to_check=None):
 
     # Get the list of domains that we don't serve web for because of a custom CNAME/A record.
     domains_with_a_records = get_domains_with_a_records(env)
+
+    print(f"DEBUG (run_domain_checks): domains_to_check: {domains_to_check}", file=sys.stdout)
 
     # Serial version:
     # for domain in sort_domains(domains_to_check, env):
