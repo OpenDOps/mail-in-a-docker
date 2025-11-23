@@ -34,9 +34,19 @@ echo "DEBUG (dns/bind/entrypoint.sh): BIND_ALLOW_RECURSION: $BIND_ALLOW_RECURSIO
 # This is used for Kubernetes Mail-in-a-Pods deployment
 if [ -f /tmp/named.conf.template ]; then
     echo "DEBUG (dns/bind/entrypoint.sh): ConfigMap template found, processing it"
-    # Ensure directories exist and copy root.hints
+    # Ensure directories exist
     mkdir -p /var/bind /run/named /etc/bind
-    cp /usr/share/dns/root.hints /var/bind/root.hint 2>/dev/null || true
+
+    # Try to find root hints in common locations, or use existing
+    if [ ! -f /var/bind/root.hint ]; then
+        if [ -f /usr/share/dns/root.hints ]; then
+            cp /usr/share/dns/root.hints /var/bind/root.hint
+        elif [ -f /usr/share/dns/root.hint ]; then
+            cp /usr/share/dns/root.hint /var/bind/root.hint
+        else
+            echo "DEBUG (dns/bind/entrypoint.sh): Root hints not found, will be created by setup_bind.sh if needed"
+        fi
+    fi
 
     # Process the template: replace UPSTREAM_RESOLVER_PLACEHOLDER with resolved IP
     # Write to /etc/bind/named.conf (which is mounted as emptyDir, so it's writable)

@@ -6,7 +6,14 @@ RUN apk add --no-cache \
         bind=9.18.41-r0 \
         bind-tools=9.18.41-r0 \
         coreutils=9.5-r2 \
-        tzdata=2025b-r0
+        tzdata=2025b-r0 \
+        wget=1.21.4-r4
+
+# Download root hints from IANA (official source) at build time
+RUN mkdir -p /usr/share/dns && \
+    wget -q -O /usr/share/dns/root.hints https://www.internic.net/domain/named.root || \
+    (echo "Warning: Failed to download root hints, creating minimal version" && \
+     printf '.                        3600000  IN  NS    A.ROOT-SERVERS.NET.\nA.ROOT-SERVERS.NET.      3600000  A     198.41.0.4\nA.ROOT-SERVERS.NET.      3600000  AAAA  2001:503:ba3e::2:30\n' > /usr/share/dns/root.hints)
 
 COPY install/setup_bind.sh /opt/install/setup_bind.sh
 COPY dns/bind/entrypoint.sh /usr/local/bin/bind-entrypoint.sh

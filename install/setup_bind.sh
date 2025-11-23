@@ -27,7 +27,25 @@ allow_block() {
 }
 
 mkdir -p /etc/bind /var/bind /run/named
-cp /usr/share/dns/root.hints /var/bind/root.hint
+
+# Copy root hints from build-time location (downloaded in Dockerfile)
+# The file is already in the image at /usr/share/dns/root.hints
+if [ -f /usr/share/dns/root.hints ]; then
+    cp /usr/share/dns/root.hints /var/bind/root.hint
+elif [ -f /usr/share/dns/root.hint ]; then
+    cp /usr/share/dns/root.hint /var/bind/root.hint
+elif [ -f /var/bind/root.hint ]; then
+    # Already exists, keep it
+    echo "Using existing root.hint"
+else
+    # Fallback: create minimal root hints if somehow missing
+    echo "Warning: Root hints not found, creating minimal version"
+    cat > /var/bind/root.hint <<'ROOTHINT'
+.                        3600000  IN  NS    A.ROOT-SERVERS.NET.
+A.ROOT-SERVERS.NET.      3600000  A     198.41.0.4
+A.ROOT-SERVERS.NET.      3600000  AAAA  2001:503:ba3e::2:30
+ROOTHINT
+fi
 
 cat > /etc/bind/named.conf <<EOF
 options {
