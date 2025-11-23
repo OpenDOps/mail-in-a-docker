@@ -126,9 +126,10 @@ done
 
 # Set negative trust anchors for .local zones (disable DNSSEC validation)
 echo "DEBUG (dns/bind/entrypoint.sh): Setting negative trust anchors for .local zones"
-rndc -k /etc/bind/rndc.key nta local 604800 2>&1 || echo "WARNING: Failed to set NTA for local"
-rndc -k /etc/bind/rndc.key nta cluster.local 604800 2>&1 || echo "WARNING: Failed to set NTA for cluster.local"
-rndc -k /etc/bind/rndc.key nta svc.cluster.local 604800 2>&1 || echo "WARNING: Failed to set NTA for svc.cluster.local"
+rndc -k /etc/bind/rndc.key nta local 604800 in _default 2>&1 || echo "WARNING: Failed to set NTA for local"
+rndc -k /etc/bind/rndc.key nta cluster.local 604800 in _default 2>&1 || echo "WARNING: Failed to set NTA for cluster.local"
+rndc -k /etc/bind/rndc.key nta svc.cluster.local 604800 in _default 2>&1 || echo "WARNING: Failed to set NTA for svc.cluster.local"
+
 
 # Stop background named and restart in foreground
 echo "DEBUG (dns/bind/entrypoint.sh): Stopping background named and restarting in foreground"
