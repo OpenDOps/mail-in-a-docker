@@ -31,6 +31,7 @@ echo "DEBUG (dns/bind/entrypoint.sh): BIND_LISTEN_ADDRESSES_V6: $BIND_LISTEN_ADD
 echo "DEBUG (dns/bind/entrypoint.sh): BIND_ALLOW_RECURSION: $BIND_ALLOW_RECURSION"
 
 # Check if ConfigMap template is mounted
+# This is used for Kubernetes Mail-in-a-Pods deployment
 if [ -f /tmp/named.conf.template ]; then
     echo "DEBUG (dns/bind/entrypoint.sh): ConfigMap template found, processing it"
     # Ensure directories exist and copy root.hints
@@ -59,5 +60,7 @@ if [ -f /tmp/named.conf.template ]; then
 else
     echo "DEBUG (dns/bind/entrypoint.sh): No ConfigMap template found, running setup_bind.sh"
 fi
+
+cat /etc/bind/named.conf
 
 exec "$@"

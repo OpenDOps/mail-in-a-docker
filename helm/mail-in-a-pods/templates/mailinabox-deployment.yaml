@@ -24,16 +24,16 @@ spec:
       initContainers:
       # Resolve kube-dns service IP for bind9 upstream resolver
       - name: resolve-kube-dns
-        image: busybox:1.36
+        image: alpine:3.20
         command:
         - sh
         - -c
         - |
-          # Try to resolve kube-dns service IP
-          KUBE_DNS_IP=$(getent hosts kube-dns.kube-system.svc.cluster.local | awk '{print $1}' | head -1)
+          # Use getent to resolve kube-dns service IP (available in Alpine)
+          KUBE_DNS_IP=$(getent hosts kube-dns.kube-system.svc.cluster.local 2>/dev/null | awk '{print $1}' | head -1)
           if [ -z "$KUBE_DNS_IP" ]; then
             # Fallback to coredns
-            KUBE_DNS_IP=$(getent hosts coredns.kube-system.svc.cluster.local | awk '{print $1}' | head -1)
+            KUBE_DNS_IP=$(getent hosts coredns.kube-system.svc.cluster.local 2>/dev/null | awk '{print $1}' | head -1)
           fi
           if [ -z "$KUBE_DNS_IP" ]; then
             echo "Warning: Could not resolve kube-dns service IP, bind9 will use root hints"
