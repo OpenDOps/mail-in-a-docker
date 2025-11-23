@@ -3,7 +3,7 @@
 
 # Global configuration
 global:
-  imageTag: "0.1.47"
+  imageTag: "0.1.48"
   imagePullPolicy: IfNotPresent
   alpineVersion: "3.20" # Alpine Linux version for staticsServer image (nginx:alpine)
 

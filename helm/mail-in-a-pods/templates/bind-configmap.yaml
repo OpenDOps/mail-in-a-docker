@@ -33,36 +33,29 @@ data:
         inet 127.0.0.1 port 953 allow { 127.0.0.1; } keys { "rndc-key"; };
     };
 
-    # View for localhost clients (bind9 sidecar only serves 127.0.0.1)
-    # Views allow different DNS responses based on client source IP
-    # In this case, we use a single view for organization and future extensibility
-    view "localhost" {
-        match-clients { 127.0.0.1; ::1; };
+    # Zone for .local domains - forward without DNSSEC
+    zone "local" {
+        type forward;
+        forward only;
+        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+    };
 
-        # Zone for .local domains - forward without DNSSEC
-        zone "local" {
-            type forward;
-            forward only;
-            # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-        };
+    zone "cluster.local" {
+        type forward;
+        forward only;
+        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+    };
 
-        zone "cluster.local" {
-            type forward;
-            forward only;
-            # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-        };
+    zone "svc.cluster.local" {
+        type forward;
+        forward only;
+        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+    };
 
-        zone "svc.cluster.local" {
-            type forward;
-            forward only;
-            # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-        };
-
-        # Root zone hint for external domains (with DNSSEC validation)
-        zone "." {
-            type hint;
-            file "root.hint";
-        };
+    # Root zone hint for external domains (with DNSSEC validation)
+    zone "." {
+        type hint;
+        file "root.hint";
     };
 
     logging {
