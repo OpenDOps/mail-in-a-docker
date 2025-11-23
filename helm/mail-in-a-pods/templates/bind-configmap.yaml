@@ -26,7 +26,16 @@ data:
         {{- end }}
     };
 
-    zone "." IN {
-        type hint;
-        file "root.hint";
+    logging {
+        channel query_log {
+            stderr;
+            print-time yes;
+            print-category yes;
+            print-severity yes;
+            severity info;
+        };
+        category queries { query_log; };
+        category default { query_log; };
     };
+
+    # Zone "." removed - forward only mode forwards all queries to upstream resolver

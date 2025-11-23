@@ -53,8 +53,8 @@ if [ -f /tmp/named.conf.template ]; then
     if [ -n "$BIND_UPSTREAM_RESOLVER" ] && echo "$BIND_UPSTREAM_RESOLVER" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
         # BIND_UPSTREAM_RESOLVER is an IP, use it
         awk -v ip="$BIND_UPSTREAM_RESOLVER" '/UPSTREAM_RESOLVER_PLACEHOLDER/ {
-            print "        forwarders { " ip "; };"
-            print "        forward only;"
+            print "      forwarders { " ip "; };"
+            print "      forward only;"
             next
         } { print }' /tmp/named.conf.template > /etc/bind/named.conf
     else
