@@ -84,6 +84,9 @@ if [ ! -f /etc/bind/named.conf ]; then
     exit 1
 fi
 
+echo "DEBUG (dns/bind/entrypoint.sh): ls -la /etc/bind:"
+ls -la /etc/bind
+
 # Validate named.conf syntax before starting
 echo "DEBUG (dns/bind/entrypoint.sh): Validating named.conf syntax"
 if ! named-checkconf -z /etc/bind/named.conf 2>&1; then
@@ -96,9 +99,6 @@ echo "DEBUG (dns/bind/entrypoint.sh): named.conf validation passed"
 
 echo "DEBUG (dns/bind/entrypoint.sh): Final named.conf contents:"
 cat /etc/bind/named.conf
-
-echo "DEBUG (dns/bind/entrypoint.sh): ls -la /etc/bind:"
-ls -la /etc/bind
 
 # Start named in background to set up negative trust anchors
 echo "DEBUG (dns/bind/entrypoint.sh): Starting named in background to configure NTAs"
