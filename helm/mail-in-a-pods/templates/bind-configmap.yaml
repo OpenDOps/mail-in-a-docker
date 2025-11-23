@@ -21,11 +21,6 @@ data:
         dnssec-validation auto;
         auth-nxdomain no;
         max-recursion-queries 100;
-        {{- if .Values.mailinabox.dnsResolver }}
-        forwarders { {{ .Values.mailinabox.dnsResolver }}; };
-        {{- else }}
-        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-        {{- end }}
     };
 
     # RNDC control channel for remote administration

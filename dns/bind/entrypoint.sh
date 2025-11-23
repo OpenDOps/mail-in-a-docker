@@ -130,6 +130,28 @@ echo "DEBUG (dns/bind/entrypoint.sh): Stopping background named and restarting i
 rndc -k /etc/bind/rndc.key stop 2>&1 || kill $NAMED_PID 2>/dev/null || true
 wait $NAMED_PID 2>/dev/null || true
 
+# Set up cron job to refresh NTAs daily (at 2am)
+echo "DEBUG (dns/bind/entrypoint.sh): Setting up cron job for NTA refresh"
+mkdir -p /etc/crontabs /var/log
+# Remove any existing refresh_nta.sh entries
+grep -v 'refresh_nta.sh' /etc/crontabs/root > /tmp/cron.tmp 2>/dev/null || true
+# Add daily NTA refresh job (at 2am)
+{
+    cat /tmp/cron.tmp 2>/dev/null || true
+    echo "# Refresh BIND9 negative trust anchors daily (at 2am)"
+    echo "0 2 * * * /usr/local/bin/refresh_nta.sh >> /var/log/nta-refresh.log 2>&1"
+} > /etc/crontabs/root
+rm -f /tmp/cron.tmp
+chmod 600 /etc/crontabs/root
+
+# Start cron daemon in background (will be inherited by PID 1 when we exec)
+echo "DEBUG (dns/bind/entrypoint.sh): Starting cron daemon"
+crond -f -S &
+
+# Wait a moment for cron to start
+sleep 1
+
 # Now run named in foreground (this replaces the shell process)
+# Cron will continue running as a background process (child of PID 1)
 echo "DEBUG (dns/bind/entrypoint.sh): Starting named in foreground"
 exec "$@" 2>&1

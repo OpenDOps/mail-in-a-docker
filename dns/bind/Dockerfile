@@ -7,7 +7,8 @@ RUN apk add --no-cache \
         bind-tools=9.18.41-r0 \
         coreutils=9.5-r2 \
         tzdata=2025b-r0 \
-        wget=1.24.5-r0
+        wget=1.24.5-r0 \
+        dcron=4.5-r9
 
 # Download root hints from IANA (official source) at build time
 RUN mkdir -p /usr/share/dns && \
@@ -23,8 +24,9 @@ RUN rndc-confgen -a -k rndc-key -c /etc/bind-tmp/rndc.key && \
 
 COPY install/setup_bind.sh /opt/install/setup_bind.sh
 COPY dns/bind/entrypoint.sh /usr/local/bin/bind-entrypoint.sh
+COPY dns/bind/refresh_nta.sh /usr/local/bin/refresh_nta.sh
 
-RUN chmod +x /opt/install/setup_bind.sh /usr/local/bin/bind-entrypoint.sh
+RUN chmod +x /opt/install/setup_bind.sh /usr/local/bin/bind-entrypoint.sh /usr/local/bin/refresh_nta.sh
 
 VOLUME ["/var/bind"]
 
