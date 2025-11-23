@@ -57,12 +57,12 @@ data:
             forward only;
             # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
         };
-    };
 
-    # Root zone hint for external domains (with DNSSEC validation)
-    zone "." {
-        type hint;
-        file "root.hint";
+        # Root zone hint for external domains (with DNSSEC validation)
+        zone "." {
+            type hint;
+            file "root.hint";
+        };
     };
 
     logging {
