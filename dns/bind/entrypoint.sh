@@ -48,17 +48,18 @@ if [ -f /tmp/named.conf.template ]; then
         fi
     fi
 
-    # Process the template: replace UPSTREAM_RESOLVER_PLACEHOLDER with resolved IP
+    # Process the template: replace ALL occurrences of UPSTREAM_RESOLVER_PLACEHOLDER with resolved IP
     # Write to /etc/bind/named.conf (which is mounted as emptyDir, so it's writable)
     if [ -n "$BIND_UPSTREAM_RESOLVER" ] && echo "$BIND_UPSTREAM_RESOLVER" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
         # BIND_UPSTREAM_RESOLVER is an IP, use it
+        # This awk command replaces ALL lines containing UPSTREAM_RESOLVER_PLACEHOLDER
+        # Indentation matches the template (8 spaces for zone blocks)
         awk -v ip="$BIND_UPSTREAM_RESOLVER" '/UPSTREAM_RESOLVER_PLACEHOLDER/ {
             print "      forwarders { " ip "; };"
-            print "      forward only;"
             next
         } { print }' /tmp/named.conf.template > /etc/bind/named.conf
     else
-        # No upstream resolver or not resolved, remove forwarding section
+        # No upstream resolver or not resolved, remove ALL placeholder lines
         sed '/# UPSTREAM_RESOLVER_PLACEHOLDER/d' /tmp/named.conf.template > /etc/bind/named.conf
     fi
 

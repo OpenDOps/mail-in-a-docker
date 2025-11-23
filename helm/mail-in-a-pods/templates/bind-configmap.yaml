@@ -26,9 +26,34 @@ data:
         {{- end }}
     };
 
+    # Zone for .local domains - forward without DNSSEC
+    zone "local" {
+        type forward;
+        forward only;
+        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+    };
+
+    zone "cluster.local" {
+        type forward;
+        forward only;
+        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+    };
+
+    zone "svc.cluster.local" {
+        type forward;
+        forward only;
+        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+    };
+
+    # Root zone hint for external domains (with DNSSEC validation)
+    zone "." {
+        type hint;
+        file "root.hint";
+    };
+
     logging {
         channel query_log {
-            stderr;
+            file "/var/bind/query.log" versions 3 size 10m;
             print-time yes;
             print-category yes;
             print-severity yes;
@@ -37,5 +62,3 @@ data:
         category queries { query_log; };
         category default { query_log; };
     };
-
-    # Zone "." removed - forward only mode forwards all queries to upstream resolver
