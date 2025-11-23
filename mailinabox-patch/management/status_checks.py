@@ -1148,6 +1148,22 @@ def check_web_domain(domain, rounded_time, ssl_certificates, env, output):
 
 
 def query_dns(qname, rtype, nxdomain="[Not Set]", at=None, as_list=False):
+    IN_KUBERNETES = os.environ.get("IN_KUBERNETES", "false") == "true"
+    if IN_KUBERNETES:
+        # In Kubernetes, /etc/resolv.conf contains service names (e.g., kube-dns.kube-system.svc.cluster.local)
+        # which dnspython cannot use directly. We need to resolve the service name to an IP first.
+        # Use socket.getaddrinfo() which uses the system resolver (glibc) that can handle Kubernetes service names.
+        if not at:
+            import socket
+
+            # Get the IP address of the Kubernetes DNS service
+            # socket.getaddrinfo() uses the system resolver which can resolve Kubernetes service names
+            kube_dns_hostname = "kube-dns.kube-system.svc.cluster.local"
+            addr_info = socket.getaddrinfo(kube_dns_hostname, 53, socket.AF_INET, socket.SOCK_DGRAM)
+            # addr_info is a list of tuples: (family, type, proto, canonname, sockaddr)
+            # sockaddr for IPv4 is (ip, port)
+            at = addr_info[0][4][0]  # Get the IP address from the first result
+
     # Make the qname absolute by appending a period. Without this, dns.resolver.query
     # will fall back a failed lookup to a second query with this machine's hostname
     # appended. This has been causing some false-positive Spamhaus reports. The
@@ -1156,15 +1172,17 @@ def query_dns(qname, rtype, nxdomain="[Not Set]", at=None, as_list=False):
     if isinstance(qname, str):
         qname += "."
 
-    # Use the default nameservers (as defined by the system, which is our locally
-    # running bind server), or if the 'at' argument is specified, use that host
-    # as the nameserver.
-    resolver = dns.resolver.get_default_resolver()
+    print(f"DEBUG (query_dns): at: {at}", file=sys.stdout)
 
     # Make sure at is not a string that cannot be used as a nameserver
     if at and at not in {"[Not set]", "[timeout]"}:
         resolver = dns.resolver.Resolver()
         resolver.nameservers = [at]
+    else:
+        # Use the default nameservers (as defined by the system, which is our locally
+        # running bind server in case of Mail-in-a-Box), or if the 'at' argument is specified, use that host
+        # as the nameserver.
+        resolver = dns.resolver.get_default_resolver()
 
     # Set a timeout so that a non-responsive server doesn't hold us back.
     resolver.timeout = 5
