@@ -1150,19 +1150,53 @@ def check_web_domain(domain, rounded_time, ssl_certificates, env, output):
 def query_dns(qname, rtype, nxdomain="[Not Set]", at=None, as_list=False):
     IN_KUBERNETES = os.environ.get("IN_KUBERNETES", "false") == "true"
     if IN_KUBERNETES:
+        print("DEBUG (query_dns): IN_KUBERNETES is true", file=sys.stdout)
         # In Kubernetes, /etc/resolv.conf contains service names (e.g., kube-dns.kube-system.svc.cluster.local)
         # which dnspython cannot use directly. We need to resolve the service name to an IP first.
-        # Use socket.getaddrinfo() which uses the system resolver (glibc) that can handle Kubernetes service names.
+        # Using Kubernetes API to get the DNS service IP (most reliable, no DNS dependency)
         if not at:
-            import socket
+            try:
+                from kubernetes import client, config
 
-            # Get the IP address of the Kubernetes DNS service
-            # socket.getaddrinfo() uses the system resolver which can resolve Kubernetes service names
-            kube_dns_hostname = "kube-dns.kube-system.svc.cluster.local"
-            addr_info = socket.getaddrinfo(kube_dns_hostname, 53, socket.AF_INET, socket.SOCK_DGRAM)
-            # addr_info is a list of tuples: (family, type, proto, canonname, sockaddr)
-            # sockaddr for IPv4 is (ip, port)
-            at = addr_info[0][4][0]  # Get the IP address from the first result
+                try:
+                    config.load_incluster_config()
+                except config.ConfigException:
+                    try:
+                        config.load_kube_config()
+                    except Exception:
+                        raise
+
+                # Try common DNS service names
+                dns_service_names = [
+                    "kube-dns",  # kube-dns
+                    "coredns",  # CoreDNS
+                ]
+                namespace = "kube-system"
+
+                print("DEBUG (query_dns): Trying to get DNS service IP from Kubernetes API", file=sys.stdout)
+
+                v1 = client.CoreV1Api()
+                for service_name in dns_service_names:
+                    print(
+                        f"DEBUG (query_dns): Trying to get DNS service IP from Kubernetes API: {service_name}",
+                        file=sys.stdout,
+                    )
+                    try:
+                        service = v1.read_namespaced_service(name=service_name, namespace=namespace)
+                        cluster_ip = service.spec.cluster_ip
+                        if cluster_ip and cluster_ip != "None":
+                            at = cluster_ip
+                            print(f"DEBUG (query_dns): Got DNS service IP from Kubernetes API: {at}", file=sys.stdout)
+                            break
+                    except client.rest.ApiException:
+                        continue
+            except Exception as e:
+                # Kubernetes API not available or failed, try other methods
+                print(
+                    f"DEBUG (query_dns): Kubernetes API method failed: {e}, trying socket.getaddrinfo()",
+                    file=sys.stdout,
+                )
+                pass
 
     # Make the qname absolute by appending a period. Without this, dns.resolver.query
     # will fall back a failed lookup to a second query with this machine's hostname
