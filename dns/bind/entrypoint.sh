@@ -97,6 +97,9 @@ echo "DEBUG (dns/bind/entrypoint.sh): named.conf validation passed"
 echo "DEBUG (dns/bind/entrypoint.sh): Final named.conf contents:"
 cat /etc/bind/named.conf
 
+echo "DEBUG (dns/bind/entrypoint.sh): ls -la /etc/bind:"
+ls -la /etc/bind
+
 # Start named in background to set up negative trust anchors
 echo "DEBUG (dns/bind/entrypoint.sh): Starting named in background to configure NTAs"
 "$@" > /tmp/named.log 2>&1 &
