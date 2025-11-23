@@ -53,6 +53,11 @@ def get_gateway_addresses(gateway_name, namespace):
         ipv4 = None
         ipv6 = None
 
+        enable_ipv6 = False
+        ENABLE_IPV6 = os.environ.get("ENABLE_IPV6")
+        if ENABLE_IPV6 == "true":
+            enable_ipv6 = True
+
         addresses = gateway.get("status", {}).get("addresses", [])
         if addresses:
             for addr in addresses:
@@ -62,7 +67,7 @@ def get_gateway_addresses(gateway_name, namespace):
                 if addr_type == "IPAddress" and addr_value:
                     if is_ipv4(addr_value):
                         ipv4 = addr_value
-                    elif is_ipv6(addr_value):
+                    elif is_ipv6(addr_value) and enable_ipv6:
                         ipv6 = addr_value
 
         return (ipv4, ipv6)

@@ -157,10 +157,15 @@ def run_checks(rounded_values, env, output, pool, domains_to_check=None):
         # go through, and if running over the web will cause a fastcgi timeout.
         return
 
-    # clear bind9's DNS cache so our DNS checks are up to date
-    # (ignore errors; if bind9/rndc isn't running we'd already report
-    # that in run_services checks.)
-    shell("check_call", ["/usr/sbin/rndc", "flush"], trap=True)
+    IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
+    if not IN_A_DOCKER:
+        # We currently do not use bind9 in Docker
+        pass
+    else:
+        # clear bind9's DNS cache so our DNS checks are up to date
+        # (ignore errors; if bind9/rndc isn't running we'd already report
+        # that in run_services checks.)
+        shell("check_call", ["/usr/sbin/rndc", "flush"], trap=True)
 
     run_system_checks(rounded_values, env, output)
 
@@ -281,12 +286,15 @@ def check_service(i, service, env):
 
 
 def run_system_checks(rounded_values, env, output):
-    check_ssh_password(env, output)
-    check_software_updates(env, output)
+    IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
+    if not IN_A_DOCKER:
+        check_ssh_password(env, output)
+        check_software_updates(env, output)
     check_miab_version(env, output)
     check_system_aliases(env, output)
-    check_free_disk_space(rounded_values, env, output)
-    check_free_memory(rounded_values, env, output)
+    if not IN_A_DOCKER:
+        check_free_disk_space(rounded_values, env, output)
+        check_free_memory(rounded_values, env, output)
     check_backup(rounded_values, env, output)
 
 
@@ -1303,7 +1311,12 @@ def check_miab_version(env, output):
     except Exception:
         this_ver = "Unknown"
 
-    if config.get("privacy", True):
+    IN_KUBERNETES = os.environ.get("IN_KUBERNETES", "false") == "true"
+    IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
+
+    if IN_KUBERNETES:
+        output.print_warning(f"You are running Mail-in-a-Pods version {this_ver}.")
+    elif config.get("privacy", True) or IN_A_DOCKER:
         output.print_warning(
             f"You are running version Mail-in-a-Box {this_ver}. Mail-in-a-Box version check disabled by privacy setting."
         )

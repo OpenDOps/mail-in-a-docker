@@ -3,7 +3,7 @@
 
 # Global configuration
 global:
-  imageTag: "0.1.28"
+  imageTag: "0.1.29"
   imagePullPolicy: IfNotPresent
   alpineVersion: "3.20" # Alpine Linux version for staticsServer image (nginx:alpine)
 
@@ -49,6 +49,7 @@ mailinabox:
 
   installFail2ban: false
   enableInternalBind: false
+  enableIpv6: false # Enable IPv6 support
 
   # System user configuration (for initial admin user)
   # WARNING: This is insecure and should be replaced with Vault later

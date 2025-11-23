@@ -49,6 +49,8 @@ spec:
           value: {{ include "mailinabox.fullname" . }}-gateway
         - name: NAMESPACE
           value: {{ .Release.Namespace | quote }}
+        - name: ENABLE_IPV6
+          value: {{ (.Values.mailinabox.enableIpv6 | default false) | quote | lower }}
         {{- end }}
         ports:
         - name: http
