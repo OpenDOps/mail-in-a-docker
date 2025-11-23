@@ -87,9 +87,6 @@ if [ ! -f /etc/bind/named.conf ]; then
     exit 1
 fi
 
-echo "DEBUG (dns/bind/entrypoint.sh): ls -la /etc/bind:"
-ls -la /etc/bind
-
 # Validate named.conf syntax before starting
 echo "DEBUG (dns/bind/entrypoint.sh): Validating named.conf syntax"
 if ! named-checkconf -z /etc/bind/named.conf 2>&1; then
@@ -126,9 +123,7 @@ done
 
 # Set negative trust anchors for .local zones (disable DNSSEC validation)
 echo "DEBUG (dns/bind/entrypoint.sh): Setting negative trust anchors for .local zones"
-rndc -k /etc/bind/rndc.key nta -lifetime 604800 local 2>&1 || echo "WARNING: Failed to set NTA for local"
 rndc -k /etc/bind/rndc.key nta -lifetime 604800 cluster.local 2>&1 || echo "WARNING: Failed to set NTA for cluster.local"
-rndc -k /etc/bind/rndc.key nta -lifetime 604800 svc.cluster.local 2>&1 || echo "WARNING: Failed to set NTA for svc.cluster.local"
 
 # Stop background named and restart in foreground
 echo "DEBUG (dns/bind/entrypoint.sh): Stopping background named and restarting in foreground"

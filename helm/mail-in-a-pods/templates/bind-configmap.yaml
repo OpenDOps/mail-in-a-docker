@@ -33,20 +33,9 @@ data:
         inet 127.0.0.1 port 953 allow { 127.0.0.1; } keys { "rndc-key"; };
     };
 
-    # Zone for .local domains - forward without DNSSEC
-    zone "local" {
-        type forward;
-        forward only;
-        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-    };
-
+    # Zone for cluster.local and all subdomains (svc.cluster.local, etc.)
+    # Only forward cluster.local - it will handle all subdomains automatically
     zone "cluster.local" {
-        type forward;
-        forward only;
-        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-    };
-
-    zone "svc.cluster.local" {
         type forward;
         forward only;
         # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
