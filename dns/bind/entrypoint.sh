@@ -74,7 +74,7 @@ if [ -f /tmp/named.conf.template ]; then
 else
     echo "DEBUG (dns/bind/entrypoint.sh): No ConfigMap template found, running setup_bind.sh"
     # Fallback: generate named.conf using setup_bind.sh (for non-Kubernetes deployments)
-    /bin/sh /opt/install/setup_bind.sh
+/bin/sh /opt/install/setup_bind.sh
 fi
 
 # Validate named.conf exists before starting
@@ -126,10 +126,9 @@ done
 
 # Set negative trust anchors for .local zones (disable DNSSEC validation)
 echo "DEBUG (dns/bind/entrypoint.sh): Setting negative trust anchors for .local zones"
-rndc -k /etc/bind/rndc.key nta local 604800 in _default 2>&1 || echo "WARNING: Failed to set NTA for local"
-rndc -k /etc/bind/rndc.key nta cluster.local 604800 in _default 2>&1 || echo "WARNING: Failed to set NTA for cluster.local"
-rndc -k /etc/bind/rndc.key nta svc.cluster.local 604800 in _default 2>&1 || echo "WARNING: Failed to set NTA for svc.cluster.local"
-
+rndc -k /etc/bind/rndc.key nta local 604800 localhost 2>&1 || echo "WARNING: Failed to set NTA for local"
+rndc -k /etc/bind/rndc.key nta cluster.local 604800 localhost 2>&1 || echo "WARNING: Failed to set NTA for cluster.local"
+rndc -k /etc/bind/rndc.key nta svc.cluster.local 604800 localhost 2>&1 || echo "WARNING: Failed to set NTA for svc.cluster.local"
 
 # Stop background named and restart in foreground
 echo "DEBUG (dns/bind/entrypoint.sh): Stopping background named and restarting in foreground"
