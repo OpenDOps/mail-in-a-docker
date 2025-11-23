@@ -7,6 +7,9 @@ metadata:
     component: bind
 data:
   named.conf.template: |
+    # Include rndc key (generated at build time in Dockerfile)
+    include "/etc/bind/rndc.key";
+
     options {
         directory "/var/bind";
         pid-file "/run/named/named.pid";
