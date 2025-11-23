@@ -20,7 +20,6 @@ data:
         max-recursion-queries 100;
         {{- if .Values.mailinabox.dnsResolver }}
         forwarders { {{ .Values.mailinabox.dnsResolver }}; };
-        forward only;
         {{- else }}
         # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
         {{- end }}
@@ -31,18 +30,21 @@ data:
         type forward;
         forward only;
         # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+        dnssec-validation no;
     };
 
     zone "cluster.local" {
         type forward;
         forward only;
         # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+        dnssec-validation no;
     };
 
     zone "svc.cluster.local" {
         type forward;
         forward only;
         # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
+        dnssec-validation no;
     };
 
     # Root zone hint for external domains (with DNSSEC validation)
