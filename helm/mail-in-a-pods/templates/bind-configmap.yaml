@@ -27,27 +27,21 @@ data:
 
     # Zone for .local domains - forward without DNSSEC
     zone "local" {
-        type static-stub;
-        server-addresses { 127.0.0.1; }; # Will be ignored because there are forwarders
+        type forward;
         forward only;
         # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-        dnssec-validation no;
     };
 
     zone "cluster.local" {
-        type static-stub;
-        server-addresses { 127.0.0.1; }; # Will be ignored because there are forwarders
+        type forward;
         forward only;
         # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-        dnssec-validation no;
     };
 
     zone "svc.cluster.local" {
-        type static-stub;
-        server-addresses { 127.0.0.1; }; # Will be ignored because there are forwarders
+        type forward;
         forward only;
         # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-        dnssec-validation no;
     };
 
     # Root zone hint for external domains (with DNSSEC validation)

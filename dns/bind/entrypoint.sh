@@ -98,11 +98,12 @@ echo "DEBUG (dns/bind/entrypoint.sh): Starting named with command: $*"
 echo "DEBUG (dns/bind/entrypoint.sh): Final named.conf contents:"
 cat /etc/bind/named.conf
 
-echo "DEBUG (dns/bind/entrypoint.sh): Listing /etc/bind"
-ls -la /etc/bind
-
-echo "DEBUG (dns/bind/entrypoint.sh): Listing /var/bind"
-ls -la /var/bind
+echo "DEBUG (dns/bind/entrypoint.sh): Set insecure zone 'local'"
+rndc nta local 604800
+echo "DEBUG (dns/bind/entrypoint.sh): Set insecure zone 'cluster.local'"
+rndc nta cluster.local 604800
+echo "DEBUG (dns/bind/entrypoint.sh): Set insecure zone 'svc.cluster.local'"
+rndc nta svc.cluster.local 604800
 
 # Run named and capture errors
 # Redirect stderr to stdout so errors are visible in Kubernetes logs
