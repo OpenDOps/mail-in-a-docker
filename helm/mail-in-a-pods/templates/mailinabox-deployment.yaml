@@ -77,8 +77,6 @@ spec:
         {{- end }}
         - name: BIND_SIDECAR_ENABLED
           value: "true"
-        - name: IN_KUBERNETES
-          value: "true"
         ports:
         - name: http
           containerPort: 10222
@@ -125,8 +123,8 @@ spec:
           value: "127.0.0.1"
         - name: BIND_ALLOW_RECURSION
           value: "127.0.0.1"
-        - name: KUBE_DNS_IP_FILE
-          value: "/shared/kube-dns-ip.txt"
+        - name: IN_KUBERNETES
+          value: "true"
         ports:
         - name: dns-udp
           containerPort: 53
