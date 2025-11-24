@@ -39,7 +39,6 @@ services:
         ENABLE_INTERNAL_BIND: ${ENABLE_INTERNAL_BIND:-false}
     environment:
       - ENABLE_INTERNAL_DNS=false
-      - LOCAL_RESOLVER=172.28.0.10
       - STORAGE_USER=${STORAGE_USER:-user-data}
       - STORAGE_ROOT=${STORAGE_ROOT:-/home/user-data}
       - PRIMARY_HOSTNAME=${PRIMARY_HOSTNAME:-box.example.com}

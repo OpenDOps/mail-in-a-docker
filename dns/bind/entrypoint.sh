@@ -7,6 +7,7 @@ set -eu
 : "${BIND_UPSTREAM_RESOLVER:=}"
 : "${KUBE_DNS_IP_FILE:=}"
 
+echo "DEBUG (dns/bind/entrypoint.sh): BIND_UPSTREAM_RESOLVER (before): $BIND_UPSTREAM_RESOLVER"
 # If KUBE_DNS_IP_FILE is set and BIND_UPSTREAM_RESOLVER is a hostname, resolve it to IP
 if [ -n "$KUBE_DNS_IP_FILE" ] && [ -f "$KUBE_DNS_IP_FILE" ]; then
     RESOLVED_IP=$(cat "$KUBE_DNS_IP_FILE" 2>/dev/null || echo "")

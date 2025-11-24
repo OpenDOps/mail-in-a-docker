@@ -54,8 +54,6 @@ spec:
           value: {{ .Values.global.primaryHostname | quote }}
         - name: ENABLE_INTERNAL_DNS
           value: {{ .Values.mailinabox.env.enableInternalDns | quote | lower }}
-        - name: LOCAL_RESOLVER
-          value: {{ .Values.mailinabox.env.localResolver | quote }}
         - name: STORAGE_USER
           value: {{ .Values.mailinabox.env.storageUser | quote }}
         - name: STORAGE_ROOT
