@@ -122,13 +122,6 @@ spec:
           value: "127.0.0.1"
         - name: BIND_ALLOW_RECURSION
           value: "127.0.0.1"
-        - name: BIND_UPSTREAM_RESOLVER
-          {{- if .Values.mailinabox.dnsResolver }}
-          value: {{ .Values.mailinabox.dnsResolver | quote }}
-          {{- else }}
-          # Read kube-dns IP from init container
-          value: "kube-dns.kube-system.svc.cluster.local"
-          {{- end }}
         - name: KUBE_DNS_IP_FILE
           value: "/shared/kube-dns-ip.txt"
         ports:

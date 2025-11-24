@@ -51,12 +51,6 @@ mailinabox:
   installFail2ban: false
   enableInternalBind: false
 
-  # Sidecar bind9 configuration (for DNSSEC validation while using kube-dns)
-  # When enabled, bind9 runs as a sidecar container in the mailinabox pod.
-  # It validates DNSSEC for all DNS queries while forwarding to kube-dns for resolution.
-  # This allows you to keep using kube-dns but get DNSSEC validation for DANE/TLSA records.
-  dnsResolver: "" # KubeDns, or CoreDNS service (auto-detected via init container if empty)
-
   # System user configuration (for initial admin user)
   # WARNING: This is insecure and should be replaced with Vault later
   systemUserName: "admin"
