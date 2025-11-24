@@ -8,17 +8,52 @@ set -eu
 : "${BIND_UPSTREAM_RESOLVER:=}"
 
 if [ "$IN_KUBERNETES" = "true" ]; then
-    # Try to get kube-dns service cluster IP
-    KUBE_DNS_IP=$(kubectl get svc kube-dns -n kube-system -o jsonpath='{.spec.clusterIP}' 2>/dev/null || true)
-    if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "<no value>" ]; then
-        # Fallback to coredns
-        KUBE_DNS_IP=$(kubectl get svc coredns -n kube-system -o jsonpath='{.spec.clusterIP}' 2>/dev/null || true)
-    fi
-    if [ -n "$KUBE_DNS_IP" ] && [ "$KUBE_DNS_IP" != "<no value>" ]; then
-        export BIND_UPSTREAM_RESOLVER="$KUBE_DNS_IP"
-        echo "DEBUG (dns/bind/entrypoint.sh): Using detected kube-dns/coredns service IP as upstream resolver: $KUBE_DNS_IP"
+    # Try to get kube-dns service cluster IP using Kubernetes API
+    # Service account token and CA cert are automatically mounted in all pod containers
+    TOKEN_FILE="/var/run/secrets/kubernetes.io/serviceaccount/token"
+    CA_FILE="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    # Use KUBERNETES_SERVICE_HOST environment variable (set by Kubernetes) instead of DNS
+    # This works even when dnsPolicy: None
+    KUBERNETES_SERVICE_HOST="${KUBERNETES_SERVICE_HOST:-}"
+    KUBERNETES_SERVICE_PORT="${KUBERNETES_SERVICE_PORT:-443}"
+    if [ -z "$KUBERNETES_SERVICE_HOST" ]; then
+        echo "DEBUG (dns/bind/entrypoint.sh): KUBERNETES_SERVICE_HOST not set, cannot use Kubernetes API"
     else
-        echo "DEBUG (dns/bind/entrypoint.sh): Could not determine kube-dns/coredns IP with kubectl, using default/fallback resolver"
+        API_SERVER="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}"
+        echo "DEBUG (dns/bind/entrypoint.sh): API_SERVER: $API_SERVER"
+
+        if [ -f "$TOKEN_FILE" ] && [ -f "$CA_FILE" ]; then
+            TOKEN=$(cat "$TOKEN_FILE" 2>/dev/null || echo "")
+            if [ -n "$TOKEN" ]; then
+                # Try kube-dns first using curl (more reliable than wget for API calls)
+                RESPONSE=$(curl -sSf --cacert "$CA_FILE" -H "Authorization: Bearer $TOKEN" \
+                    "${API_SERVER}/api/v1/namespaces/kube-system/services/kube-dns" 2>/dev/null || echo "")
+                if [ -n "$RESPONSE" ]; then
+                    # Extract clusterIP from JSON response using grep and sed
+                    KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
+                fi
+
+                # Fallback to coredns if kube-dns not found or empty
+                if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "null" ] || [ "$KUBE_DNS_IP" = "None" ] || [ "$KUBE_DNS_IP" = "" ]; then
+                    RESPONSE=$(curl -sSf --cacert "$CA_FILE" -H "Authorization: Bearer $TOKEN" \
+                        "${API_SERVER}/api/v1/namespaces/kube-system/services/coredns" 2>/dev/null || echo "")
+                    if [ -n "$RESPONSE" ]; then
+                        KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
+                    fi
+                fi
+
+                if [ -n "$KUBE_DNS_IP" ] && [ "$KUBE_DNS_IP" != "null" ] && [ "$KUBE_DNS_IP" != "None" ] && [ "$KUBE_DNS_IP" != "" ]; then
+                    export BIND_UPSTREAM_RESOLVER="$KUBE_DNS_IP"
+                    echo "DEBUG (dns/bind/entrypoint.sh): Using detected kube-dns/coredns service IP as upstream resolver: $KUBE_DNS_IP"
+                else
+                    echo "DEBUG (dns/bind/entrypoint.sh): Could not determine kube-dns/coredns IP from Kubernetes API, using default/fallback resolver"
+                fi
+            else
+                echo "DEBUG (dns/bind/entrypoint.sh): Service account token not found, using default/fallback resolver"
+            fi
+        else
+            echo "DEBUG (dns/bind/entrypoint.sh): Service account files not mounted, using default/fallback resolver"
+        fi
     fi
 fi
 
