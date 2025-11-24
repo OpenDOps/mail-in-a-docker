@@ -1,0 +1,177 @@
+# ip-pool.yaml
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: mailer-ip-pool
+spec:
+  blocks:
+    - cidr: "10.0.10.0/24"
+
+# ---
+# apiVersion: "cilium.io/v2alpha1"
+# kind: CiliumL2AnnouncementPolicy
+# metadata:
+#   name: l2-announcement-policy
+# spec:
+#   interfaces:
+#     - ^eth  # Announce IPs on interfaces starting with 'eth'
+#   loadBalancerIPs: true
+
+---
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumGatewayClassConfig
+metadata:
+  name: custom-lb-config
+  namespace: kube-system
+spec:
+  # Define settings for the generated Service
+  service:
+    # Specify the exact loadBalancerClass you want Cilium to use
+    loadBalancerClass: io.cilium/bgp-control-plane
+    # Optional: Further control the service behavior
+    externalTrafficPolicy: Cluster # Or "Local" for client IP visibility
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: cilium-custom-lb
+  namespace: mailer
+  annotations:
+    # Optional: You can explicitly specify which pool to use if you have multiple
+    io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
+spec:
+  controllerName: io.cilium.gateway.controller
+  parametersRef:
+    group: cilium.io
+    kind: CiliumGatewayClassConfig
+    name: custom-lb-config # Reference the name from Step 1
+    namespace: kube-system
+    scope: Cluster # Or "Cluster" depending on your configuration
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: my-forced-lb-gateway
+  namespace: mailer
+  annotations:
+    cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
+spec:
+  gatewayClassName: cilium-custom-lb
+  listeners:
+    # Health check listener (lowest port is used for health checks by default)
+    - name: health
+      protocol: HTTP
+      port: 10
+      allowedRoutes:
+        namespaces:
+          from: Same
+    # HTTP listener for web traffic (all domains)
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: https-0
+      protocol: HTTPS
+      port: 443
+      hostname: mailer.kuprin.su
+      tls:
+        mode: Terminate
+        certificateRefs:
+        - name: mailinabox-tls-2
+          kind: Secret
+          group: ""
+      allowedRoutes:
+        namespaces:
+          from: Same
+    # Health check listener (lowest port is used for health checks by default)
+    - name: smtp
+      protocol: TCP
+      port: 25
+      allowedRoutes:
+        namespaces:
+          from: Same
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cilium-mailer-health
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: my-forced-lb-gateway
+    sectionName: health
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: mail-in-a-pods-statics-server
+      port: 10
+      weight: 1
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cilium-mailer-http
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: my-forced-lb-gateway
+    sectionName: http
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: my-forced-lb-gateway
+    sectionName: https-0
+  hostnames:
+  - mailer.kuprin.su
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /admin/assets/
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: mail-in-a-pods-statics-server
+      port: 80
+      weight: 1
+  # Exact match for root path
+  - matches:
+    - path:
+        type: Exact
+        value: /
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: mail-in-a-pods-mailinabox
+      port: 10222
+      weight: 1
+  # PathPrefix match for /admin - strips /admin prefix before forwarding
+  # /admin/something will be rewritten to /something
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /admin
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: mail-in-a-pods-mailinabox
+      port: 10222
+      weight: 1

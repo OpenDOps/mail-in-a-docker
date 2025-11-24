@@ -467,12 +467,14 @@ def run_network_checks(env, output):
 
     output.add_heading("Network")
 
-    check_ufw(env, output)
-
     IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
     nc_path = "/bin/nc"
     if IN_A_DOCKER:
         nc_path = "/usr/bin/nc"
+
+    if not IN_A_DOCKER:
+        # Check the ufw firewall only if we are not inside a container
+        check_ufw(env, output)
 
     # Stop if we cannot make an outbound connection on port 25. Many residential
     # networks block outbound port 25 to prevent their network from sending spam.
