@@ -21,12 +21,6 @@ data:
         dnssec-validation auto;
         auth-nxdomain no;
         max-recursion-queries 100;
-        # Disable IPv6: filter AAAA records (IPv6 addresses) for all queries
-        # filter-aaaa is a built-in BIND9 option (no plugin needed)
-        # This prevents BIND9 from returning IPv6 addresses, forcing IPv4-only resolution
-        {{- if not (.Values.global.enableIpv6 | default false) }}
-        filter-aaaa { any; };
-        {{- end }}
     };
 
     # RNDC control channel for remote administration
