@@ -23,8 +23,10 @@ data:
         max-recursion-queries 100;
         # Disable IPv6 queries - prefer IPv4 only
         {{- if not .Values.global.enableIpv6 }}
-        filter-aaaa-on-v4 yes;
-        filter-aaaa { any; };
+        plugin query "/usr/lib/x86_64-linux-gnu/bind/filter-aaaa.so" {
+            filter-aaaa-on-v4 yes;
+            filter-aaaa { any; };
+        };
         {{- end }}
     };
 

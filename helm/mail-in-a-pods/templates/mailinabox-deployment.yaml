@@ -219,7 +219,7 @@ spec:
         nameservers:
           # Temporary nameserver until init script configures it properly
           # The init script will overwrite /etc/resolv.conf based on BIND_SIDECAR_ENABLED
-          - "127.0.0.101"
+          - "127.0.0.1"
 ---
 apiVersion: v1
 kind: Service
