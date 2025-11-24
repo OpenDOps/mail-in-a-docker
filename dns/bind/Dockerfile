@@ -22,11 +22,6 @@ RUN rndc-confgen -a -k rndc-key -c /etc/bind-tmp/rndc.key && \
     chmod 640 /etc/bind-tmp/rndc.key && \
     chown root:named /etc/bind-tmp/rndc.key
 
-RUN find / -name "filter-aaaa.so" 2>/dev/null || echo "filter-aaaa.so not found"
-RUN location=$(find / -name "filter-aaaa.so" 2>/dev/null | head -n1); \
-    if [ -n "$location" ]; then echo "filter-aaaa.so found at: $location"; else echo "filter-aaaa.so not found"; fi
-
-
 COPY install/setup_bind.sh /opt/install/setup_bind.sh
 COPY dns/bind/entrypoint.sh /usr/local/bin/bind-entrypoint.sh
 COPY dns/bind/refresh_nta.sh /usr/local/bin/refresh_nta.sh

@@ -21,12 +21,11 @@ data:
         dnssec-validation auto;
         auth-nxdomain no;
         max-recursion-queries 100;
-        # Disable IPv6 queries - prefer IPv4 only
-        {{- if not .Values.global.enableIpv6 }}
-        plugin query "/usr/lib/x86_64-linux-gnu/bind/filter-aaaa.so" {
-            filter-aaaa-on-v4 yes;
-            filter-aaaa { any; };
-        };
+        # Disable IPv6: filter AAAA records (IPv6 addresses) for all queries
+        # filter-aaaa is a built-in BIND9 option (no plugin needed)
+        # This prevents BIND9 from returning IPv6 addresses, forcing IPv4-only resolution
+        {{- if not (.Values.global.enableIpv6 | default false) }}
+        filter-aaaa { any; };
         {{- end }}
     };
 
