@@ -32,9 +32,11 @@ spec:
           # Use nslookup to resolve kube-dns service IP (busybox has nslookup)
           # nslookup output format: "Address 1: <IP>"
           KUBE_DNS_IP=$(nslookup kube-dns.kube-system.svc.cluster.local 2>/dev/null | grep "Address" | tail -1 | awk '{print $NF}')
+          echo "KUBE_DNS_IP (kube-dns): $KUBE_DNS_IP"
           if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "Address" ]; then
             # Fallback to coredns
             KUBE_DNS_IP=$(nslookup coredns.kube-system.svc.cluster.local 2>/dev/null | grep "Address" | tail -1 | awk '{print $NF}')
+            echo "KUBE_DNS_IP (coredns): $KUBE_DNS_IP"
           fi
           if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "Address" ]; then
             echo "Warning: Could not resolve kube-dns service IP, bind9 will use root hints"
@@ -210,7 +212,7 @@ spec:
         nameservers:
           # Temporary nameserver until init script configures it properly
           # The init script will overwrite /etc/resolv.conf based on BIND_SIDECAR_ENABLED
-          - "127.0.0.1"
+          - "kube-dns.kube-system.svc.cluster.local"
 ---
 apiVersion: v1
 kind: Service

@@ -30,11 +30,7 @@ data:
 
     # Zone for cluster.local and all subdomains (svc.cluster.local, etc.)
     # Only forward cluster.local - it will handle all subdomains automatically
-    zone "cluster.local" {
-        type forward;
-        forward only;
-        # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
-    };
+    # UPSTREAM_RESOLVER_PLACEHOLDER - will be replaced by entrypoint with resolved IP
 
     # Root zone hint for external domains (with DNSSEC validation)
     zone "." {

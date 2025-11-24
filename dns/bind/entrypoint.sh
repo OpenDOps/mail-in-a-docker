@@ -58,8 +58,12 @@ if [ -f /tmp/named.conf.template ]; then
         # BIND_UPSTREAM_RESOLVER is an IP, use it
         # This awk command replaces ALL lines containing UPSTREAM_RESOLVER_PLACEHOLDER
         # Indentation matches the template (8 spaces for zone blocks)
-        awk -v ip="$BIND_UPSTREAM_RESOLVER" '/UPSTREAM_RESOLVER_PLACEHOLDER/ {
-            print "    forwarders { " ip "; };"
+        awk -v ip="$BIND_UPSTREAM_RESOLVER" '/# UPSTREAM_RESOLVER_PLACEHOLDER/ {
+            print "zone \"cluster.local\" {";
+            print "    type forward;";
+            print "    forward only;";
+            print "    forwarders { " ip "; };";
+            print "};";
             next
         } { print }' /tmp/named.conf.template > /etc/bind/named.conf
     else
