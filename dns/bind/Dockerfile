@@ -8,7 +8,7 @@ RUN apk add --no-cache \
         coreutils=9.5-r2 \
         tzdata=2025b-r0 \
         wget=1.24.5-r0 \
-        curl=8.10.1-r0 \
+        curl=8.14.1-r2 \
         dcron=4.5-r9
 
 # Download root hints from IANA (official source) at build time
