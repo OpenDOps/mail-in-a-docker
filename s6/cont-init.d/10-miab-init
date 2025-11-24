@@ -61,11 +61,14 @@ fi
 export MTA_STS_MODE="${MTA_STS_MODE:-enforce}"
 
 # Configure /etc/resolv.conf to use bind9 sidecar if enabled
+# With dnsPolicy: None, Kubernetes does NOT create or manage /etc/resolv.conf
+# This file is fully writable and will not be replaced by Kubernetes
 # bind9 sidecar listens on 127.0.0.1:53 and validates DNSSEC while forwarding to kube-dns
 if [ "${ENABLE_INTERNAL_BIND:-false}" = "true" ] || [ -n "${BIND_SIDECAR_ENABLED:-}" ]; then
     RESOLVER="127.0.0.1"
     printf "nameserver %s\n" "$RESOLVER" > /etc/resolv.conf
-    echo "Configured /etc/resolv.conf to use bind9 at $RESOLVER"
+    chmod 644 /etc/resolv.conf
+    echo "Configured /etc/resolv.conf to use bind9 at $RESOLVER (writable, not managed by Kubernetes)"
 fi
 
 cd /opt/MailInABox

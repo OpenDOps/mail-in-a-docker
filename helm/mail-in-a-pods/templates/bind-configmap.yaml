@@ -21,6 +21,11 @@ data:
         dnssec-validation auto;
         auth-nxdomain no;
         max-recursion-queries 100;
+        # Disable IPv6 queries - prefer IPv4 only
+        {{- if not .Values.global.enableIpv6 }}
+        filter-aaaa-on-v4 yes;
+        filter-aaaa { any; };
+        {{- end }}
     };
 
     # RNDC control channel for remote administration

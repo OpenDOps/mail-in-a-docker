@@ -74,7 +74,7 @@ spec:
         - name: NAMESPACE
           value: {{ .Release.Namespace | quote }}
         - name: ENABLE_IPV6
-          value: {{ (.Values.mailinabox.enableIpv6 | default false) | quote | lower }}
+          value: {{ (.Values.global.enableIpv6 | default false) | quote | lower }}
         {{- end }}
         - name: BIND_SIDECAR_ENABLED
           value: "true"
@@ -212,7 +212,11 @@ spec:
             path: tls-{{ $index }}.key
       {{- end }}
       {{- end }}
-      dnsPolicy: ClusterFirst
+      # Set dnsPolicy to None to prevent Kubernetes from managing /etc/resolv.conf
+      # This allows the container to write its own resolv.conf (e.g., to use bind9 sidecar)
+      # With dnsPolicy: None, /etc/resolv.conf is NOT created by Kubernetes and is fully writable
+      # The init script (10-miab-init) will create and configure /etc/resolv.conf
+      dnsPolicy: None
 ---
 apiVersion: v1
 kind: Service

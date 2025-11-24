@@ -3,9 +3,10 @@
 
 # Global configuration
 global:
-  imageTag: "0.1.50"
+  imageTag: "0.1.51"
   imagePullPolicy: IfNotPresent
   alpineVersion: "3.20" # Alpine Linux version for staticsServer image (nginx:alpine)
+  enableIpv6: false # Enable IPv6 support
 
   storageClass: "" # Use default storage class if empty
 
@@ -49,7 +50,6 @@ mailinabox:
 
   installFail2ban: false
   enableInternalBind: false
-  enableIpv6: false # Enable IPv6 support
 
   # Sidecar bind9 configuration (for DNSSEC validation while using kube-dns)
   # When enabled, bind9 runs as a sidecar container in the mailinabox pod.
