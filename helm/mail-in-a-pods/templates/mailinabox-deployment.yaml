@@ -214,9 +214,12 @@ spec:
       {{- end }}
       # Set dnsPolicy to None to prevent Kubernetes from managing /etc/resolv.conf
       # This allows the container to write its own resolv.conf (e.g., to use bind9 sidecar)
-      # With dnsPolicy: None, /etc/resolv.conf is NOT created by Kubernetes and is fully writable
-      # The init script (10-miab-init) will create and configure /etc/resolv.conf
       dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          # Temporary nameserver until init script configures it properly
+          # The init script will overwrite /etc/resolv.conf based on BIND_SIDECAR_ENABLED
+          - "127.0.0.101"
 ---
 apiVersion: v1
 kind: Service
