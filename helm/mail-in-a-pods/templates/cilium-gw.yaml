@@ -47,7 +47,6 @@ spec:
     kind: CiliumGatewayClassConfig
     name: custom-lb-config # Reference the name from Step 1
     namespace: kube-system
-    scope: Cluster # Or "Cluster" depending on your configuration
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
