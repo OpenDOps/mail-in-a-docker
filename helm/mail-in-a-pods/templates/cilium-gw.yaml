@@ -6,6 +6,10 @@ metadata:
 spec:
   blocks:
     - cidr: "10.0.11.0/24"
+  serviceSelector:
+    matchLabels:
+      # Example: only services with this label use the pool
+      use-mailer-pool: "true"
 
 # ---
 # apiVersion: "cilium.io/v2alpha1"
