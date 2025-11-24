@@ -16,6 +16,8 @@ if [ "$IN_KUBERNETES" = "true" ]; then
     # This works even when dnsPolicy: None
     KUBERNETES_SERVICE_HOST="${KUBERNETES_SERVICE_HOST:-}"
     KUBERNETES_SERVICE_PORT="${KUBERNETES_SERVICE_PORT:-443}"
+    # Initialize KUBE_DNS_IP to avoid "parameter not set" error with set -u
+    KUBE_DNS_IP=""
     if [ -z "$KUBERNETES_SERVICE_HOST" ]; then
         echo "DEBUG (dns/bind/entrypoint.sh): KUBERNETES_SERVICE_HOST not set, cannot use Kubernetes API"
     else
@@ -28,6 +30,7 @@ if [ "$IN_KUBERNETES" = "true" ]; then
                 # Try kube-dns first using curl (more reliable than wget for API calls)
                 RESPONSE=$(curl -sSf --cacert "$CA_FILE" -H "Authorization: Bearer $TOKEN" \
                     "${API_SERVER}/api/v1/namespaces/kube-system/services/kube-dns" 2>/dev/null || echo "")
+                echo "DEBUG (dns/bind/entrypoint.sh): RESPONSE KUBE-DNS: $RESPONSE"
                 if [ -n "$RESPONSE" ]; then
                     # Extract clusterIP from JSON response using grep and sed
                     KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
@@ -37,6 +40,7 @@ if [ "$IN_KUBERNETES" = "true" ]; then
                 if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "null" ] || [ "$KUBE_DNS_IP" = "None" ] || [ "$KUBE_DNS_IP" = "" ]; then
                     RESPONSE=$(curl -sSf --cacert "$CA_FILE" -H "Authorization: Bearer $TOKEN" \
                         "${API_SERVER}/api/v1/namespaces/kube-system/services/coredns" 2>/dev/null || echo "")
+                    echo "DEBUG (dns/bind/entrypoint.sh): RESPONSE COREDNS: $RESPONSE"
                     if [ -n "$RESPONSE" ]; then
                         KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
                     fi
