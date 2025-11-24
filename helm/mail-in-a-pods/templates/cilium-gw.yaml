@@ -36,12 +36,11 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
   name: cilium-custom-lb
-  namespace: mailer
   annotations:
     # Optional: You can explicitly specify which pool to use if you have multiple
     io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
 spec:
-  controllerName: io.cilium.gateway.controller
+  controllerName: io.cilium/gateway-controller
   parametersRef:
     group: cilium.io
     kind: CiliumGatewayClassConfig
