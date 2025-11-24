@@ -5,7 +5,7 @@ metadata:
   name: mailer-ip-pool
 spec:
   blocks:
-    - cidr: "10.0.10.0/24"
+    - cidr: "10.0.11.0/24"
 
 # ---
 # apiVersion: "cilium.io/v2alpha1"
@@ -27,7 +27,7 @@ spec:
   # Define settings for the generated Service
   service:
     # Specify the exact loadBalancerClass you want Cilium to use
-    loadBalancerClass: io.cilium/bgp-control-plane
+    loadBalancerClass: io.cilium/l2-announcer
     # Optional: Further control the service behavior
     externalTrafficPolicy: Cluster # Or "Local" for client IP visibility
 
