@@ -28,33 +28,50 @@ if [ "$IN_KUBERNETES" = "true" ]; then
             TOKEN=$(cat "$TOKEN_FILE" 2>/dev/null || echo "")
             if [ -n "$TOKEN" ]; then
                 # Try kube-dns first using curl (more reliable than wget for API calls)
+                # Use set +e to prevent exit on error, then restore set -e
+                set +e
                 RESPONSE=$(curl -sSf --cacert "$CA_FILE" -H "Authorization: Bearer $TOKEN" \
                     "${API_SERVER}/api/v1/namespaces/kube-system/services/kube-dns" 2>&1)
                 CURL_EXIT_CODE=$?
+                set -e
                 echo "DEBUG (dns/bind/entrypoint.sh): curl exit code for kube-dns: $CURL_EXIT_CODE"
                 echo "DEBUG (dns/bind/entrypoint.sh): RESPONSE KUBE-DNS: $RESPONSE"
                 if [ $CURL_EXIT_CODE -eq 0 ] && [ -n "$RESPONSE" ]; then
-                    # Extract clusterIP from JSON response using grep and sed
-                    KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
+                    # Extract clusterIP from spec.clusterIP in JSON response
+                    # JSON structure: {"spec":{"clusterIP":"10.96.0.10",...}}
+                    KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"spec"[^}]*"clusterIP":"[^"]*"' | sed 's/.*"clusterIP":"\([^"]*\)".*/\1/' | head -1)
+                    # Alternative: if the above doesn't work, try simpler pattern
+                    if [ -z "$KUBE_DNS_IP" ]; then
+                        KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
+                    fi
                     echo "DEBUG (dns/bind/entrypoint.sh): Extracted KUBE_DNS_IP from kube-dns: $KUBE_DNS_IP"
                 else
-                    echo "DEBUG (dns/bind/entrypoint.sh): Failed to get kube-dns service, response: $RESPONSE"
+                    echo "DEBUG (dns/bind/entrypoint.sh): Failed to get kube-dns service (exit code: $CURL_EXIT_CODE), response: $RESPONSE"
                 fi
 
                 # Fallback to coredns if kube-dns not found or empty
                 if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "null" ] || [ "$KUBE_DNS_IP" = "None" ] || [ "$KUBE_DNS_IP" = "" ]; then
                     echo "DEBUG (dns/bind/entrypoint.sh): KUBE_DNS_IP is empty, trying coredns"
 
+                    # Use set +e to prevent exit on error, then restore set -e
+                    set +e
                     RESPONSE=$(curl -sSf --cacert "$CA_FILE" -H "Authorization: Bearer $TOKEN" \
                         "${API_SERVER}/api/v1/namespaces/kube-system/services/coredns" 2>&1)
                     CURL_EXIT_CODE=$?
+                    set -e
                     echo "DEBUG (dns/bind/entrypoint.sh): curl exit code for coredns: $CURL_EXIT_CODE"
                     echo "DEBUG (dns/bind/entrypoint.sh): RESPONSE COREDNS: $RESPONSE"
                     if [ $CURL_EXIT_CODE -eq 0 ] && [ -n "$RESPONSE" ]; then
-                        KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
+                        # Extract clusterIP from spec.clusterIP in JSON response
+                        # JSON structure: {"spec":{"clusterIP":"10.96.0.10",...}}
+                        KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"spec"[^}]*"clusterIP":"[^"]*"' | sed 's/.*"clusterIP":"\([^"]*\)".*/\1/' | head -1)
+                        # Alternative: if the above doesn't work, try simpler pattern
+                        if [ -z "$KUBE_DNS_IP" ]; then
+                            KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
+                        fi
                         echo "DEBUG (dns/bind/entrypoint.sh): Extracted KUBE_DNS_IP from coredns: $KUBE_DNS_IP"
                     else
-                        echo "DEBUG (dns/bind/entrypoint.sh): Failed to get coredns service, response: $RESPONSE"
+                        echo "DEBUG (dns/bind/entrypoint.sh): Failed to get coredns service (exit code: $CURL_EXIT_CODE), response: $RESPONSE"
                     fi
                 fi
 

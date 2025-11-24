@@ -58,6 +58,8 @@ subjects:
 ---
 # ClusterRole to allow reading services in kube-system namespace (for kube-dns/coredns)
 # This is needed because the bind9 sidecar needs to query kube-dns service ClusterIP
+# Note: RBAC cannot restrict ClusterRoles to specific namespaces, but we can restrict
+# to specific service names using resourceNames (only works with 'get', not 'list')
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -65,15 +67,16 @@ metadata:
   labels:
     {{- include "mailinabox.labels" . | nindent 4 }}
 rules:
+# Restrict 'get' to specific service names in kube-system namespace
 - apiGroups:
   - ""
   resources:
   - services
   verbs:
   - get
-  - list
-  # Restrict to kube-system namespace by using resourceNames (if supported)
-  # Note: resourceNames doesn't work with list, so we allow list but restrict get
+  resourceNames:
+  - kube-dns
+  - coredns
 ---
 # ClusterRoleBinding to bind ClusterRole to ServiceAccount
 apiVersion: rbac.authorization.k8s.io/v1
