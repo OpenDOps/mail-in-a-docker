@@ -1,0 +1,92 @@
+# ServiceAccount for init container to fetch Gateway IP
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+---
+# Role to allow reading Gateway status and creating/updating secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - gateways
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  # Allow access to services in kube-system namespace (for kube-dns/coredns)
+  # Note: Role is namespace-scoped, but we need ClusterRole for cross-namespace access
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+  - update
+  - patch
+---
+# RoleBinding to bind Role to ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
+subjects:
+- kind: ServiceAccount
+  name: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
+  namespace: {{ .Release.Namespace }}
+---
+# ClusterRole to allow reading services in kube-system namespace (for kube-dns/coredns)
+# This is needed because the bind9 sidecar needs to query kube-dns service ClusterIP
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-kube-system-services-reader
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  # Restrict to kube-system namespace by using resourceNames (if supported)
+  # Note: resourceNames doesn't work with list, so we allow list but restrict get
+---
+# ClusterRoleBinding to bind ClusterRole to ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-kube-system-services-reader
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "mailinabox.fullname" . }}-kube-system-services-reader
+subjects:
+- kind: ServiceAccount
+  name: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
+  namespace: {{ .Release.Namespace }}
