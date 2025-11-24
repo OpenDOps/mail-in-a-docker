@@ -28,6 +28,8 @@ COPY dns/bind/refresh_nta.sh /usr/local/bin/refresh_nta.sh
 
 RUN chmod +x /opt/install/setup_bind.sh /usr/local/bin/bind-entrypoint.sh /usr/local/bin/refresh_nta.sh
 
+ENV IN_A_DOCKER=true
+
 VOLUME ["/var/bind"]
 
 WORKDIR /opt/install

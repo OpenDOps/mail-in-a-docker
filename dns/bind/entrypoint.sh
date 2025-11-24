@@ -1,28 +1,29 @@
 #!/bin/sh
 set -eu
 
+: "${IN_KUBERNETES:=false}"
 : "${BIND_LISTEN_ADDRESSES:=0.0.0.0}"
 : "${BIND_LISTEN_ADDRESSES_V6:=}"
 : "${BIND_ALLOW_RECURSION:=any}"
 : "${BIND_UPSTREAM_RESOLVER:=}"
-: "${KUBE_DNS_IP_FILE:=}"
 
-echo "DEBUG (dns/bind/entrypoint.sh): BIND_UPSTREAM_RESOLVER (before): $BIND_UPSTREAM_RESOLVER"
-# If KUBE_DNS_IP_FILE is set and BIND_UPSTREAM_RESOLVER is a hostname, resolve it to IP
-if [ -n "$KUBE_DNS_IP_FILE" ] && [ -f "$KUBE_DNS_IP_FILE" ]; then
-    RESOLVED_IP=$(cat "$KUBE_DNS_IP_FILE" 2>/dev/null || echo "")
-    if [ -n "$RESOLVED_IP" ]; then
-        export BIND_UPSTREAM_RESOLVER="$RESOLVED_IP"
+if [ "$IN_KUBERNETES" = "true" ]; then
+    # Try to get kube-dns service cluster IP
+    KUBE_DNS_IP=$(kubectl get svc kube-dns -n kube-system -o jsonpath='{.spec.clusterIP}' 2>/dev/null || true)
+    if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "<no value>" ]; then
+        # Fallback to coredns
+        KUBE_DNS_IP=$(kubectl get svc coredns -n kube-system -o jsonpath='{.spec.clusterIP}' 2>/dev/null || true)
+    fi
+    if [ -n "$KUBE_DNS_IP" ] && [ "$KUBE_DNS_IP" != "<no value>" ]; then
+        export BIND_UPSTREAM_RESOLVER="$KUBE_DNS_IP"
+        echo "DEBUG (dns/bind/entrypoint.sh): Using detected kube-dns/coredns service IP as upstream resolver: $KUBE_DNS_IP"
+    else
+        echo "DEBUG (dns/bind/entrypoint.sh): Could not determine kube-dns/coredns IP with kubectl, using default/fallback resolver"
     fi
 fi
 
-# If BIND_UPSTREAM_RESOLVER is still a hostname, try to resolve it
-if [ -n "$BIND_UPSTREAM_RESOLVER" ] && ! echo "$BIND_UPSTREAM_RESOLVER" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
-    RESOLVED_IP=$(getent hosts "$BIND_UPSTREAM_RESOLVER" | awk '{print $1}' | head -1)
-    if [ -n "$RESOLVED_IP" ]; then
-        export BIND_UPSTREAM_RESOLVER="$RESOLVED_IP"
-    fi
-fi
+
+echo "DEBUG (dns/bind/entrypoint.sh): BIND_UPSTREAM_RESOLVER: $BIND_UPSTREAM_RESOLVER"
 
 export BIND_LISTEN_ADDRESSES BIND_LISTEN_ADDRESSES_V6 BIND_ALLOW_RECURSION BIND_UPSTREAM_RESOLVER
 
