@@ -144,6 +144,7 @@ This document lists all dependencies (Alpine `apk` packages and Python `pip` pac
 |---------|---------|
 | `bind` | `9.18.41-r0` |
 | `bind-tools` | `9.18.41-r0` |
+| `jq` | `1.7.1-r0` |
 
 ### NSD Container Only
 

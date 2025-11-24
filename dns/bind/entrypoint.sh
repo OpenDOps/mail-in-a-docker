@@ -37,12 +37,10 @@ if [ "$IN_KUBERNETES" = "true" ]; then
                 echo "DEBUG (dns/bind/entrypoint.sh): curl exit code for kube-dns: $CURL_EXIT_CODE"
                 echo "DEBUG (dns/bind/entrypoint.sh): RESPONSE KUBE-DNS: $RESPONSE"
                 if [ $CURL_EXIT_CODE -eq 0 ] && [ -n "$RESPONSE" ]; then
-                    # Extract clusterIP from spec.clusterIP in JSON response
-                    # JSON structure: {"spec":{"clusterIP":"10.96.0.10",...}}
-                    KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"spec"[^}]*"clusterIP":"[^"]*"' | sed 's/.*"clusterIP":"\([^"]*\)".*/\1/' | head -1)
-                    # Alternative: if the above doesn't work, try simpler pattern
-                    if [ -z "$KUBE_DNS_IP" ]; then
-                        KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
+                    # Extract clusterIP from spec.clusterIP using jq for reliable JSON parsing
+                    KUBE_DNS_IP=$(echo "$RESPONSE" | jq -r '.spec.clusterIP // empty' 2>/dev/null)
+                    if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "null" ]; then
+                        KUBE_DNS_IP=""
                     fi
                     echo "DEBUG (dns/bind/entrypoint.sh): Extracted KUBE_DNS_IP from kube-dns: $KUBE_DNS_IP"
                 else
@@ -62,12 +60,10 @@ if [ "$IN_KUBERNETES" = "true" ]; then
                     echo "DEBUG (dns/bind/entrypoint.sh): curl exit code for coredns: $CURL_EXIT_CODE"
                     echo "DEBUG (dns/bind/entrypoint.sh): RESPONSE COREDNS: $RESPONSE"
                     if [ $CURL_EXIT_CODE -eq 0 ] && [ -n "$RESPONSE" ]; then
-                        # Extract clusterIP from spec.clusterIP in JSON response
-                        # JSON structure: {"spec":{"clusterIP":"10.96.0.10",...}}
-                        KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"spec"[^}]*"clusterIP":"[^"]*"' | sed 's/.*"clusterIP":"\([^"]*\)".*/\1/' | head -1)
-                        # Alternative: if the above doesn't work, try simpler pattern
-                        if [ -z "$KUBE_DNS_IP" ]; then
-                            KUBE_DNS_IP=$(echo "$RESPONSE" | grep -o '"clusterIP":"[^"]*"' | sed 's/"clusterIP":"\([^"]*\)"/\1/' | head -1)
+                        # Extract clusterIP from spec.clusterIP using jq for reliable JSON parsing
+                        KUBE_DNS_IP=$(echo "$RESPONSE" | jq -r '.spec.clusterIP // empty' 2>/dev/null)
+                        if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "null" ]; then
+                            KUBE_DNS_IP=""
                         fi
                         echo "DEBUG (dns/bind/entrypoint.sh): Extracted KUBE_DNS_IP from coredns: $KUBE_DNS_IP"
                     else

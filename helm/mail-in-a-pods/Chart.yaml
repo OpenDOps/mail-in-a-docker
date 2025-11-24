@@ -2,8 +2,8 @@ apiVersion: v2
 name: mail-in-a-pods
 description: A Helm chart for Mail-in-a-Pods (fork of Mail-in-a-Box)
 type: application
-version: 0.1.183
-appVersion: "0.1.59"
+version: 0.1.184
+appVersion: "0.1.60"
 keywords:
   - mail
   - email
