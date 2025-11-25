@@ -84,6 +84,21 @@ spec:
   {{- end }}
 
 {{- else }}
+{{- if eq $gatewayClass "nginx" }}
+apiVersion: gateway.nginx.org/v1alpha2
+kind: NginxProxy
+metadata:
+  name: nginx-mailer-lb
+  namespace: mailer # Must be in the same namespace as Gateway
+spec:
+  kubernetes:
+    service:
+      # This is the field to set the loadBalancerClass
+      loadBalancerClass: "io.cilium/node" # Replace with your class name
+      externalTrafficPolicy: Local
+
+---
+{{- end }}
 # Non-Cilium Gateway: Single Gateway for all traffic
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -99,8 +114,14 @@ metadata:
     {{- end }}
 spec:
   gatewayClassName: {{ $gatewayClass | quote }}
-  {{- if .Values.gateway.infrastructure.annotations }}
+  {{- if or .Values.gateway.infrastructure.annotations (eq $gatewayClass "nginx") }}
   infrastructure:
+    {{- if eq $gatewayClass "nginx" }}
+    parametersRef:
+      group: gateway.nginx.org
+      kind: NginxProxy
+      name: nginx-mailer-lb
+    {{- end }}
     annotations:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
