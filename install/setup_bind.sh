@@ -52,7 +52,10 @@ options {
     directory "/var/bind";
     pid-file "/run/named/named.pid";
     listen-on { $(format_list $LISTEN_IPV4) };
-    listen-on-v6 { $(format_list ${LISTEN_IPV6:-}) };
+    listen-on-v6 { $(format_list ${LISTEN_IPV6:-none}) };
+    # Disable IPv6 queries completely
+    prefer-ipv6 no;
+    query-source-v6 address none;
     recursion yes;
     allow-query { $(allow_block $ALLOW_RECURSION) };
     allow-recursion { $(allow_block $ALLOW_RECURSION) };

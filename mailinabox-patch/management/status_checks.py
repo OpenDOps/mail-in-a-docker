@@ -725,10 +725,11 @@ def check_primary_hostname_dns(domain, env, output, dns_domains, dns_zonefiles):
     existing_rdns_v6 = (
         query_dns(dns.reversename.from_address(env["PUBLIC_IPV6"]), "PTR") if env.get("PUBLIC_IPV6") else None
     )
-    print(
-        f"DEBUG (check_primary_hostname_dns): existing_rdns_v6: {env["PUBLIC_IPV6"]}, {existing_rdns_v6}, {dns.reversename.from_address(env["PUBLIC_IPV6"])}",
-        file=sys.stdout,
-    )
+    if env.get("PUBLIC_IPV6"):
+        print(
+            f"DEBUG (check_primary_hostname_dns): existing_rdns_v6: {env["PUBLIC_IPV6"]}, {existing_rdns_v6}, {dns.reversename.from_address(env["PUBLIC_IPV6"])}",
+            file=sys.stdout,
+        )
 
     if existing_rdns_v4 == domain and existing_rdns_v6 in {None, domain}:
         output.print_ok("Reverse DNS is set correctly at ISP. [{} ↦ {}]".format(my_ips, env["PRIMARY_HOSTNAME"]))
@@ -1160,11 +1161,10 @@ def check_web_domain(domain, rounded_time, ssl_certificates, env, output):
 
 
 def query_dns(qname, rtype, nxdomain="[Not Set]", at=None, as_list=False):
-    IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
-    if IN_A_DOCKER:
-        print("DEBUG (query_dns): IN_A_DOCKER is true", file=sys.stdout)
-        # We are using local bind9 server in case of Mail-in-a-Pods
-        at = "127.0.0.1"
+    # IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
+    # if IN_A_DOCKER:
+    #     # We are using local bind9 server in case of Mail-in-a-Pods
+    #     at = "127.0.0.1"
 
     # Make the qname absolute by appending a period. Without this, dns.resolver.query
     # will fall back a failed lookup to a second query with this machine's hostname
@@ -1173,8 +1173,6 @@ def query_dns(qname, rtype, nxdomain="[Not Set]", at=None, as_list=False):
     # absolute so we should not modify that.
     if isinstance(qname, str):
         qname += "."
-
-    print(f"DEBUG (query_dns): at: {at}", file=sys.stdout)
 
     # Make sure at is not a string that cannot be used as a nameserver
     if at and at not in {"[Not set]", "[timeout]"}:
@@ -1186,6 +1184,8 @@ def query_dns(qname, rtype, nxdomain="[Not Set]", at=None, as_list=False):
         # as the nameserver.
         resolver = dns.resolver.get_default_resolver()
 
+    print(f"DEBUG (query_dns): resolver: {resolver}, nameservers: {resolver.nameservers}", file=sys.stdout)
+
     # Set a timeout so that a non-responsive server doesn't hold us back.
     resolver.timeout = 5
     # The number of seconds to spend trying to get an answer to the question. If the
@@ -1194,6 +1194,7 @@ def query_dns(qname, rtype, nxdomain="[Not Set]", at=None, as_list=False):
 
     # Do the query.
     try:
+        print(f"DEBUG (query_dns): resolv: {qname}, {rtype}", file=sys.stdout)
         response = resolver.resolve(qname, rtype)
     except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
         # Host did not have an answer for this query; not sure what the
@@ -1201,6 +1202,8 @@ def query_dns(qname, rtype, nxdomain="[Not Set]", at=None, as_list=False):
         return nxdomain
     except dns.exception.Timeout:
         return "[timeout]"
+
+    print(f"DEBUG (query_dns): response: {response}", file=sys.stdout)
 
     # Normalize IP addresses. IP address --- especially IPv6 addresses --- can
     # be expressed in equivalent string forms. Canonicalize the form before

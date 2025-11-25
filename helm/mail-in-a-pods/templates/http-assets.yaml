@@ -107,8 +107,8 @@ metadata:
 data:
   default.conf: |
     # Redirect access and error logs to stdout/stderr for container logging
-    access_log /dev/stdout;
-    error_log /dev/stderr;
+    # access_log /dev/stdout;
+    # error_log /dev/stderr;
 
     server {
         listen 10;
