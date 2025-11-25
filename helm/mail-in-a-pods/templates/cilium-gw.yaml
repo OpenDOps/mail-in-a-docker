@@ -42,7 +42,7 @@ metadata:
   name: nginx-gateway-custom-lb
   namespace: gateway-api # Must be in the same namespace as NGF controller
 spec:
-  infrastructure:
+  kubernetes:
     service:
       # This is the field to set the loadBalancerClass
       loadBalancerClass: "io.cilium/node" # Replace with your class name
