@@ -54,7 +54,7 @@ kind: GatewayClass
 metadata:
   name: nginx-gateway-custom-lb
 spec:
-  controllerName: nginx.org/gateway-controller
+  controllerName: gateway.nginx.org/nginx-gateway-controller
   parametersRef: # Add this block
     group: gateway.nginx.org
     kind: NginxProxy
