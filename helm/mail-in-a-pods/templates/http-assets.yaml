@@ -36,7 +36,6 @@ spec:
           readOnly: true
         - name: mailinabox-assets
           mountPath: /var/lib/mailinabox
-          readOnly: true
         resources:
           {{- toYaml .Values.gateway.staticsServer.resources | nindent 10 }}
       {{- $nodeSelector := .Values.gateway.staticsServer.nodeSelector }}

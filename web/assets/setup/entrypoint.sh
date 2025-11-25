@@ -1,5 +1,5 @@
 #!/bin/sh
-set -euo
+set -eu
 
 # Create the iOS/OS X Mobile Configuration file which is exposed via the
 # nginx configuration at /mailinabox-mobileconfig.
