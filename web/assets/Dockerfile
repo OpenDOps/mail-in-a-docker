@@ -37,11 +37,16 @@ RUN echo "Verifying asset structure..." && \
     echo "✓ bootstrap.min.css found" || (echo "✗ bootstrap.min.css NOT found" && exit 1) && \
     echo "Assets downloaded successfully"
 
+# Create directories for entrypoint and assets
+RUN mkdir -p /opt/entrypoint /opt/mailinabox-assets
+
 COPY mailinabox-assets/ /opt/mailinabox-assets/
 COPY web/assets/setup/entrypoint.sh /opt/entrypoint/setup_web_runtime.sh
 
-# Make entrypoint script executable
-RUN chmod +x /opt/entrypoint/setup_web_runtime.sh
+# Make entrypoint script executable and verify it exists
+RUN chmod +x /opt/entrypoint/setup_web_runtime.sh && \
+    ls -la /opt/entrypoint/setup_web_runtime.sh && \
+    test -f /opt/entrypoint/setup_web_runtime.sh || (echo "ERROR: Entrypoint script not found!" && exit 1)
 
 # Create directory for generated files
 RUN mkdir -p /var/lib/mailinabox
