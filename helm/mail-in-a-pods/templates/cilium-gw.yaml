@@ -63,7 +63,6 @@ spec:
       group: gateway.nginx.org
       kind: NginxProxy
       name: nginx-gateway-custom-lb
-      namespace: gateway-api
   listeners:
     # Health check listener (lowest port is used for health checks by default)
     - name: health
