@@ -21,6 +21,9 @@ spec:
       - name: nginx-assets
         image: "ghcr.io/opendops/mailinadockers-assets:{{ .Values.mailinabox.image.tag | default .Values.global.imageTag }}"
         imagePullPolicy: {{ .Values.mailinabox.image.pullPolicy | default .Values.global.imagePullPolicy }}
+        env:
+        - name: PRIMARY_HOSTNAME
+          value: {{ .Values.global.primaryHostname | quote }}
         ports:
         - name: health
           containerPort: 10
