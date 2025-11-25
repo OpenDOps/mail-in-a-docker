@@ -95,6 +95,9 @@ jobs:
         - service: nsd
           dockerfile: dns/nsd/Dockerfile
           context: .
+        - service: assets
+          dockerfile: web/assets/Dockerfile
+          context: .
 
     steps:
       - name: Checkout code
@@ -142,11 +145,13 @@ jobs:
             echo "IN_KUBERNETES=true" >> $GITHUB_OUTPUT
             echo "WITH_SSL=false" >> $GITHUB_OUTPUT
             echo "BUILD_NGINX=false" >> $GITHUB_OUTPUT
+            echo "BUILD_ASSETS=true" >> $GITHUB_OUTPUT
           else
             echo "IN_KUBERNETES=false" >> $GITHUB_OUTPUT
             echo "WITH_SSL=${WITH_SSL}" >> $GITHUB_OUTPUT
             echo "WITH_PHP=${WITH_PHP}" >> $GITHUB_OUTPUT
             echo "BUILD_NGINX=true" >> $GITHUB_OUTPUT
+            echo "BUILD_ASSETS=false" >> $GITHUB_OUTPUT
           fi
           echo "DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE}" >> $GITHUB_OUTPUT
           echo "MAILINABOX_VERSION=${MAILINABOX_VERSION}" >> $GITHUB_OUTPUT
@@ -210,6 +215,10 @@ jobs:
       - name: Skip nginx for Kubernetes
         if: matrix.service == 'nginx' && steps.config.outputs.BUILD_NGINX == 'false'
         run: echo "Skipping nginx build for Kubernetes deployment"
+
+      - name: Skip assets for Compose
+        if: matrix.service == 'assets' && steps.config.outputs.BUILD_ASSETS == 'false'
+        run: echo "Skipping assets build for Compose deployment"
 
       - name: Prepare build args
         id: buildargs
@@ -300,6 +309,7 @@ jobs:
             - `${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-mailinabox-k8s:${{ steps.tag.outputs.tag }}`
             - `${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-bind:${{ steps.tag.outputs.tag }}`
             - `${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-nsd:${{ steps.tag.outputs.tag }}`
+            - `${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-assets:${{ steps.tag.outputs.tag }}`
 
             See the [build workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for build details.
           draft: false

@@ -17,48 +17,10 @@ spec:
         {{- include "mailinabox.selectorLabels" . | nindent 8 }}
         component: http-statics-server
     spec:
-      # Init container to download jQuery and Bootstrap assets at pod startup
-      initContainers:
-      - name: download-assets
-        image: alpine:{{ .Values.global.alpineVersion }}
-        command:
-        - /bin/sh
-        - -c
-        - |
-          set -e
-          # Install required tools
-          apk add --no-cache wget unzip
-
-          mkdir -p /assets/vendor/assets
-
-          echo "Downloading jQuery..."
-          wget --progress=dot:giga -O /assets/vendor/assets/jquery.min.js \
-            https://code.jquery.com/jquery-2.2.4.min.js
-          echo "69bb69e25ca7d5ef0935317584e6153f3fd9a88c  /assets/vendor/assets/jquery.min.js" | sha1sum -cw -
-
-          echo "Downloading Bootstrap..."
-          wget --progress=dot:giga -O /tmp/bootstrap.zip \
-            https://github.com/twbs/bootstrap/releases/download/v3.4.1/bootstrap-3.4.1-dist.zip
-          echo "0bb64c67c2552014d48ab4db81c2e8c01781f580  /tmp/bootstrap.zip" | sha1sum -cw -
-          unzip -q /tmp/bootstrap.zip -d /assets/vendor/assets
-          mv /assets/vendor/assets/bootstrap-3.4.1-dist /assets/vendor/assets/bootstrap
-          rm -f /tmp/bootstrap.zip
-
-          # Verify structure
-          echo "Verifying asset structure..."
-          ls -la /assets/vendor/assets/
-          ls -la /assets/vendor/assets/bootstrap/ || echo "Bootstrap directory not found"
-          ls -la /assets/vendor/assets/bootstrap/css/ || echo "Bootstrap CSS directory not found"
-          test -f /assets/vendor/assets/bootstrap/css/bootstrap.min.css && echo "✓ bootstrap.min.css found" || echo "✗ bootstrap.min.css NOT found"
-
-          echo "Assets downloaded successfully"
-        volumeMounts:
-        - name: vendor-assets
-          mountPath: /assets/vendor/assets
       containers:
-      - name: nginx
-        image: nginx:alpine{{ .Values.global.alpineVersion }}
-        imagePullPolicy: {{ .Values.gateway.staticsServer.imagePullPolicy | default .Values.global.imagePullPolicy }}
+      - name: nginx-assets
+        image: "ghcr.io/opendops/mailinadockers-assets:{{ .Values.mailinabox.image.tag | default .Values.global.imageTag }}"
+        imagePullPolicy: {{ .Values.mailinabox.image.pullPolicy | default .Values.global.imagePullPolicy }}
         ports:
         - name: health
           containerPort: 10
@@ -68,12 +30,12 @@ spec:
         - name: placeholder-html
           mountPath: /usr/share/nginx/html
           readOnly: true
-        - name: vendor-assets
-          mountPath: /mailinabox/vendor/assets
-          readOnly: true
         - name: nginx-config
           mountPath: /etc/nginx/conf.d/default.conf
           subPath: default.conf
+          readOnly: true
+        - name: mailinabox-assets
+          mountPath: /var/lib/mailinabox
           readOnly: true
         resources:
           {{- toYaml .Values.gateway.staticsServer.resources | nindent 10 }}
@@ -102,11 +64,11 @@ spec:
         {{- toYaml $affinity | nindent 8 }}
       {{- end }}
       volumes:
+      - name: mailinabox-assets
+        emptyDir: {}
       - name: placeholder-html
         configMap:
           name: {{ include "mailinabox.fullname" . }}-placeholder-html
-      - name: vendor-assets
-        emptyDir: {}
       - name: nginx-config
         configMap:
           name: {{ include "mailinabox.fullname" . }}-statics-server-nginx-config
@@ -163,6 +125,20 @@ data:
 
             # Enable CORS if needed
             add_header Access-Control-Allow-Origin *;
+        }
+
+        # Serve mailinabox configuration assets
+        location /mailinabox.mobileconfig {
+            alias /var/lib/mailinabox/mobileconfig.xml;
+        }
+        location /.well-known/autoconfig/mail/config-v1.1.xml {
+            alias /var/lib/mailinabox/mozilla-autoconfig.xml;
+        }
+        location /mail/config-v1.1.xml {
+            alias /var/lib/mailinabox/mozilla-autoconfig.xml;
+        }
+        location /.well-known/mta-sts.txt {
+            alias /var/lib/mailinabox/mta-sts.txt;
         }
 
         # Serve main placeholder page

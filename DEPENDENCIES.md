@@ -16,8 +16,8 @@ This document lists all dependencies (Alpine `apk` packages and Python `pip` pac
 | `tzdata` | `2025b-r0` | mailinabox, bind, nsd |
 | `build-base` | `0.5-r3` | mailinabox (postgrey-builder, pigeonhole-builder, main) |
 | `tar` | `1.35-r2` | mailinabox (postgrey-builder, main) |
-| `wget` | `1.24.5-r0` | mailinabox, nginx |
-| `unzip` | `6.0-r14` | mailinabox, nginx |
+| `wget` | `1.24.5-r0` | mailinabox, nginx, assets |
+| `unzip` | `6.0-r14` | mailinabox, nginx, assets |
 | `netcat-openbsd` | `1.226-r0` | mailinabox, nginx |
 | `python3` | `3.12.12-r0` | mailinabox, nsd |
 | `dcron` | `4.5-r9` | mailinabox, nsd |
@@ -108,8 +108,6 @@ This document lists all dependencies (Alpine `apk` packages and Python `pip` pac
 | `opendmarc` | `1.4.2-r1` |
 | `duplicity` | `2.2.3-r1` |
 | `py3-virtualenv` | `20.28.0-r0` |
-| `libidn2` | `2.3.7-r0` |
-| `idn2-utils` | `2.3.7-r0` |
 | `openssl` | `3.3.5-r0` (optional, if WITH_SSL=true) |
 | `certbot` | `2.10.0-r1` (optional, if WITH_SSL=true) |
 | `bind` | `9.18.41-r0` (optional, if ENABLE_INTERNAL_BIND=true) |
@@ -121,6 +119,8 @@ This document lists all dependencies (Alpine `apk` packages and Python `pip` pac
 |---------|---------|
 | `nginx` | `1.26.3-r0` |
 | `gettext` | `0.22.5-r0` |
+| `libidn2` | `2.3.7-r0` nginx, assets |
+| `idn2-utils` | `2.3.7-r0` nginx, assets |
 | `php82` | `8.2.28-r0` (optional, if WITH_PHP=true) |
 | `php82-fpm` | `8.2.28-r0` (optional, if WITH_PHP=true) |
 | `php82-cli` | `8.2.28-r0` (optional, if WITH_PHP=true) |

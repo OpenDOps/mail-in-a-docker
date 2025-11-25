@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM nginx:alpine:3.20
 
 # Set SHELL with pipefail for better error handling in RUN commands with pipes
 SHELL ["/bin/sh", "-o", "pipefail", "-c"]
@@ -14,6 +14,14 @@ ARG PHP82_VERSION="8.2.28-r0"
 ARG PHP82_PECL_APCU_VERSION="5.1.23-r0"
 ARG PHP82_PECL_IMAGICK_VERSION="3.7.0-r6"
 
+ARG CURL_VERSION="8.14.1-r2"
+ARG NETCAT_OPENBSD_VERSION="1.226-r0"
+ARG GETTEXT_VERSION="0.22.5-r0"
+ARG WGET_VERSION="1.24.5-r0"
+ARG UNZIP_VERSION="6.0-r14"
+ARG LIBIDN2_VERSION="2.3.7-r0"
+ARG IDN2_UTILS_VERSION="2.3.7-r0"
+
 ENV STORAGE_ROOT=${STORAGE_ROOT} \
     WITH_PHP=${WITH_PHP}
 
@@ -22,12 +30,13 @@ ENV STORAGE_ROOT=${STORAGE_ROOT} \
 # Install nginx, PHP-FPM, and dependencies
 # Pin package versions for security (prevents supply chain attacks)
 RUN apk add --no-cache \
-        nginx=1.26.3-r0 \
-        curl=8.14.1-r2 \
-        wget=1.24.5-r0 \
-        unzip=6.0-r14 \
-        netcat-openbsd=1.226-r0 \
-        gettext=0.22.5-r0
+        curl=${CURL_VERSION} \
+        wget=${WGET_VERSION} \
+        unzip=${UNZIP_VERSION} \
+        netcat-openbsd=${NETCAT_OPENBSD_VERSION} \
+        gettext=${GETTEXT_VERSION} \
+        libidn2=${LIBIDN2_VERSION} \
+        idn2-utils=${IDN2_UTILS_VERSION}
 
 # Optional PHP 8.2 installation
 # Pin package versions for security (prevents supply chain attacks)
@@ -81,6 +90,15 @@ RUN mkdir -p /usr/local/lib/mailinabox/vendor/assets && \
     unzip -q /tmp/bootstrap.zip -d /usr/local/lib/mailinabox/vendor/assets && \
     mv /usr/local/lib/mailinabox/vendor/assets/bootstrap-3.4.1-dist /usr/local/lib/mailinabox/vendor/assets/bootstrap && \
     rm -f /tmp/bootstrap.zip
+
+
+COPY mailinabox-assets/ /opt/mailinabox-assets/
+
+# Create directory for generated files
+RUN mkdir -p /var/lib/mailinabox
+
+# Set default environment variables if not provided
+ENV MTA_STS_MODE=enforce
 
 # Run nginx setup
 RUN /bin/sh /opt/setup/setup_nginx.sh

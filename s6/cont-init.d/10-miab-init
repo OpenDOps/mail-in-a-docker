@@ -94,9 +94,6 @@ bash /opt/entrypoint/setup_dkim_runtime.sh
 # Generate default SSL assets (optional)
 bash /opt/entrypoint/setup_ssl_runtime.sh
 
-# Setup web (ios-profile.xml, mozilla-autoconfig.xml, mta-sts.txt)
-bash /opt/entrypoint/setup_web_runtime.sh
-
 echo "DEBUG: MIAB init completed"
 
 # It writes the mailinabox.version file to the storage root,

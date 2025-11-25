@@ -718,9 +718,18 @@ def check_primary_hostname_dns(domain, env, output, dns_domains, dns_zonefiles):
     # Check reverse DNS matches the PRIMARY_HOSTNAME. Note that it might not be
     # a DNS zone if it is a subdomain of another domain we have a zone for.
     existing_rdns_v4 = query_dns(dns.reversename.from_address(env["PUBLIC_IP"]), "PTR")
+    print(
+        f"DEBUG (check_primary_hostname_dns): existing_rdns_v4: {env["PUBLIC_IP"]}, {existing_rdns_v4}, {dns.reversename.from_address(env["PUBLIC_IP"])}",
+        file=sys.stdout,
+    )
     existing_rdns_v6 = (
         query_dns(dns.reversename.from_address(env["PUBLIC_IPV6"]), "PTR") if env.get("PUBLIC_IPV6") else None
     )
+    print(
+        f"DEBUG (check_primary_hostname_dns): existing_rdns_v6: {env["PUBLIC_IPV6"]}, {existing_rdns_v6}, {dns.reversename.from_address(env["PUBLIC_IPV6"])}",
+        file=sys.stdout,
+    )
+
     if existing_rdns_v4 == domain and existing_rdns_v6 in {None, domain}:
         output.print_ok("Reverse DNS is set correctly at ISP. [{} ↦ {}]".format(my_ips, env["PRIMARY_HOSTNAME"]))
     elif existing_rdns_v4 == existing_rdns_v6 or existing_rdns_v6 is None:
@@ -1324,13 +1333,23 @@ def get_latest_miab_version():
 def check_miab_version(env, output):
     config = load_settings(env)
 
-    try:
-        this_ver = what_version_is_this(env)
-    except Exception:
-        this_ver = "Unknown"
-
     IN_KUBERNETES = os.environ.get("IN_KUBERNETES", "false") == "true"
     IN_A_DOCKER = os.environ.get("IN_A_DOCKER", "false") == "true"
+
+    # Get current version from environment
+    if IN_KUBERNETES:
+        mailinapods_version = os.environ.get("MAILINAPODS_VERSION")
+        if not mailinapods_version:
+            print("Error: MAILINAPODS_VERSION environment variable not set")
+            raise RuntimeError("MAILINAPODS_VERSION environment variable not set")
+        this_ver = f"kube-{mailinapods_version}"
+    else:
+        this_ver = os.environ.get("MAILINABOX_VERSION")
+    if not this_ver:
+        try:
+            this_ver = what_version_is_this(env)
+        except Exception:
+            this_ver = "Unknown"
 
     if IN_KUBERNETES:
         output.print_warning(f"You are running Mail-in-a-Pods version {this_ver}.")
