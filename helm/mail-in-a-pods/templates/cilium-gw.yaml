@@ -36,7 +36,7 @@ spec:
     namespace: kube-system
 
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.nginx.org/v1alpha2
 kind: NginxProxy
 metadata:
   name: nginx-gateway-custom-lb
