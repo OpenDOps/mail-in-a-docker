@@ -110,7 +110,7 @@ def get_system_user(db_path):
         raise
 
 
-def create_or_update_system_user(db_path, email, password_hash):
+def create_or_update_system_user(db_path, email, db_email, password_hash):
     """
     Create or update the system user in the database using SQLite UPSERT.
     Uses INSERT ... ON CONFLICT for atomic upsert operation.
@@ -123,6 +123,9 @@ def create_or_update_system_user(db_path, email, password_hash):
     try:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
+
+        if db_email != email:
+            cursor.execute("DELETE FROM users WHERE email = ?", (db_email,))
 
         # Use UPSERT (INSERT ... ON CONFLICT) for atomic create-or-update
         # email has UNIQUE constraint, so conflict on email will trigger DO UPDATE
@@ -247,7 +250,7 @@ def main():
             # Hash the password from secret
             password_hash = hash_password(user_password.strip())
 
-            create_or_update_system_user(db_path, user_mail, password_hash)
+            create_or_update_system_user(db_path, user_mail, db_email, password_hash)
             print("System user synchronized successfully")
 
     except Exception as e:
