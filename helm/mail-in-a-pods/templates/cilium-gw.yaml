@@ -32,7 +32,7 @@ spec:
     # Or "Local" for client IP visibility
     # Client IP will be visible anyway (even with externalTrafficPolicy = Cluster),
     # because of externalTrafficPolicy.mode = Hybrid setting in Cilium ConfigMap
-    externalTrafficPolicy: Cluster
+    externalTrafficPolicy: Local
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
