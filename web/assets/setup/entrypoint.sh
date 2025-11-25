@@ -38,3 +38,7 @@ cat /opt/mailinabox-assets/mta-sts.txt \
         | sed "s/PRIMARY_HOSTNAME/$PUNY_PRIMARY_HOSTNAME/" \
          > /var/lib/mailinabox/mta-sts.txt
 chmod a+r /var/lib/mailinabox/mta-sts.txt
+
+# Start nginx in foreground
+echo "Assets container ready. Starting nginx..."
+exec nginx -g 'daemon off;'

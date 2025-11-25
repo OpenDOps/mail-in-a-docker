@@ -58,5 +58,5 @@ ENV MTA_STS_MODE=enforce
 # Set the working directory to the assets location
 WORKDIR /mailinabox/vendor/assets
 
-# Run entrypoint script on start and keep container running
-CMD ["sh", "-c", "/opt/entrypoint/setup_web_runtime.sh && echo 'Assets container ready. Assets are available at /mailinabox/vendor/assets' && tail -f /dev/null"]
+# Run entrypoint script which will start nginx
+CMD ["/opt/entrypoint/setup_web_runtime.sh"]
