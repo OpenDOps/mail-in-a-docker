@@ -101,28 +101,28 @@ spec:
         namespaces:
           from: Same
 
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: cilium-mailer-health
-spec:
-  parentRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: my-forced-lb-gateway
-    sectionName: health
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - group: ""
-      kind: Service
-      name: mail-in-a-pods-statics-server
-      port: 10
-      weight: 1
+# ---
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: HTTPRoute
+# metadata:
+#   name: cilium-mailer-health
+# spec:
+#   parentRefs:
+#   - group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: my-forced-lb-gateway
+#     sectionName: health
+#   rules:
+#   - matches:
+#     - path:
+#         type: PathPrefix
+#         value: /
+#     backendRefs:
+#     - group: ""
+#       kind: Service
+#       name: mail-in-a-pods-statics-server
+#       port: 10
+#       weight: 1
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
