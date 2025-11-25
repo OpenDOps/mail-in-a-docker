@@ -260,7 +260,9 @@ metadata:
     {{- include "mailinabox.labels" . | nindent 4 }}
     component: mailinabox
 spec:
-  type: NodePort
+  type: LoadBalancer
+  loadBalancerClass: io.cilium/node
+  externalTrafficPolicy: Local
   ports:
     - port: {{ .Values.mailinabox.service.ports.smtp }}
       targetPort: smtp
