@@ -1,4 +1,4 @@
-# ip-pool.yaml
+# IpPool for ingress node 1
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumLoadBalancerIPPool
 metadata:
@@ -7,21 +7,10 @@ spec:
   blocks:
     # This is the IPs of external network for bare metal loadbalancers
     - cidr: 95.179.147.0/24
-    - cidr: 209.250.244.0/24
   serviceSelector:
     matchLabels:
       # Example: only services with this label use the pool
       use-mailer-pool: "true"
-
-# ---
-# apiVersion: "cilium.io/v2alpha1"
-# kind: CiliumL2AnnouncementPolicy
-# metadata:
-#   name: l2-announcement-policy
-# spec:
-#   interfaces:
-#     - ^eth  # Announce IPs on interfaces starting with 'eth'
-#   loadBalancerIPs: true
 
 ---
 apiVersion: "cilium.io/v2alpha1"
@@ -33,18 +22,26 @@ spec:
   # Define settings for the generated Service
   service:
     # Specify the exact loadBalancerClass you want Cilium to use
-    loadBalancerClass: io.cilium/l2-announcer
+    # For bare metal node IP
+    loadBalancerClass: io.cilium/node
+    # Advanced options:
+    # loadBalancerClass: io.cilium/l2-announcer
+    # loadBalancerClass: io.cilium/bgp-control-plane
+
     # Optional: Further control the service behavior
-    externalTrafficPolicy: Cluster # Or "Local" for client IP visibility
+    # Or "Local" for client IP visibility
+    # Client IP will be visible anyway (even with externalTrafficPolicy = Cluster),
+    # because of externalTrafficPolicy.mode = Hybrid setting in Cilium ConfigMap
+    externalTrafficPolicy: Cluster
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
   name: cilium-custom-lb
-  annotations:
+  # annotations:
     # Optional: You can explicitly specify which pool to use if you have multiple
-    io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
+    # io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
 spec:
   controllerName: io.cilium/gateway-controller
   parametersRef:
