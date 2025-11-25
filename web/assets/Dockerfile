@@ -3,12 +3,13 @@ FROM nginx:alpine3.20
 ARG WGET_VERSION="1.24.5-r0"
 ARG UNZIP_VERSION="6.0-r14"
 ARG LIBIDN2_VERSION="1.42-r0"
-ARG IDN2_UTILS_VERSION="1.42-r0"
+ARG IDN2_UTILS_VERSION="2.3.7-r0"
 
 # Install required tools
 RUN apk add --no-cache wget=${WGET_VERSION} \
             unzip=${UNZIP_VERSION} \
-            libidn=${LIBIDN2_VERSION}
+            libidn=${LIBIDN2_VERSION} \
+            idn2-utils=${IDN2_UTILS_VERSION}
 
 # Create directory for assets
 RUN mkdir -p /mailinabox/vendor/assets
