@@ -1,18 +1,3 @@
-# IpPool for ingress node 1
-apiVersion: "cilium.io/v2alpha1"
-kind: CiliumLoadBalancerIPPool
-metadata:
-  name: mailer-ip-pool
-spec:
-  blocks:
-    # This is the IPs of external network for bare metal loadbalancers
-    - cidr: 95.179.147.0/24
-  serviceSelector:
-    matchLabels:
-      # Example: only services with this label use the pool
-      use-mailer-pool: "true"
-
----
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumGatewayClassConfig
 metadata:
@@ -51,6 +36,19 @@ spec:
     namespace: kube-system
 
 ---
+apiVersion: gateway.nginx.org/v1alpha1
+kind: NginxProxy
+metadata:
+  name: nginx-gateway-custom-lb
+  namespace: gateway-api # Must be in the same namespace as NGF controller
+spec:
+  infrastructure:
+    service:
+      # This is the field to set the loadBalancerClass
+      loadBalancerClass: "io.cilium/node" # Replace with your class name
+      externalTrafficPolicy: Local
+
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -59,12 +57,18 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
 spec:
+  infrastructure:
+    parametersRef:
+      group: gateway.nginx.org
+      kind: NginxProxy
+      name: nginx-gateway-custom-lb
+      namespace: gateway-api # Must match the NginxProxy namespace
   # infrastructure:
   #   annotations:
   #     io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
   #   labels:
   #     use-mailer-pool: "true"
-  gatewayClassName: cilium-custom-lb
+  gatewayClassName: nginx #cilium-custom-lb
   listeners:
     # Health check listener (lowest port is used for health checks by default)
     - name: health
@@ -101,28 +105,28 @@ spec:
         namespaces:
           from: Same
 
-# ---
-# apiVersion: gateway.networking.k8s.io/v1
-# kind: HTTPRoute
-# metadata:
-#   name: cilium-mailer-health
-# spec:
-#   parentRefs:
-#   - group: gateway.networking.k8s.io
-#     kind: Gateway
-#     name: my-forced-lb-gateway
-#     sectionName: health
-#   rules:
-#   - matches:
-#     - path:
-#         type: PathPrefix
-#         value: /
-#     backendRefs:
-#     - group: ""
-#       kind: Service
-#       name: mail-in-a-pods-statics-server
-#       port: 10
-#       weight: 1
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cilium-mailer-health
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: my-forced-lb-gateway
+    sectionName: health
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: mail-in-a-pods-statics-server
+      port: 10
+      weight: 1
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
