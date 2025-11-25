@@ -1,4 +1,4 @@
-FROM nginx:alpine:3.20
+FROM nginx:alpine3.20
 
 # Set SHELL with pipefail for better error handling in RUN commands with pipes
 SHELL ["/bin/sh", "-o", "pipefail", "-c"]

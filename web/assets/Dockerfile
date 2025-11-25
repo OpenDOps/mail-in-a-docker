@@ -1,4 +1,4 @@
-FROM nginx:alpine:3.20
+FROM nginx:alpine3.20
 
 ARG WGET_VERSION="1.24.5-r0"
 ARG UNZIP_VERSION="6.0-r14"
