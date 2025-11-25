@@ -106,6 +106,10 @@ metadata:
     component: http-statics-server
 data:
   default.conf: |
+    # Redirect access and error logs to stdout/stderr for container logging
+    access_log /dev/stdout;
+    error_log /dev/stderr;
+
     server {
         listen 10;
         # Just return OK for health check
@@ -153,6 +157,7 @@ data:
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-XSS-Protection "1; mode=block" always;
     }
+
 ---
 apiVersion: v1
 kind: ConfigMap
