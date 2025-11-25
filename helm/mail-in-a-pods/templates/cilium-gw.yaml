@@ -40,7 +40,7 @@ apiVersion: gateway.nginx.org/v1alpha2
 kind: NginxProxy
 metadata:
   name: nginx-gateway-custom-lb
-  namespace: gateway-api # Must be in the same namespace as NGF controller
+  namespace: mailer # Must be in the same namespace as Gateway
 spec:
   kubernetes:
     service:
