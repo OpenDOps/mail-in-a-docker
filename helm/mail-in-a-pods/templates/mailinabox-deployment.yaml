@@ -262,7 +262,7 @@ metadata:
 spec:
   type: LoadBalancer
   loadBalancerClass: io.cilium/node
-  externalTrafficPolicy: Local
+  externalTrafficPolicy: Cluster
   ports:
     - port: {{ .Values.mailinabox.service.ports.smtp }}
       targetPort: smtp

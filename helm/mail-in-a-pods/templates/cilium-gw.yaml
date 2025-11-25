@@ -36,19 +36,6 @@ spec:
     namespace: kube-system
 
 ---
-apiVersion: gateway.nginx.org/v1alpha2
-kind: NginxProxy
-metadata:
-  name: nginx-gateway-custom-lb
-  namespace: mailer # Must be in the same namespace as Gateway
-spec:
-  kubernetes:
-    service:
-      # This is the field to set the loadBalancerClass
-      loadBalancerClass: "io.cilium/node" # Replace with your class name
-      externalTrafficPolicy: Local
-
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -57,12 +44,12 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
 spec:
-  gatewayClassName: nginx  # Use existing GatewayClass
-  infrastructure:
-    parametersRef:
-      group: gateway.nginx.org
-      kind: NginxProxy
-      name: nginx-gateway-custom-lb
+  gatewayClassName: cilium-custom-lb
+  # infrastructure:
+  #   annotations:
+  #     io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
+  #   labels:
+  #     use-mailer-pool: "true"
   listeners:
     # Health check listener (lowest port is used for health checks by default)
     - name: health
@@ -81,7 +68,7 @@ spec:
     - name: https-0
       protocol: HTTPS
       port: 443
-      hostname: mailer.kuprin.su
+      hostname: mailer3.kuprin.su
       tls:
         mode: Terminate
         certificateRefs:
@@ -131,7 +118,7 @@ spec:
     name: my-forced-lb-gateway
     sectionName: https-0
   hostnames:
-  - mailer.kuprin.su
+  - mailer3.kuprin.su
   rules:
   - matches:
     - path:
