@@ -122,10 +122,12 @@ spec:
       kind: NginxProxy
       name: nginx-mailer-lb
     {{- end }}
+    {{- if or .Values.gateway.infrastructure.annotations }}
     annotations:
       {{- with $.Values.gateway.infrastructure.annotations }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
+    {{- end }}
   {{- end }}
   listeners:
   # Health check listener (lowest port is used for health checks by default)
