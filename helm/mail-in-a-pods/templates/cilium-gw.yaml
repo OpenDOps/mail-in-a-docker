@@ -50,19 +50,6 @@ spec:
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: nginx-gateway-custom-lb
-spec:
-  controllerName: gateway.nginx.org/nginx-gateway-controller
-  parametersRef: # Add this block
-    group: gateway.nginx.org
-    kind: NginxProxy
-    name: nginx-gateway-custom-lb
-    namespace: gateway-api # Must match the NginxProxy namespace
-
----
-apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: my-forced-lb-gateway
@@ -70,12 +57,13 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
 spec:
-  # infrastructure:
-  #   annotations:
-  #     io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
-  #   labels:
-  #     use-mailer-pool: "true"
-  gatewayClassName: nginx-gateway-custom-lb #cilium-custom-lb
+  gatewayClassName: nginx  # Use existing GatewayClass
+  infrastructure:
+    parametersRef:
+      group: gateway.nginx.org
+      kind: NginxProxy
+      name: nginx-gateway-custom-lb
+      namespace: gateway-api
   listeners:
     # Health check listener (lowest port is used for health checks by default)
     - name: health
