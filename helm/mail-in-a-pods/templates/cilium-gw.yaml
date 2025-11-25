@@ -60,6 +60,11 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
 spec:
+  infrastructure:
+    annotations:
+      io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
+    labels:
+      use-mailer-pool: "true"
   gatewayClassName: cilium-custom-lb
   listeners:
     # Health check listener (lowest port is used for health checks by default)
