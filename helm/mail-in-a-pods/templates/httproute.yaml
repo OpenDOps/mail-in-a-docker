@@ -104,6 +104,12 @@ spec:
     kind: Gateway
     name: {{ $gatewayName }}
     sectionName: http
+  {{- range $index, $tls := $tlsConfigs }}
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $gatewayName }}
+    sectionName: mta-sts-https-{{ $index }}
+  {{- end }}
   hostnames:
   - "mta-sts.{{ $primaryHostname | lower }}"
   rules:
