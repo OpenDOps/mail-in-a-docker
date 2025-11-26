@@ -1,21 +1,31 @@
 {{- if and .Values.certManager.enabled .Values.gateway.tls }}
 {{- $primaryHostname := .Values.global.primaryHostname }}
-{{- $gatewayClass := .Values.gateway.className }}
-{{- range $index, $tls := .Values.gateway.tls }}
+{{- $tlsConfigs := .Values.gateway.tls }}
+{{- $subdomains := list
+    (dict "prefix" "" "suffix" "" "name" "https")
+    (dict "prefix" "mta-sts." "suffix" "-mta-sts" "name" "mta-sts-https")
+    (dict "prefix" "autoconfig." "suffix" "-autoconfig" "name" "autoconfig-https")
+    (dict "prefix" "autodiscover." "suffix" "-autodiscover" "name" "autodiscover-https")
+    (dict "prefix" "www." "suffix" "-www" "name" "www-https")
+}}
+{{- range $index, $tls := $tlsConfigs }}
 {{- $hostname := $tls.hostname | default $primaryHostname }}
+{{- $secretName := $tls.secretName }}
+{{- range $subdomain := $subdomains }}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ $tls.secretName }}
+  name: {{ if $subdomain.prefix }}{{ $secretName | lower }}{{ $subdomain.suffix }}{{ else }}{{ $secretName }}{{ end }}
   labels:
     {{- include "mailinabox.labels" $ | nindent 4 }}
 spec:
-  secretName: {{ $tls.secretName }}
+  secretName: {{ if $subdomain.prefix }}{{ $secretName | lower }}{{ $subdomain.suffix }}{{ else }}{{ $secretName }}{{ end }}
   issuerRef:
     name: {{ include "mailinabox.fullname" $ }}-cert-issuer
     kind: ClusterIssuer
-  dnsNames: # 4 times because of 4 TLS listeners to show green in ArgoCD
-  - {{ $hostname | quote }}
+  dnsNames:
+  - {{ if $subdomain.prefix }}{{ $subdomain.prefix }}{{ $hostname | lower }}{{ else }}{{ $hostname | quote }}{{ end }}
+{{- end }}
 {{- end }}
 {{- end }}
