@@ -5,6 +5,7 @@ RUN apk add --no-cache \
         bash=5.2.26-r0 \
         bind=9.18.41-r0 \
         bind-tools=9.18.41-r0 \
+        bind-plugins=9.18.41-r0 \
         coreutils=9.5-r2 \
         tzdata=2025b-r0 \
         wget=1.24.5-r0 \

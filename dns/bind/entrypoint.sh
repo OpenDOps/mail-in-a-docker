@@ -22,7 +22,6 @@ if [ "$IN_KUBERNETES" = "true" ]; then
         echo "DEBUG (dns/bind/entrypoint.sh): KUBERNETES_SERVICE_HOST not set, cannot use Kubernetes API"
     else
         API_SERVER="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}"
-        echo "DEBUG (dns/bind/entrypoint.sh): API_SERVER: $API_SERVER"
 
         if [ -f "$TOKEN_FILE" ] && [ -f "$CA_FILE" ]; then
             TOKEN=$(cat "$TOKEN_FILE" 2>/dev/null || echo "")
@@ -34,60 +33,49 @@ if [ "$IN_KUBERNETES" = "true" ]; then
                     "${API_SERVER}/api/v1/namespaces/kube-system/services/kube-dns" 2>&1)
                 CURL_EXIT_CODE=$?
                 set -e
-                echo "DEBUG (dns/bind/entrypoint.sh): curl exit code for kube-dns: $CURL_EXIT_CODE"
-                echo "DEBUG (dns/bind/entrypoint.sh): RESPONSE KUBE-DNS: $RESPONSE"
                 if [ $CURL_EXIT_CODE -eq 0 ] && [ -n "$RESPONSE" ]; then
                     # Extract clusterIP from spec.clusterIP using jq for reliable JSON parsing
                     KUBE_DNS_IP=$(echo "$RESPONSE" | jq -r '.spec.clusterIP // empty' 2>/dev/null)
                     if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "null" ]; then
                         KUBE_DNS_IP=""
                     fi
-                    echo "DEBUG (dns/bind/entrypoint.sh): Extracted KUBE_DNS_IP from kube-dns: $KUBE_DNS_IP"
                 else
-                    echo "DEBUG (dns/bind/entrypoint.sh): Failed to get kube-dns service (exit code: $CURL_EXIT_CODE), response: $RESPONSE"
+                    echo "ERROR (dns/bind/entrypoint.sh): Failed to get kube-dns service (exit code: $CURL_EXIT_CODE), response: $RESPONSE"
                 fi
 
                 # Fallback to coredns if kube-dns not found or empty
                 if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "null" ] || [ "$KUBE_DNS_IP" = "None" ] || [ "$KUBE_DNS_IP" = "" ]; then
-                    echo "DEBUG (dns/bind/entrypoint.sh): KUBE_DNS_IP is empty, trying coredns"
-
                     # Use set +e to prevent exit on error, then restore set -e
                     set +e
                     RESPONSE=$(curl -sSf --cacert "$CA_FILE" -H "Authorization: Bearer $TOKEN" \
                         "${API_SERVER}/api/v1/namespaces/kube-system/services/coredns" 2>&1)
                     CURL_EXIT_CODE=$?
                     set -e
-                    echo "DEBUG (dns/bind/entrypoint.sh): curl exit code for coredns: $CURL_EXIT_CODE"
-                    echo "DEBUG (dns/bind/entrypoint.sh): RESPONSE COREDNS: $RESPONSE"
                     if [ $CURL_EXIT_CODE -eq 0 ] && [ -n "$RESPONSE" ]; then
                         # Extract clusterIP from spec.clusterIP using jq for reliable JSON parsing
                         KUBE_DNS_IP=$(echo "$RESPONSE" | jq -r '.spec.clusterIP // empty' 2>/dev/null)
                         if [ -z "$KUBE_DNS_IP" ] || [ "$KUBE_DNS_IP" = "null" ]; then
                             KUBE_DNS_IP=""
                         fi
-                        echo "DEBUG (dns/bind/entrypoint.sh): Extracted KUBE_DNS_IP from coredns: $KUBE_DNS_IP"
                     else
-                        echo "DEBUG (dns/bind/entrypoint.sh): Failed to get coredns service (exit code: $CURL_EXIT_CODE), response: $RESPONSE"
+                        echo "ERROR (dns/bind/entrypoint.sh): Failed to get coredns service (exit code: $CURL_EXIT_CODE), response: $RESPONSE"
                     fi
                 fi
 
                 if [ -n "$KUBE_DNS_IP" ] && [ "$KUBE_DNS_IP" != "null" ] && [ "$KUBE_DNS_IP" != "None" ] && [ "$KUBE_DNS_IP" != "" ]; then
                     export BIND_UPSTREAM_RESOLVER="$KUBE_DNS_IP"
-                    echo "DEBUG (dns/bind/entrypoint.sh): Using detected kube-dns/coredns service IP as upstream resolver: $KUBE_DNS_IP"
                 else
-                    echo "DEBUG (dns/bind/entrypoint.sh): Could not determine kube-dns/coredns IP from Kubernetes API, using default/fallback resolver"
+                    echo "ERROR (dns/bind/entrypoint.sh): Could not determine kube-dns/coredns IP from Kubernetes API, using default/fallback resolver"
                 fi
             else
-                echo "DEBUG (dns/bind/entrypoint.sh): Service account token not found, using default/fallback resolver"
+                echo "ERROR (dns/bind/entrypoint.sh): Service account token not found, using default/fallback resolver"
             fi
         else
-            echo "DEBUG (dns/bind/entrypoint.sh): Service account files not mounted, using default/fallback resolver"
+            echo "ERROR (dns/bind/entrypoint.sh): Service account files not mounted, using default/fallback resolver"
         fi
     fi
 fi
 
-
-echo "DEBUG (dns/bind/entrypoint.sh): BIND_UPSTREAM_RESOLVER: $BIND_UPSTREAM_RESOLVER"
 
 export BIND_LISTEN_ADDRESSES BIND_LISTEN_ADDRESSES_V6 BIND_ALLOW_RECURSION BIND_UPSTREAM_RESOLVER
 
@@ -102,7 +90,6 @@ cp /etc/bind-tmp/* /etc/bind/
 # Check if ConfigMap template is mounted
 # This is used for Kubernetes Mail-in-a-Pods deployment
 if [ -f /tmp/named.conf.template ]; then
-    echo "DEBUG (dns/bind/entrypoint.sh): ConfigMap template found, processing it"
     # Ensure directories exist
     mkdir -p /var/bind /run/named /etc/bind
 
@@ -113,7 +100,7 @@ if [ -f /tmp/named.conf.template ]; then
         elif [ -f /usr/share/dns/root.hint ]; then
             cp /usr/share/dns/root.hint /var/bind/root.hint
         else
-            echo "DEBUG (dns/bind/entrypoint.sh): Root hints not found, will be created by setup_bind.sh if needed"
+            echo "ERROR (dns/bind/entrypoint.sh): Root hints not found, will be created by setup_bind.sh if needed"
         fi
     fi
 
@@ -140,35 +127,28 @@ if [ -f /tmp/named.conf.template ]; then
     chmod 644 /etc/bind/named.conf
     chown named:named /etc/bind/named.conf 2>/dev/null || true
     chown -R named:named /var/bind /run/named /etc/bind 2>/dev/null || true
-    echo "DEBUG (dns/bind/entrypoint.sh): Generated /etc/bind/named.conf from ConfigMap template"
 else
-    echo "DEBUG (dns/bind/entrypoint.sh): No ConfigMap template found, running setup_bind.sh"
+    echo "WARNING (dns/bind/entrypoint.sh): No ConfigMap template found, running setup_bind.sh"
     # Fallback: generate named.conf using setup_bind.sh (for non-Kubernetes deployments)
-/bin/sh /opt/install/setup_bind.sh
+    /bin/sh /opt/install/setup_bind.sh
 fi
 
 # Validate named.conf exists before starting
 if [ ! -f /etc/bind/named.conf ]; then
     echo "ERROR (dns/bind/entrypoint.sh): /etc/bind/named.conf does not exist!"
-    echo "DEBUG (dns/bind/entrypoint.sh): Listing /etc/bind"
-    ls -la /etc/bind || true
-    echo "DEBUG (dns/bind/entrypoint.sh): Listing /var/bind"
-    ls -la /var/bind || true
     exit 1
 fi
 
 # Validate named.conf syntax before starting
-echo "DEBUG (dns/bind/entrypoint.sh): Validating named.conf syntax"
 if ! named-checkconf -z /etc/bind/named.conf 2>&1; then
     echo "ERROR (dns/bind/entrypoint.sh): named.conf validation failed!"
     echo "DEBUG (dns/bind/entrypoint.sh): named.conf contents:"
     cat /etc/bind/named.conf
     exit 1
 fi
-echo "DEBUG (dns/bind/entrypoint.sh): named.conf validation passed"
+echo "INFO (dns/bind/entrypoint.sh): named.conf validation passed"
 
 echo "DEBUG (dns/bind/entrypoint.sh): Final named.conf contents:"
-cat /etc/bind/named.conf
 
 # Start named in background to set up negative trust anchors
 echo "DEBUG (dns/bind/entrypoint.sh): Starting named in background to configure NTAs"
