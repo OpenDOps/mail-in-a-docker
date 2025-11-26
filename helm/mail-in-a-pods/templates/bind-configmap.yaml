@@ -19,13 +19,12 @@ data:
         {{ else }}
         listen-on-v6 { none; };
         # Disable IPv6 queries completely
-        plugin query "/usr/lib/bind/filter-aaaa.so" {
-            filter-aaaa-on-v4 yes;
-            # Optionally filter AAAA for IPv6 clients as well
-            # filter-aaaa-on-v6 yes;
-            filter-aaaa { any; }; # Apply the filter to all clients
-        };
-        query-source-v6 none;
+        # plugin query "/usr/lib/bind/filter-aaaa.so" {
+        #     filter-aaaa-on-v4 yes;
+        #     # Optionally filter AAAA for IPv6 clients as well
+        #     # filter-aaaa-on-v6 yes;
+        #     filter-aaaa { any; }; # Apply the filter to all clients
+        # };
         {{ end }}
         recursion yes;
         allow-query { 127.0.0.1; };
