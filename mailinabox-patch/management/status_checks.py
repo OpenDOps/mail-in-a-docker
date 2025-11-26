@@ -1078,7 +1078,16 @@ def check_mail_domain(domain, env, output):
             else:
                 output.print_error(f"MTA-STS policy is present but has unexpected settings. [{policy[1]}]")
         else:
-            output.print_error(f"MTA-STS policy is missing: {valid}")
+            import time
+
+            timestamp = int(time.time())
+            output.print_error(
+                f"""MTA-STS policy is missing: {valid}. Add _mta-sts.{domain} TXT record with following settings:
+          to your DNS server 'v=STSv1; id=<unique-policy-id>'. unique-policy-id could bi timestamp or random string.
+          See https://www.uriports.com/blog/mta-sts-explained/ for more information.
+          Example:
+          _mta-sts.{domain}. 3600 IN TXT "v=STSv1; id={timestamp}; mode=enforce; mx={domain}" """
+            )
 
     else:
         output.print_error(
