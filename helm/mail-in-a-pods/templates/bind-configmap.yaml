@@ -14,11 +14,14 @@ data:
         directory "/var/bind";
         pid-file "/run/named/named.pid";
         listen-on { 127.0.0.1; };
+        {{ if (.Values.global.enableIpv6 | default false) }}
+        listen-on-v6 { ::1; };
+        {{ else }}
         listen-on-v6 { none; };
         # Disable IPv6 queries completely
-        # It could be enabled when cilium ipv6 will be enabled
-        prefer-ipv6 no;
-        query-source-v6 address none;
+        # prefer-ipv6 no;
+        # query-source-v6 address none;
+        {{ end }}
         recursion yes;
         allow-query { 127.0.0.1; };
         allow-recursion { 127.0.0.1; };
