@@ -133,8 +133,8 @@ tools/editconf.py /etc/postfix/main.cf \
 # address, then Postfix will query just the domain part, which we call
 # catch-alls and domain aliases. A NULL permitted_senders column means to
 # take the value from the destination column.
-cat > /etc/postfix/sender-login-maps.cf << 'EOF'
-dbpath=$db_path
+cat > /etc/postfix/sender-login-maps.cf << EOF
+dbpath=${db_path}
 query = SELECT permitted_senders FROM (SELECT permitted_senders, 0 AS priority FROM aliases WHERE source='%s' AND permitted_senders IS NOT NULL UNION SELECT destination AS permitted_senders, 1 AS priority FROM aliases WHERE source='%s' AND permitted_senders IS NULL UNION SELECT email as permitted_senders, 2 AS priority FROM users WHERE email='%s') ORDER BY priority LIMIT 1;
 EOF
 
@@ -153,14 +153,14 @@ tools/editconf.py /etc/postfix/main.cf \
 	local_recipient_maps=\$virtual_mailbox_maps
 
 # SQL statement to check if we handle incoming mail for a domain, either for users or aliases.
-cat > /etc/postfix/virtual-mailbox-domains.cf << 'EOF'
-dbpath=$db_path
+cat > /etc/postfix/virtual-mailbox-domains.cf << EOF
+dbpath=${db_path}
 query = SELECT 1 FROM users WHERE email LIKE '%%@%s' UNION SELECT 1 FROM aliases WHERE source LIKE '%%@%s' UNION SELECT 1 FROM auto_aliases WHERE source LIKE '%%@%s'
 EOF
 
 # SQL statement to check if we handle incoming mail for a user.
-cat > /etc/postfix/virtual-mailbox-maps.cf << 'EOF'
-dbpath=$db_path
+cat > /etc/postfix/virtual-mailbox-maps.cf << EOF
+dbpath=${db_path}
 query = SELECT 1 FROM users WHERE email='%s'
 EOF
 
@@ -188,7 +188,7 @@ EOF
 # Since we might have alias records with an empty destination because
 # it might have just permitted_senders, skip any records with an
 # empty destination here so that other lower priority rules might match.
-cat > /etc/postfix/virtual-alias-maps.cf << 'EOF'
-dbpath=$db_path
+cat > /etc/postfix/virtual-alias-maps.cf << EOF
+dbpath=${db_path}
 query = SELECT destination from (SELECT destination, 0 as priority FROM aliases WHERE source='%s' AND destination<>'' UNION SELECT email as destination, 1 as priority FROM users WHERE email='%s' UNION SELECT destination, 2 as priority FROM auto_aliases WHERE source='%s' AND destination<>'') ORDER BY priority LIMIT 1;
 EOF
