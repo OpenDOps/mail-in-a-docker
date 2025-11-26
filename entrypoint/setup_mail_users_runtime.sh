@@ -80,15 +80,21 @@ userdb {
 EOF
 
 # Configure the SQL to query for a user's metadata and password.
-cat > /etc/dovecot/dovecot-sql.conf.ext << 'EOF'
+# Expand variables in the SQL config file (Dovecot doesn't expand $db_path automatically)
+cat > /etc/dovecot/dovecot-sql.conf.ext << EOF
 driver = sqlite
-connect = $db_path
+connect = ${db_path}
 default_pass_scheme = SHA512-CRYPT
 password_query = SELECT email as user, password FROM users WHERE email='%u';
-user_query = SELECT email AS user, "mail" as uid, "mail" as gid, "$STORAGE_ROOT/mail/mailboxes/%d/%n" as home, '*:bytes=' || quota AS quota_rule FROM users WHERE email='%u';
+user_query = SELECT email AS user, "mail" as uid, "mail" as gid, "${STORAGE_ROOT}/mail/mailboxes/%d/%n" as home, '*:bytes=' || quota AS quota_rule FROM users WHERE email='%u';
 iterate_query = SELECT email AS user FROM users;
 EOF
 chmod 0600 /etc/dovecot/dovecot-sql.conf.ext # per Dovecot instructions
+
+# Verify the SQL config file has the correct path
+echo "DEBUG: Dovecot SQL config connect path: $(grep '^connect =' /etc/dovecot/dovecot-sql.conf.ext)"
+echo "DEBUG: Database file exists: $([ -f "$db_path" ] && echo "YES" || echo "NO")"
+echo "DEBUG: Database file readable: $([ -r "$db_path" ] && echo "YES" || echo "NO")"
 
 # Have Dovecot provide an authorization service that Postfix can access & use.
 cat > /etc/dovecot/conf.d/99-local-auth.conf << 'EOF'

@@ -39,7 +39,11 @@ DEFAULT_VSZ_MB=$((TOTAL_KB / 1024 / 3))
 tools/editconf.py /etc/dovecot/conf.d/10-master.conf \
   default_process_limit="$(($(nproc) * 250))" \
   default_vsz_limit="${DEFAULT_VSZ_MB}M" \
-  log_path=/var/log/mail.log
+  log_path=/var/log/mail.log \
+  auth_verbose=yes \
+  auth_debug=yes \
+  auth_debug_passwords=no \
+  mail_debug=no
 
 # The inotify `max_user_instances` default is 128, which constrains
 # the total number of watched (IMAP IDLE push) folders by open connections.
