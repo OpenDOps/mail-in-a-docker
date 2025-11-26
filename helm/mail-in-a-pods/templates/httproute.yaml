@@ -108,7 +108,7 @@ spec:
     name: {{ $gatewayName }}
     sectionName: http
   hostnames:
-  - mta-sts.{{ $primaryHostname | quote }}
+  - "mta-sts.{{ $primaryHostname | lower }}"
   rules:
   - matches:
     - path:
