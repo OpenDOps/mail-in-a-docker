@@ -36,11 +36,13 @@ chmod 700 "$STORAGE_ROOT/mail/postgrey/"{,db}
 # Configure hostname and banner bindings that depend on runtime hostname/IP values.
 tools/editconf.py /etc/postfix/main.cf \
 	inet_interfaces=all \
-	smtp_bind_address="$PRIVATE_IP" \
-	smtp_bind_address6="$PRIVATE_IPV6" \
+	smtp_bind_address= \
+	smtp_bind_address6= \
 	myhostname="$PRIMARY_HOSTNAME" \
-	smtpd_banner="\$myhostname ESMTP Hi, I'm a Mail-in-a-Box (Ubuntu/Postfix; see https://mailinabox.email/)" \
-	mydestination=localhost
+	smtpd_banner="\$myhostname ESMTP Hi, I'm a Mail-in-a-Pods (Alpine/Postfix; see https://github.com/OpenDOps/mail-in-a-docker/)" \
+	mydestination=localhost \
+	maillog_file=/var/log/mail.log \
+	debug_peer_level=2
 
 # Update outgoing mail header filters with runtime hostname/IP values.
 sed -i "s/PRIMARY_HOSTNAME/$PRIMARY_HOSTNAME/" /etc/postfix/outgoing_mail_header_filters

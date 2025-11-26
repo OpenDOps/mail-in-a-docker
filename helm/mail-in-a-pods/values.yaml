@@ -290,6 +290,39 @@ gateway:
         memory: "64Mi"
         cpu: "100m"
 
+# Cilium Egress Gateway configuration
+ciliumEgressGateway:
+  enabled: false # Set to true to enable Cilium Egress Gateway Policy
+  # Policy name
+  name: "smtp-egress-gateway"
+  # Preferred IP on the node to use as source for outbound SMTP traffic
+  egressIP: ""
+  # Node selector configuration
+  # Option 1: Use simple hostname (backward compatible)
+  nodeHostname: ""
+  # Option 2: Use full nodeSelector with matchLabels (overrides nodeHostname if set)
+  nodeSelector:
+    matchLabels: {}
+    # Example:
+    #   kubernetes.io/hostname: test-main-ams-system-workloads-lrtns-78rtw
+    # Or use other labels:
+    #   node-role.kubernetes.io/egress: "true"
+    #   topology.kubernetes.io/zone: us-west-1a
+  # Pod selector to match mailinabox pods
+  podSelector:
+    matchLabels: {}
+    # Example (defaults to app: mailinabox if not set):
+    #   app: mailinabox
+    #   component: mailserver
+  # Destination CIDRs to route through egress gateway
+  # If not set, defaults to "0.0.0.0/0" (all external IPs)
+  destinationCIDRs: []
+  # Example:
+  #   - "0.0.0.0/0"  # All external IPs
+  #   - "142.250.0.0/16"  # Google/Gmail
+  #   - "172.253.0.0/16"  # Google/Gmail
+  #   - "108.177.0.0/16"  # Google/Gmail
+
 # Cert-manager configuration
 certManager:
   enabled: true

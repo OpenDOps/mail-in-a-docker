@@ -1,0 +1,43 @@
+{{- if .Values.ciliumEgressGateway.enabled }}
+# Cilium Egress Gateway Policy (if Cilium egress gateway is enabled)
+# This routes egress SMTP from mailinabox pods via configured egress gateway node
+apiVersion: cilium.io/v2
+kind: CiliumEgressGatewayPolicy
+metadata:
+  name: {{ .Values.ciliumEgressGateway.name | default "smtp-egress-gateway" }}
+  namespace: {{ .Values.ciliumEgressGateway.namespace | default "mailer" }}
+spec:
+  # Select mailinabox pods
+  selectors:
+  - podSelector:
+      matchLabels:
+{{- if and .Values.ciliumEgressGateway.podSelector.matchLabels (ne (len .Values.ciliumEgressGateway.podSelector.matchLabels) 0) }}
+{{- toYaml .Values.ciliumEgressGateway.podSelector.matchLabels | indent 8 }}
+{{- else }}
+        app: mailinabox
+{{- end }}
+  # Apply to configured external SMTP destinations
+  destinationCIDRs:
+{{- if .Values.ciliumEgressGateway.destinationCIDRs }}
+{{- range .Values.ciliumEgressGateway.destinationCIDRs }}
+  - {{ . | quote }}
+{{- end }}
+{{- else }}
+  - "0.0.0.0/0"  # All external IPs
+{{- end }}
+  egressGateway:
+{{- if or (and .Values.ciliumEgressGateway.nodeHostname (ne .Values.ciliumEgressGateway.nodeHostname "")) (and .Values.ciliumEgressGateway.nodeSelector.matchLabels (ne (len .Values.ciliumEgressGateway.nodeSelector.matchLabels) 0)) }}
+    # Target node selector (configurable via values)
+    nodeSelector:
+      matchLabels:
+{{- if and .Values.ciliumEgressGateway.nodeSelector.matchLabels (ne (len .Values.ciliumEgressGateway.nodeSelector.matchLabels) 0) }}
+{{- toYaml .Values.ciliumEgressGateway.nodeSelector.matchLabels | indent 8 }}
+{{- else if .Values.ciliumEgressGateway.nodeHostname }}
+        kubernetes.io/hostname: {{ .Values.ciliumEgressGateway.nodeHostname }}
+{{- end }}
+{{- end }}
+{{- if .Values.ciliumEgressGateway.egressIP }}
+    # Use this IP as source
+    egressIP: {{ .Values.ciliumEgressGateway.egressIP | quote }}
+{{- end }}
+{{- end }}
