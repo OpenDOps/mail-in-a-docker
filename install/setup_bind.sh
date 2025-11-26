@@ -47,19 +47,12 @@ A.ROOT-SERVERS.NET.      3600000  AAAA  2001:503:ba3e::2:30
 ROOTHINT
 fi
 
-# Determine if we should disable IPv6 queries
-DISABLE_IPV6_QUERIES=""
-if [ -z "$LISTEN_IPV6" ] || [ "$LISTEN_IPV6" = "none" ]; then
-    DISABLE_IPV6_QUERIES="    query-source-v6 none;"
-fi
-
 cat > /etc/bind/named.conf <<EOF
 options {
     directory "/var/bind";
     pid-file "/run/named/named.pid";
     listen-on { $(format_list $LISTEN_IPV4) };
     listen-on-v6 { $(format_list ${LISTEN_IPV6:-none}) };
-$(echo "$DISABLE_IPV6_QUERIES")
     recursion yes;
     allow-query { $(allow_block $ALLOW_RECURSION) };
     allow-recursion { $(allow_block $ALLOW_RECURSION) };

@@ -4,7 +4,7 @@
 
 set -e
 
-ALPINE_VERSION="${ALPINE_VERSION:-3.20}"
+ALPINE_VERSION="${ALPINE_VERSION:-3.22}"
 
 echo "# Alpine ${ALPINE_VERSION} package versions"
 echo "# Generated on: $(date)"
