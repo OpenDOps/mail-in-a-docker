@@ -65,8 +65,8 @@ spec:
       {{- end }}
       volumes:
       - name: bind-state
-        persistentVolumeClaim:
-          claimName: {{ include "mailinabox.fullname" . }}-bind-state
+        emptyDir: {}
+
 ---
 apiVersion: v1
 kind: Service
