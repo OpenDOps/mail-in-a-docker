@@ -93,3 +93,30 @@ spec:
           type: ReplacePrefixMatch
           replacePrefixMatch: /
     {{- include "mailinabox.httproute.backendRefs" . | nindent 4 }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "mailinabox.fullname" . }}-http
+  labels:
+    {{- include "mailinabox.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $gatewayName }}
+    sectionName: http
+  hostnames:
+  - mta-sts.{{ $primaryHostname | quote }}
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /.well-known/mta-sts.txt
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: {{ include "mailinabox.fullname" . }}-statics-server
+      port: {{ .Values.gateway.staticsServer.port }}
+      weight: 1
