@@ -157,18 +157,28 @@ spec:
   # HTTPS listeners for each domain with TLS
   {{- range $index, $tls := $tlsConfigs }}
   {{- $hostname := $tls.hostname | default $primaryHostname }}
-  - name: https-{{ $index }}
+  {{- $secretName := $tls.secretName }}
+  {{- $subdomains := list
+      (dict "prefix" "" "suffix" "" "name" "https")
+      (dict "prefix" "mta-sts." "suffix" "-mta-sts" "name" "mta-sts-https")
+      (dict "prefix" "autoconfig." "suffix" "-autoconfig" "name" "autoconfig-https")
+      (dict "prefix" "autodiscover." "suffix" "-autodiscover" "name" "autodiscover-https")
+      (dict "prefix" "www." "suffix" "-www" "name" "www-https")
+  }}
+  {{- range $subdomain := $subdomains }}
+  - name: {{ $subdomain.name }}-{{ $index }}
     protocol: HTTPS
     port: 443
-    hostname: {{ $hostname | quote }}
+    hostname: {{ if $subdomain.prefix }}"{{ $subdomain.prefix }}{{ $hostname | lower }}"{{ else }}{{ $hostname | quote }}{{ end }}
     tls:
       mode: Terminate
       certificateRefs:
-      - name: {{ $tls.secretName | quote }}
+      - name: {{ if $subdomain.prefix }}{{ $secretName | lower }}{{ $subdomain.suffix }}{{ else }}{{ $secretName | quote }}{{ end }}
         kind: Secret
         group: ""
     allowedRoutes:
       namespaces:
         from: Same
+  {{- end }}
   {{- end }}
 {{- end }}
