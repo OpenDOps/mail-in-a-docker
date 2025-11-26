@@ -30,10 +30,10 @@ spec:
     # Target node selector (configurable via values)
     nodeSelector:
       matchLabels:
-{{- if and .Values.ciliumEgressGateway.nodeSelector.matchLabels (ne (len .Values.ciliumEgressGateway.nodeSelector.matchLabels) 0) }}
+{{ if and .Values.ciliumEgressGateway.nodeSelector.matchLabels (ne (len .Values.ciliumEgressGateway.nodeSelector.matchLabels) 0) }}
 {{- toYaml .Values.ciliumEgressGateway.nodeSelector.matchLabels | indent 8 }}
 {{- else if .Values.ciliumEgressGateway.nodeHostname }}
-        kubernetes.io/hostname: {{ .Values.ciliumEgressGateway.nodeHostname }}
+        kubernetes.io/hostname: {{ .Values.ciliumEgressGateway.nodeHostname | quote }}
 {{- end }}
 {{- end }}
 {{- if .Values.ciliumEgressGateway.egressIP }}
