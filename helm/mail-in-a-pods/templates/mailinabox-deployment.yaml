@@ -19,6 +19,7 @@ spec:
       labels:
         {{- include "mailinabox.selectorLabels" . | nindent 8 }}
         component: mailinabox
+        app: mailinabox
     spec:
       serviceAccountName: {{ include "mailinabox.fullname" . }}-gateway-ip-fetcher
       containers:
