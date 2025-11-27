@@ -26,3 +26,15 @@ fi
 # Ensure files are owned by the opendkim user and are private otherwise.
 chown -R opendkim:opendkim "$STORAGE_ROOT/mail/dkim"
 chmod go-rwx "$STORAGE_ROOT/mail/dkim"
+
+#Fill KeyTable and SigningTable
+SELECTOR="mail"
+KEY_FILE="$STORAGE_ROOT/mail/dkim/mail.private"
+DOMAIN=$PRIMARY_HOSTNAME
+
+echo "${SELECTOR}._domainkey.${DOMAIN} ${DOMAIN}:${SELECTOR}:${KEY_FILE}" > /etc/opendkim/KeyTable
+echo "*@${DOMAIN} ${SELECTOR}._domainkey.${DOMAIN}" >> /etc/opendkim/SigningTable
+
+# Ensure proper permissions
+chown root:root /etc/opendkim/KeyTable /etc/opendkim/SigningTable
+chmod 644 /etc/opendkim/KeyTable /etc/opendkim/SigningTable

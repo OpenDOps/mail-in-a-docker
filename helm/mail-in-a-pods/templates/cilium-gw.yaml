@@ -13,11 +13,13 @@ spec:
     # loadBalancerClass: io.cilium/l2-announcer
     # loadBalancerClass: io.cilium/bgp-control-plane
 
-    # Optional: Further control the service behavior
-    # Or "Local" for client IP visibility
-    # Client IP will be visible anyway (even with externalTrafficPolicy = Cluster),
-    # because of externalTrafficPolicy.mode = Hybrid setting in Cilium ConfigMap
-    externalTrafficPolicy: Local
+    # "Local" is prohibited to use with GatewayAPI as said in the [docs](https://docs.cilium.io/en/latest/network/node-ipam/)
+    # the Service LoadBalancer uses dummy endpoints
+    # When "Local" externalTrafficPolicy is set,
+    # EndpointSlices of the Service are used to select the pods and their nodes for loadbalancing
+    # Node selection could be done via Service annotation io.cilium.nodeipam/match-node-labels with Label selectors,
+    # Or you can exclude node from selection by labeling the node with "node.kubernetes.io/exclude-from-external-load-balancers"
+    externalTrafficPolicy: Cluster
 
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -43,13 +45,21 @@ metadata:
   namespace: mailer
   annotations:
     cert-manager.io/cluster-issuer: {{ include "mailinabox.fullname" . }}-cert-issuer
+    {{- with .Values.gateway.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   gatewayClassName: cilium-custom-lb
-  # infrastructure:
-  #   annotations:
-  #     io.cilium/shared-lb-ipam-ip-pool: "mailer-ip-pool"
-  #   labels:
-  #     use-mailer-pool: "true"
+{{- if or (and .Values.gateway.nodesSelector (ne (len .Values.gateway.nodesSelector) 0)) (and .Values.gateway.infrastructure.annotations (ne (len .Values.gateway.infrastructure.annotations) 0)) }}
+  infrastructure:
+    annotations:
+{{- if and .Values.gateway.nodesSelector (ne (len .Values.gateway.nodesSelector) 0) }}
+      io.cilium.nodeipam/match-node-labels: {{ include "mailinabox.nodeSelectorToLabelString" .Values.gateway.nodesSelector }}
+{{- end }}
+{{- with .Values.gateway.infrastructure.annotations }}
+{{- toYaml . | nindent 6 }}
+{{- end }}
+{{- end }}
   listeners:
     # Health check listener (lowest port is used for health checks by default)
     - name: health

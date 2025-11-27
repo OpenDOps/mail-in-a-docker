@@ -100,3 +100,15 @@ backendRefs:
   weight: 1
 {{- end }}
 {{- end }}
+
+{{/*
+Convert nodeSelector map to label selector string for Cilium node selection
+Example: {kubernetes.io/hostname: node1, node-role.kubernetes.io/gateway: ""} -> "kubernetes.io/hostname=node1,node-role.kubernetes.io/gateway="
+*/}}
+{{- define "mailinabox.nodeSelectorToLabelString" -}}
+{{- $parts := list }}
+{{- range $key, $value := . }}
+{{- $parts = append $parts (printf "%s=%s" $key ($value | toString)) }}
+{{- end }}
+{{- $parts | join "," }}
+{{- end }}
