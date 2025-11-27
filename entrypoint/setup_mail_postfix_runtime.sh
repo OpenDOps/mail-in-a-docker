@@ -43,8 +43,9 @@ tools/editconf.py /etc/postfix/main.cf \
 	mydestination=localhost \
 	maillog_file=/var/log/mail.log \
 	debug_peer_level=2 \
-  smtp_tls_security_level = may \
-  smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+  smtp_tls_security_level=may \
+  smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt \
+  virtual_transport=lmtp:[127.0.0.1]:10026
 
 # Update outgoing mail header filters with runtime hostname/IP values.
 sed -i "s/PRIMARY_HOSTNAME/$PRIMARY_HOSTNAME/" /etc/postfix/outgoing_mail_header_filters
